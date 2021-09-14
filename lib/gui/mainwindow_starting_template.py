@@ -3,7 +3,7 @@ import os
 import tkinter as tk
 import qdarkstyle
 from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QMainWindow, QApplication, QWidget, QAction
+from PySide2.QtWidgets import QMainWindow, QApplication, QWidget, QAction, QStatusBar
 from PySide2.QtGui import QIcon
 
 _STR_PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
@@ -30,6 +30,10 @@ class MainWindowTemplate(QMainWindow):
         super(MainWindowTemplate, self).__init__(parent)  # super().__init__()
         self.app = app
 
+        # ----------------------------- #
+        # ----- Set Other Widgets ----- #
+        # ----------------------------- #
+
         # -------------------------- #
         # ----- Set MainWindow ----- #
         # -------------------------- #
@@ -52,6 +56,24 @@ class MainWindowTemplate(QMainWindow):
         # ******************* #
 
         self.createMenuBar()  # Create all Menu/Sub-Menu/Actions
+
+        # ---------------------------- #
+        # ----- Set Main Content ----- #
+        # ---------------------------- #
+
+        # ------------------------- #
+        # ----- Set StatusBar ----- #
+        # ------------------------- #
+        self.statusBar = QStatusBar()  # Create Status Bar
+
+        # ------------------------------- #
+        # ----- Set Actions Signals ----- #
+        # ------------------------------- #
+        self.setActions_SignalSlots()  # Contains all the actions
+
+        # --------------------- #
+        # ----- Variables ----- #
+        # --------------------- #
 
     # -------------------------- #
     # ----- Static Methods ----- #
@@ -113,6 +135,22 @@ class MainWindowTemplate(QMainWindow):
         # Set Actions and Menus to menuTools
         # Project Menu/Actions (Calendar, Machine Learning, )
         menuTools.addSeparator()
+
+    # ------------------- #
+    # ----- Actions ----- #
+    # ------------------- #
+    def setActions_SignalSlots(self):
+        # Triggered Actions
+        # File Menu
+        self.actionExit.triggered.connect(self.actionExit_func_)  # actionExit
+
+    # ************ #
+    # *** File *** #
+    # ************ #
+    def actionExit_func_(self):
+        self.close()  # close the application
+        QApplication.closeAllWindows()
+
 
 # ******************************************************* #
 # ********************   EXECUTION   ******************** #
