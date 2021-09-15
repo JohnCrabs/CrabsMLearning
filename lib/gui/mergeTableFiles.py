@@ -1,7 +1,8 @@
 import sys
 import os
 import tkinter as tk
-from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem
+from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
+    QListWidget
 from PySide2.QtGui import QIcon
 
 _PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
@@ -19,6 +20,9 @@ class WidgetMergeTableFiles(QWidget):
     def __init__(self, w=512, h=512, minW=256, minH=256, maxW=512, maxH=512,
                  winTitle='My Window', iconPath=''):
         super().__init__()
+
+        self.setStyle_()
+
         # ---------------------- #
         # ----- Set Window ----- #
         # ---------------------- #
@@ -40,17 +44,35 @@ class WidgetMergeTableFiles(QWidget):
         self.buttonCancel = QPushButton('Cancel')
         self.buttonCancel.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)
 
+        # -------------------------------- #
+        # ----- Set QListWidgetItems ----- #
+        # -------------------------------- #
+        self.listWidget_FileList = QListWidget()
+
+        self.listWidget_ColumnList = QListWidget()
+
         # ----------------------- #
         # ----- Set Actions ----- #
         # ----------------------- #
         self.setActions_()
 
+    def setStyle_(self):
+        style = """
+                QListWidget {
+                    background: lightgrey;
+                }
+                """
+        self.setStyleSheet(style)
+
     def setWidget(self):
         # Set buttons in hbox
         hbox_buttons = QHBoxLayout()  # Create Horizontal Layout
-        hbox_buttons.addSpacerItem(QSpacerItem(_INT_MAX_STRETCH, 0))  # Add Spacer
-        hbox_buttons.addWidget(self.buttonOk)  # Add the OK Button
-        hbox_buttons.addWidget(self.buttonCancel)  # Add the CANCEL Button
+        hbox_buttons.addWidget(self.listWidget_FileList)  # Add FileList
+        hbox_buttons.addWidget(self.listWidget_ColumnList)  # Add ColumnList
+
+        # hbox_buttons.addSpacerItem(QSpacerItem(_INT_MAX_STRETCH, 0))  # Add Spacer
+        # hbox_buttons.addWidget(self.buttonOk)  # Add the OK Button
+        # hbox_buttons.addWidget(self.buttonCancel)  # Add the CANCEL Button
 
         self.vbox_main_layout.addLayout(hbox_buttons)
 
