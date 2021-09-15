@@ -1,7 +1,7 @@
 import sys
 import os
 import tkinter as tk
-from PySide2.QtWidgets import QWidget, QApplication
+from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QSpacerItem
 from PySide2.QtGui import QIcon
 
 _PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
@@ -29,6 +29,19 @@ class WidgetMergeTableFiles(QWidget):
         self.setMinimumHeight(minH)  # Set Window Minimum Height
         self.setMaximumWidth(maxW)  # Set Window Maximum Width
         self.setMaximumHeight(maxH)  # Set Window Maximum Width
+
+        # -------------------------- #
+        # ----- Set PushButton ----- #
+        # -------------------------- #
+        self.buttonOk = QPushButton('Ok')
+        self.buttonCancel = QPushButton('Cancel')
+
+    def setWidget(self):
+        # Set buttons in hbox
+        hbox_buttons = QHBoxLayout()  # Create Horizontal Layout
+        hbox_buttons.addSpacerItem(QSpacerItem(_INT_MAX_STRETCH, 0))  # Add Spacer
+        hbox_buttons.addWidget(self.buttonOk)  # Add the OK Button
+        hbox_buttons.addWidget(self.buttonCancel)  # Add the CANCEL Button
 
 
 def exec_app(w=512, h=512, minW=256, minH=256, maxW=512, maxH=512, winTitle='My Window', iconPath=''):

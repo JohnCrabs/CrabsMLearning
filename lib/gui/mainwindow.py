@@ -194,6 +194,7 @@ class MainWindowTemplate(QMainWindow):
     # *** Tools *** #
     # ************* #
     def actionMergeTableFiles_func_(self):
+        self.widgetMergeTableFiles.setWidget()
         self.widgetMergeTableFiles.show()
 
 # ******************************************************* #
