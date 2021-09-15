@@ -1,7 +1,7 @@
 import sys
 import os
 import tkinter as tk
-from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QSpacerItem
+from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem
 from PySide2.QtGui import QIcon
 
 _PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
@@ -30,11 +30,20 @@ class WidgetMergeTableFiles(QWidget):
         self.setMaximumWidth(maxW)  # Set Window Maximum Width
         self.setMaximumHeight(maxH)  # Set Window Maximum Width
 
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
         # -------------------------- #
         # ----- Set PushButton ----- #
         # -------------------------- #
         self.buttonOk = QPushButton('Ok')
+        self.buttonOk.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)
         self.buttonCancel = QPushButton('Cancel')
+        self.buttonCancel.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)
+
+        # ----------------------- #
+        # ----- Set Actions ----- #
+        # ----------------------- #
+        self.setActions_()
 
     def setWidget(self):
         # Set buttons in hbox
@@ -43,6 +52,26 @@ class WidgetMergeTableFiles(QWidget):
         hbox_buttons.addWidget(self.buttonOk)  # Add the OK Button
         hbox_buttons.addWidget(self.buttonCancel)  # Add the CANCEL Button
 
+        self.vbox_main_layout.addLayout(hbox_buttons)
+
+    # ------------------- #
+    # ----- Actions ----- #
+    # ------------------- #
+    def setActions_(self):
+        self.buttonOk.clicked.connect(self.actionButtonOk)
+        self.buttonCancel.clicked.connect(self.actionButtonOk)
+
+    def actionButtonOk(self):
+        # -----> Write here code for ok <-----
+        self.close()  # Close the window
+
+    def actionButtonCancel(self):
+        self.close()  # Close the window
+
+
+# ******************************************************* #
+# ********************   EXECUTION   ******************** #
+# ******************************************************* #
 
 def exec_app(w=512, h=512, minW=256, minH=256, maxW=512, maxH=512, winTitle='My Window', iconPath=''):
     myApp = QApplication(sys.argv)  # Set Up Application
