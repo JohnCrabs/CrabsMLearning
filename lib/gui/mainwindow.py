@@ -6,8 +6,6 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QMainWindow, QApplication, QWidget, QAction, QStatusBar
 from PySide2.QtGui import QIcon
 
-from lib.gui.mergeTableFiles import WidgetMergeTableFiles
-
 _STR_PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
 _INT_SCREEN_WIDTH = tk.Tk().winfo_screenwidth()  # get the screen width
@@ -35,14 +33,6 @@ class MainWindowTemplate(QMainWindow):
         # ----------------------------- #
         # ----- Set Other Widgets ----- #
         # ----------------------------- #
-
-        # ***************************** #
-        # Tools -> ....                 #
-        self.widgetMergeTableFiles = WidgetMergeTableFiles(w=640, h=128, minW=640, minH=128, maxW=640, maxH=128,
-                                                           winTitle='New Project', iconPath=_ICON_PATH_LOGO_32x32)
-
-        #                               #
-        # ***************************** #
 
         # -------------------------- #
         # ----- Set MainWindow ----- #
@@ -151,6 +141,7 @@ class MainWindowTemplate(QMainWindow):
         menuTools = self.mainMenu.addMenu('Tools')  # File
         # Set Actions and Menus to menuTools
         # Project Menu/Actions (Calendar, Machine Learning, )
+        menuTools.addAction("Merge Table Files")
         menuTools.addSeparator()
 
     # ------------------- #
