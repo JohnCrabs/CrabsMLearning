@@ -39,8 +39,8 @@ class MainWindowTemplate(QMainWindow):
         # ***************************** #
         # Tools -> ....                 #
         self.widgetMergeTableFiles = WidgetMergeTableFiles(w=512, h=512,
-                                                           minW=512, minH=512,
-                                                           maxW=512, maxH=512,
+                                                           minW=840, minH=512,
+                                                           maxW=840, maxH=512,
                                                            winTitle='Merge Table Files',
                                                            iconPath=_ICON_PATH_LOGO_32x32)
 

@@ -158,6 +158,15 @@ class WidgetMergeTableFiles(QWidget):
         else:
             return False, None
 
+    def addItemsToList(self, fullPath):
+        fileName = fullPath.split('/')[-1:][0]
+        self.dict_tableFilesPaths[fileName] = {'name': fileName,
+                                               'full_path': fullPath,
+                                               'columns': file_manip.getColumnNames(fullPath, splitter=','),
+                                               'common_columns': 'nan',
+                                               'merge_columns': 'nan'}
+        self.listWidget_FileList.addItem(QListWidgetItem(fileName))  # Add Item to List
+
     # -------------------------------- #
     # ----- Print/Show Functions ----- #
     # -------------------------------- #
@@ -176,6 +185,8 @@ class WidgetMergeTableFiles(QWidget):
         self.buttonAdd.clicked.connect(self.actionButtonAdd)
         self.buttonRemove.clicked.connect(self.actionButtonRemove)
 
+        self.listWidget_FileList.itemClicked.connect(self.itemClicked_event)
+
     def actionButtonAdd(self):
         # Open a dialog for CSV files
         success, dialog = self.openFileDialog(dialogName='Open Table File (Currently strictly CSV)',
@@ -185,24 +196,27 @@ class WidgetMergeTableFiles(QWidget):
 
         if success:  # if True
             for filePath in dialog.selectedFiles():  # for each file in all selected files
-                fullPath = filePath
                 fileName = filePath.split('/')[-1:][0]
                 # print(fullPath)
                 # print(fileName)
                 # print()
-                self.dict_tableFilesPaths[fileName] = {'name': fileName,
-                                                       'full_path': fullPath,
-                                                       'columns': file_manip.getColumnNames(fullPath, splitter=','),
-                                                       'common_columns': 'nan',
-                                                       'merge_columns': 'nan'}
+                if fileName not in self.dict_tableFilesPaths.keys():
+                    self.addItemsToList(filePath)
+                else:
+                    pass
 
-                self.listWidget_FileList.addItem(QListWidgetItem(fileName))
-
-            self.prt_dict_tableFilePaths()
+            # self.prt_dict_tableFilePaths()
 
     def actionButtonRemove(self):
-        pass
-        # self.close()  # Close the window
+        self.dict_tableFilesPaths.pop(self.listWidget_FileList.currentItem().text(), None)
+        self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())
+        self.listWidget_ColumnList.clear()
+
+    def itemClicked_event(self):
+        self.listWidget_ColumnList.clear()
+        fileName = self.listWidget_FileList.currentItem().text()
+        for column in self.dict_tableFilesPaths[fileName]['columns']:
+            self.listWidget_ColumnList.addItem(QListWidgetItem(column))
 
 
 # ******************************************************* #
