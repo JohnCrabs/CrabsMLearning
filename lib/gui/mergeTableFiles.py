@@ -3,7 +3,7 @@ import os
 import tkinter as tk
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
     QListWidget
-from PySide2.QtGui import QIcon
+from PySide2.QtGui import QIcon, QPixmap
 
 _PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
@@ -14,6 +14,9 @@ _INT_WIN_HEIGHT = 512  # this variable is only for the if __name__ == "__main__"
 
 _INT_MAX_STRETCH = 100000  # Spacer Max Stretch
 _INT_BUTTON_MIN_WIDTH = 50  # Minimum Button Width
+
+_ICON_ADD = _PROJECT_FOLDER + "/icon/add_cross_128x128_filled.png"
+_ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128_filled.png"
 
 
 class WidgetMergeTableFiles(QWidget):
@@ -39,10 +42,17 @@ class WidgetMergeTableFiles(QWidget):
         # -------------------------- #
         # ----- Set PushButton ----- #
         # -------------------------- #
-        self.buttonOk = QPushButton('Ok')
-        self.buttonOk.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)
-        self.buttonCancel = QPushButton('Cancel')
-        self.buttonCancel.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)
+        self.buttonAdd = QPushButton()  # Create button for Add
+        self.buttonAdd.setIcon(QIcon(QPixmap(_ICON_ADD)))  # Add Icon
+        self.buttonAdd.setMinimumWidth(64)  # Set Minimum Width
+        self.buttonAdd.setMaximumWidth(64)  # Set Maximum Width
+        self.buttonAdd.setToolTip('Add table files.')  # Add Description
+
+        self.buttonRemove = QPushButton()  # Create button for Remove
+        self.buttonRemove.setIcon(QIcon(QPixmap(_ICON_REMOVE)))  # Add Icon
+        self.buttonRemove.setMinimumWidth(64)  # Set Minimum Width
+        self.buttonRemove.setMaximumWidth(64)  # Set Maximum Width
+        self.buttonAdd.setToolTip('Remove table files.')  # Add Description
 
         # -------------------------------- #
         # ----- Set QListWidgetItems ----- #
@@ -65,30 +75,42 @@ class WidgetMergeTableFiles(QWidget):
         self.setStyleSheet(style)
 
     def setWidget(self):
-        # Set buttons in hbox
-        hbox_buttons = QHBoxLayout()  # Create Horizontal Layout
-        hbox_buttons.addWidget(self.listWidget_FileList)  # Add FileList
-        hbox_buttons.addWidget(self.listWidget_ColumnList)  # Add ColumnList
+        # Set add/remove button in vbox
+        hbox_listFileButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_listFileButtons.addWidget(self.buttonAdd)  # Add buttonAdd
+        hbox_listFileButtons.addWidget(self.buttonRemove)  # Add buttonRemove
+
+        # Set FileList in hbox
+        vbox_listFile = QVBoxLayout()  # Create a Vertical Box Layout
+        vbox_listFile.addWidget(self.listWidget_FileList)  # Add FileList
+        vbox_listFile.addLayout(hbox_listFileButtons)  # Add vbox_listFileButtons layout
+
+        # Set ListWidget in hbox
+        hbox_listWidget = QHBoxLayout()  # Create Horizontal Layout
+        hbox_listWidget.addLayout(vbox_listFile)  # Add hbox_listFile layout
+        hbox_listWidget.addWidget(self.listWidget_ColumnList)  # Add ColumnList
 
         # hbox_buttons.addSpacerItem(QSpacerItem(_INT_MAX_STRETCH, 0))  # Add Spacer
         # hbox_buttons.addWidget(self.buttonOk)  # Add the OK Button
         # hbox_buttons.addWidget(self.buttonCancel)  # Add the CANCEL Button
 
-        self.vbox_main_layout.addLayout(hbox_buttons)
+        self.vbox_main_layout.addLayout(hbox_listWidget)
 
     # ------------------- #
     # ----- Actions ----- #
     # ------------------- #
     def setActions_(self):
-        self.buttonOk.clicked.connect(self.actionButtonOk)
-        self.buttonCancel.clicked.connect(self.actionButtonOk)
+        self.buttonAdd.clicked.connect(self.actionButtonAdd)
+        self.buttonRemove.clicked.connect(self.actionButtonRemove)
 
-    def actionButtonOk(self):
+    def actionButtonAdd(self):
         # -----> Write here code for ok <-----
-        self.close()  # Close the window
+        # self.close()  # Close the window
+        pass
 
-    def actionButtonCancel(self):
-        self.close()  # Close the window
+    def actionButtonRemove(self):
+        pass
+        # self.close()  # Close the window
 
 
 # ******************************************************* #
