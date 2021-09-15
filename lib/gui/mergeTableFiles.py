@@ -1,10 +1,14 @@
 import sys
 import os
 import tkinter as tk
+from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
-    QListWidget
+    QListWidget, QFileDialog
 from PySide2.QtGui import QIcon, QPixmap
 
+import lib.core.file_manipulation as file_manip
+
+_NEW_PROJECT_DEFAULT_FOLDER = file_manip.PATH_HOME
 _PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
 _INT_SCREEN_WIDTH = tk.Tk().winfo_screenwidth()  # get the screen width
@@ -14,9 +18,12 @@ _INT_WIN_HEIGHT = 512  # this variable is only for the if __name__ == "__main__"
 
 _INT_MAX_STRETCH = 100000  # Spacer Max Stretch
 _INT_BUTTON_MIN_WIDTH = 50  # Minimum Button Width
+_INT_ADD_REMOVE_BUTTON_SIZE = 48
 
-_ICON_ADD = _PROJECT_FOLDER + "/icon/add_cross_128x128_filled.png"
-_ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128_filled.png"
+_ICON_ADD = _PROJECT_FOLDER + "/icon/add_cross_128x128.png"
+_ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128.png"
+# _ICON_ADD = _PROJECT_FOLDER + "/icon/add_cross_128x128_filled.png"
+# _ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128_filled.png"
 
 
 class WidgetMergeTableFiles(QWidget):
@@ -43,15 +50,19 @@ class WidgetMergeTableFiles(QWidget):
         # ----- Set PushButton ----- #
         # -------------------------- #
         self.buttonAdd = QPushButton()  # Create button for Add
+        self.buttonAdd.setMinimumWidth(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Width
+        self.buttonAdd.setMaximumWidth(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Width
+        self.buttonAdd.setMinimumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Width
+        self.buttonAdd.setMaximumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Width
         self.buttonAdd.setIcon(QIcon(QPixmap(_ICON_ADD)))  # Add Icon
-        self.buttonAdd.setMinimumWidth(64)  # Set Minimum Width
-        self.buttonAdd.setMaximumWidth(64)  # Set Maximum Width
         self.buttonAdd.setToolTip('Add table files.')  # Add Description
 
         self.buttonRemove = QPushButton()  # Create button for Remove
+        self.buttonRemove.setMinimumWidth(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Width
+        self.buttonRemove.setMaximumWidth(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Width
+        self.buttonRemove.setMinimumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Width
+        self.buttonRemove.setMaximumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Width
         self.buttonRemove.setIcon(QIcon(QPixmap(_ICON_REMOVE)))  # Add Icon
-        self.buttonRemove.setMinimumWidth(64)  # Set Minimum Width
-        self.buttonRemove.setMaximumWidth(64)  # Set Maximum Width
         self.buttonAdd.setToolTip('Remove table files.')  # Add Description
 
         # -------------------------------- #
@@ -66,10 +77,27 @@ class WidgetMergeTableFiles(QWidget):
         # ----------------------- #
         self.setActions_()
 
+        # --------------------- #
+        # ----- Variables ----- #
+        # --------------------- #
+        self.str_pathToTheProject = _NEW_PROJECT_DEFAULT_FOLDER  # var to store the projectPath
+
     def setStyle_(self):
         style = """
                 QListWidget {
-                    background: lightgrey;
+                    background-color: white;
+                }
+                
+                QPushButton {
+                    background-color: lightblue;
+                }
+                
+                QPushButton:hover {
+                    background-color: lightgrey;
+                }
+                
+                QPushButton:pressed {
+                    background-color: lightyellow;
                 }
                 """
         self.setStyleSheet(style)
@@ -96,6 +124,21 @@ class WidgetMergeTableFiles(QWidget):
 
         self.vbox_main_layout.addLayout(hbox_listWidget)
 
+    def openFileDialog(self, dialogName='Pick a File', dialogOpenAt=file_manip.PATH_HOME, dialogFilters=None,
+                       dialogMultipleSelection: bool = False):
+        if dialogFilters is None:  # if dialogFilter is None
+            dialogFilters = ['All Files (*.*)']  # set default Value
+        dialog = QFileDialog(self, dialogName)  # Open a Browse Dialog
+        if dialogMultipleSelection:  # if True
+            dialog.setFileMode(QFileDialog.ExistingFiles)  # Set multiple selection
+        dialog.setDirectory(dialogOpenAt)  # Set default directory to the default project
+        dialog.setSidebarUrls([QUrl.fromLocalFile(dialogOpenAt)])  # Open to default path
+        dialog.setNameFilters(dialogFilters)  # Choose SPACE Files
+        if dialog.exec_() == QFileDialog.Accepted:  # if path Accepted
+            return True, dialog
+        else:
+            return False, None
+
     # ------------------- #
     # ----- Actions ----- #
     # ------------------- #
@@ -104,9 +147,13 @@ class WidgetMergeTableFiles(QWidget):
         self.buttonRemove.clicked.connect(self.actionButtonRemove)
 
     def actionButtonAdd(self):
-        # -----> Write here code for ok <-----
-        # self.close()  # Close the window
-        pass
+        # Open a dialog for CSV files
+        success, dialog = self.openFileDialog(dialogName='Open Table File (Currently strictly CSV)',
+                                              dialogOpenAt=self.str_pathToTheProject,
+                                              dialogFilters=["CSV File Format (*.csv)"],
+                                              dialogMultipleSelection=True)
+
+        print(dialog)
 
     def actionButtonRemove(self):
         pass
