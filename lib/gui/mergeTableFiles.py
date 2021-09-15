@@ -3,7 +3,7 @@ import os
 import tkinter as tk
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
-    QListWidget, QFileDialog
+    QListWidget, QListWidgetItem, QFileDialog
 from PySide2.QtGui import QIcon, QPixmap
 
 import lib.core.file_manipulation as file_manip
@@ -93,6 +93,20 @@ class WidgetMergeTableFiles(QWidget):
                     background-color: white;
                 }
                 
+                QListWidget::item {
+                    color: black;
+                }
+                
+                QListWidget::item:hover {
+                    color: grey;
+                    background-color: lightyellow;
+                }
+                
+                QListWidget::item:selected {
+                    color: red;
+                    background-color: lightblue;
+                }
+                
                 QPushButton {
                     background-color: lightblue;
                 }
@@ -179,8 +193,10 @@ class WidgetMergeTableFiles(QWidget):
                 self.dict_tableFilesPaths[fileName] = {'name': fileName,
                                                        'full_path': fullPath,
                                                        'columns': file_manip.getColumnNames(fullPath, splitter=','),
-                                                       'common_columns': '',
-                                                       'merge_columns': ''}
+                                                       'common_columns': 'nan',
+                                                       'merge_columns': 'nan'}
+
+                self.listWidget_FileList.addItem(QListWidgetItem(fileName))
 
             self.prt_dict_tableFilePaths()
 
