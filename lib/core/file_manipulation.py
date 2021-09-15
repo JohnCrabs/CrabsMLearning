@@ -87,3 +87,9 @@ def pathFileName(path):
 
 def pathFileSuffix(path):
     return os.path.splitext(path)[1]
+
+
+def getColumnNames(path, splitter=','):
+    with open(path, 'r') as f:
+        columnLine = f.readline()
+        return columnLine.rstrip().lstrip().split(splitter)

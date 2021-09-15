@@ -81,6 +81,11 @@ class WidgetMergeTableFiles(QWidget):
         # ----- Variables ----- #
         # --------------------- #
         self.str_pathToTheProject = _NEW_PROJECT_DEFAULT_FOLDER  # var to store the projectPath
+        self.dict_tableFilesPaths = {}  # a dictionary to store the table files
+
+    # --------------------------- #
+    # ----- Reuse Functions ----- #
+    # --------------------------- #
 
     def setStyle_(self):
         style = """
@@ -139,6 +144,17 @@ class WidgetMergeTableFiles(QWidget):
         else:
             return False, None
 
+    # -------------------------------- #
+    # ----- Print/Show Functions ----- #
+    # -------------------------------- #
+    def prt_dict_tableFilePaths(self):
+        for key in self.dict_tableFilesPaths.keys():
+            print("file-key: " + key)
+            for sec_key in self.dict_tableFilesPaths[key].keys():
+                print(str(sec_key) + ': ')
+                print(self.dict_tableFilesPaths[key][sec_key])
+            print()
+
     # ------------------- #
     # ----- Actions ----- #
     # ------------------- #
@@ -153,7 +169,20 @@ class WidgetMergeTableFiles(QWidget):
                                               dialogFilters=["CSV File Format (*.csv)"],
                                               dialogMultipleSelection=True)
 
-        print(dialog)
+        if success:  # if True
+            for filePath in dialog.selectedFiles():  # for each file in all selected files
+                fullPath = filePath
+                fileName = filePath.split('/')[-1:][0]
+                # print(fullPath)
+                # print(fileName)
+                # print()
+                self.dict_tableFilesPaths[fileName] = {'name': fileName,
+                                                       'full_path': fullPath,
+                                                       'columns': file_manip.getColumnNames(fullPath, splitter=','),
+                                                       'common_columns': '',
+                                                       'merge_columns': ''}
+
+            self.prt_dict_tableFilePaths()
 
     def actionButtonRemove(self):
         pass

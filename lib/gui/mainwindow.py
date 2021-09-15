@@ -216,4 +216,4 @@ def exec_app(w=512, h=512, minW=256, minH=256, winTitle='My Window', iconPath=''
 # ****************************************************** #
 if __name__ == "__main__":
     exec_app(w=1024, h=512, minW=512, minH=256,
-             winTitle='SPACE', iconPath=_ICON_PATH_LOGO_32x32)
+             winTitle='CrabsMLearning', iconPath=_ICON_PATH_LOGO_32x32)
