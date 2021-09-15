@@ -6,6 +6,8 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QMainWindow, QApplication, QWidget, QAction, QStatusBar
 from PySide2.QtGui import QIcon
 
+from lib.gui.mergeTableFiles import WidgetMergeTableFiles
+
 _STR_PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
 _INT_SCREEN_WIDTH = tk.Tk().winfo_screenwidth()  # get the screen width
@@ -34,6 +36,17 @@ class MainWindowTemplate(QMainWindow):
         # ----- Set Other Widgets ----- #
         # ----------------------------- #
 
+        # ***************************** #
+        # Tools -> ....                 #
+        self.widgetMergeTableFiles = WidgetMergeTableFiles(w=512, h=512,
+                                                           minW=512, minH=512,
+                                                           maxW=512, maxH=512,
+                                                           winTitle='Merge Table Files',
+                                                           iconPath=_ICON_PATH_LOGO_32x32)
+
+        #                               #
+        # ***************************** #
+
         # -------------------------- #
         # ----- Set MainWindow ----- #
         # -------------------------- #
@@ -53,6 +66,11 @@ class MainWindowTemplate(QMainWindow):
         self.actionExit = QAction(QIcon(_ICON_PATH_EXIT_APP_48x48), 'Exit' + self.setSpaces(_INT_SPACES))  # Exit
         self.actionExit.setShortcut('Ctrl+Q')  # Ctrl + Q
         self.actionExit.setToolTip('Application exit.')  # ToolTip
+
+        self.actionMergeTableFiles = QAction('Merge Table Files' + self.setSpaces(_INT_SPACES))  # MergeTableFiles
+        # self.actionMergeTableFiles.setShortcut()
+        self.actionMergeTableFiles.setToolTip('Merge multiple table files using specific columns in one table file.')
+
         # ******************* #
 
         self.createMenuBar()  # Create all Menu/Sub-Menu/Actions
@@ -141,16 +159,29 @@ class MainWindowTemplate(QMainWindow):
         menuTools = self.mainMenu.addMenu('Tools')  # File
         # Set Actions and Menus to menuTools
         # Project Menu/Actions (Calendar, Machine Learning, )
-        menuTools.addAction("Merge Table Files")
+        menuTools.addAction(self.actionMergeTableFiles)
         menuTools.addSeparator()
 
     # ------------------- #
     # ----- Actions ----- #
     # ------------------- #
     def setActions_SignalSlots(self):
-        # Triggered Actions
-        # File Menu
+        """
+        A function for storing all the trigger connections
+        :return: Nothing
+        """
+        # ----------------- #
+        # Triggered Actions #
+        # ----------------- #
+        # ********* #
+        # Menu FILE #
+        # ********* #
         self.actionExit.triggered.connect(self.actionExit_func_)  # actionExit
+
+        # ********** #
+        # Menu TOOLS #
+        # ********** #
+        self.actionMergeTableFiles.triggered.connect(self.actionMergeTableFiles_func_)  # actionMergeTableFiles
 
     # ************ #
     # *** File *** #
@@ -159,6 +190,11 @@ class MainWindowTemplate(QMainWindow):
         self.close()  # close the application
         QApplication.closeAllWindows()
 
+    # ************* #
+    # *** Tools *** #
+    # ************* #
+    def actionMergeTableFiles_func_(self):
+        self.widgetMergeTableFiles.show()
 
 # ******************************************************* #
 # ********************   EXECUTION   ******************** #
