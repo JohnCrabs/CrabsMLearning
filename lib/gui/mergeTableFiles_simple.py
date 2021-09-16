@@ -26,7 +26,7 @@ _ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128.png"
 # _ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128_filled.png"
 
 
-class WidgetMergeTableFiles(QWidget):
+class WidgetMergeTableFilesSimple(QWidget):
     def __init__(self, w=512, h=512, minW=256, minH=256, maxW=512, maxH=512,
                  winTitle='My Window', iconPath=''):
         super().__init__()
@@ -225,8 +225,8 @@ class WidgetMergeTableFiles(QWidget):
 
 def exec_app(w=512, h=512, minW=256, minH=256, maxW=512, maxH=512, winTitle='My Window', iconPath=''):
     myApp = QApplication(sys.argv)  # Set Up Application
-    widgetWin = WidgetMergeTableFiles(w=w, h=h, minW=minW, minH=minH, maxW=maxW, maxH=maxH,
-                                      winTitle=winTitle, iconPath=iconPath)  # Create MainWindow
+    widgetWin = WidgetMergeTableFilesSimple(w=w, h=h, minW=minW, minH=minH, maxW=maxW, maxH=maxH,
+                                            winTitle=winTitle, iconPath=iconPath)  # Create MainWindow
     widgetWin.show()  # Show Window
     myApp.exec_()  # Execute Application
     sys.exit(0)  # Exit Application

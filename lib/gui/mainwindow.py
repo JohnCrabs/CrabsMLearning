@@ -6,7 +6,8 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QMainWindow, QApplication, QWidget, QAction, QStatusBar
 from PySide2.QtGui import QIcon
 
-from lib.gui.mergeTableFiles import WidgetMergeTableFiles
+from lib.gui.mergeTableFiles_simple import WidgetMergeTableFilesSimple
+from lib.gui.mergeTableFiles_calendar import WidgetMergeTableFilesCalendar
 
 _STR_PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
@@ -38,11 +39,17 @@ class MainWindowTemplate(QMainWindow):
 
         # ***************************** #
         # Tools -> ....                 #
-        self.widgetMergeTableFiles = WidgetMergeTableFiles(w=512, h=512,
-                                                           minW=840, minH=512,
-                                                           maxW=840, maxH=512,
-                                                           winTitle='Merge Table Files',
-                                                           iconPath=_ICON_PATH_LOGO_32x32)
+        self.widgetMergeTableFilesSimple = WidgetMergeTableFilesSimple(w=512, h=512,
+                                                                       minW=840, minH=512,
+                                                                       maxW=840, maxH=512,
+                                                                       winTitle='Merge Table Files',
+                                                                       iconPath=_ICON_PATH_LOGO_32x32)
+
+        self.widgetMergeTableFilesCalendar = WidgetMergeTableFilesCalendar(w=512, h=512,
+                                                                           minW=840, minH=512,
+                                                                           maxW=840, maxH=512,
+                                                                           winTitle='Merge Table Files',
+                                                                           iconPath=_ICON_PATH_LOGO_32x32)
 
         #                               #
         # ***************************** #
@@ -63,13 +70,21 @@ class MainWindowTemplate(QMainWindow):
         self.mainMenu = self.menuBar()  # Set the Menu Bar
 
         # ***** ACTIONS ***** #
+        # ____ FILE ____ #
         self.actionExit = QAction(QIcon(_ICON_PATH_EXIT_APP_48x48), 'Exit' + self.setSpaces(_INT_SPACES))  # Exit
         self.actionExit.setShortcut('Ctrl+Q')  # Ctrl + Q
         self.actionExit.setToolTip('Application exit.')  # ToolTip
 
-        self.actionMergeTableFiles = QAction('Merge Table Files' + self.setSpaces(_INT_SPACES))  # MergeTableFiles
+        # ____ TOOLS ____ #
+        self.actionMergeTF_Simple = QAction('Simple Merge' + self.setSpaces(_INT_SPACES))  # MergeTableFiles
         # self.actionMergeTableFiles.setShortcut()
-        self.actionMergeTableFiles.setToolTip('Merge multiple table files using specific columns in one table file.')
+        self.actionMergeTF_Simple.setToolTip('Merge multiple table files using specific columns in one table file.')
+
+        self.actionMergeTF_Calendar = QAction(QIcon(_ICON_PATH_CALENDAR_48x48), 'Calendar Merge' +
+                                              self.setSpaces(_INT_SPACES))  # MergeTableFiles
+        # self.actionMergeTableFiles.setShortcut()
+        self.actionMergeTF_Calendar.setToolTip('Merge multiple table files using specific columns in one table file.' +
+                                               ' One at least must be date column.')
 
         # ******************* #
 
@@ -159,7 +174,11 @@ class MainWindowTemplate(QMainWindow):
         menuTools = self.mainMenu.addMenu('Tools')  # File
         # Set Actions and Menus to menuTools
         # Project Menu/Actions (Calendar, Machine Learning, )
-        menuTools.addAction(self.actionMergeTableFiles)
+
+        menuMergeTableFiles = menuTools.addMenu("Merge Table Files")
+        menuMergeTableFiles.addAction(self.actionMergeTF_Simple)
+        menuMergeTableFiles.addAction(self.actionMergeTF_Calendar)
+
         menuTools.addSeparator()
 
     # ------------------- #
@@ -181,7 +200,8 @@ class MainWindowTemplate(QMainWindow):
         # ********** #
         # Menu TOOLS #
         # ********** #
-        self.actionMergeTableFiles.triggered.connect(self.actionMergeTableFiles_func_)  # actionMergeTableFiles
+        self.actionMergeTF_Simple.triggered.connect(self.actionMergeTF_Simple_func_)  # actionMergeTF_Simple
+        self.actionMergeTF_Calendar.triggered.connect(self.actionMergeTF_Calendar_func_)  # actionMergeTF_Calendar
 
     # ************ #
     # *** File *** #
@@ -193,9 +213,14 @@ class MainWindowTemplate(QMainWindow):
     # ************* #
     # *** Tools *** #
     # ************* #
-    def actionMergeTableFiles_func_(self):
-        self.widgetMergeTableFiles.setWidget()
-        self.widgetMergeTableFiles.show()
+    def actionMergeTF_Simple_func_(self):
+        self.widgetMergeTableFilesSimple.setWidget()
+        self.widgetMergeTableFilesSimple.show()
+
+    def actionMergeTF_Calendar_func_(self):
+        self.widgetMergeTableFilesCalendar.setWidget()
+        self.widgetMergeTableFilesCalendar.show()
+
 
 # ******************************************************* #
 # ********************   EXECUTION   ******************** #
