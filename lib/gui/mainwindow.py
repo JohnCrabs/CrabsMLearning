@@ -102,7 +102,7 @@ class MainWindowTemplate(QMainWindow):
         # ------------------------------- #
         # ----- Set Actions Signals ----- #
         # ------------------------------- #
-        self.setActions_SignalSlots()  # Contains all the actions
+        self.setEvents_SignalSlots()  # Contains all the actions
 
         # --------------------- #
         # ----- Variables ----- #
@@ -181,10 +181,10 @@ class MainWindowTemplate(QMainWindow):
 
         menuTools.addSeparator()
 
-    # ------------------- #
-    # ----- Actions ----- #
-    # ------------------- #
-    def setActions_SignalSlots(self):
+    # ------------------ #
+    # ----- Events ----- #
+    # ------------------ #
+    def setEvents_SignalSlots(self):
         """
         A function for storing all the trigger connections
         :return: Nothing

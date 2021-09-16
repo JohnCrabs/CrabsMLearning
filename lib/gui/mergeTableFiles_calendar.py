@@ -109,7 +109,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # ----------------------- #
         # ----- Set Actions ----- #
         # ----------------------- #
-        self.setActions_()
+        self.setEvents_()
 
         # --------------------- #
         # ----- Variables ----- #
@@ -265,14 +265,25 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 print(self.dict_tableFilesPaths[key][sec_key])
             print()
 
-    # ------------------- #
-    # ----- Actions ----- #
-    # ------------------- #
-    def setActions_(self):
+    # ------------------ #
+    # ----- Events ----- #
+    # ------------------ #
+    def setEvents_(self):
+        # Button Events
         self.buttonAdd.clicked.connect(self.actionButtonAdd)
         self.buttonRemove.clicked.connect(self.actionButtonRemove)
 
-        self.listWidget_FileList.currentRowChanged.connect(self.itemClicked_event)
+        self.buttonDateColumn.clicked.connect(self.actionButtonDateColumn)
+        self.buttonRemDateColumn.clicked.connect(self.actionButtonRemDateColumn)
+
+        self.buttonPrimaryEvent.clicked.connect(self.actionButtonPrimaryEvent)
+        self.buttonRemPrimaryEvent.clicked.connect(self.actionButtonRemPrimaryEvent)
+
+        self.buttonEvent.clicked.connect(self.actionButtonEvent)
+        self.buttonRemEvent.clicked.connect(self.actionButtonRemEvent)
+
+        # ListWidget Events
+        self.listWidget_FileList.currentRowChanged.connect(self.fileListRowChanged_event)
 
     def actionButtonAdd(self):
         # Open a dialog for CSV files
@@ -298,9 +309,27 @@ class WidgetMergeTableFilesCalendar(QWidget):
         if self.listWidget_FileList.currentItem() is not None:
             self.dict_tableFilesPaths.pop(self.listWidget_FileList.currentItem().text(), None)
             self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())
-            self.itemClicked_event()
+            self.fileListRowChanged_event()
 
-    def itemClicked_event(self):
+    def actionButtonDateColumn(self):
+        pass
+
+    def actionButtonRemDateColumn(self):
+        pass
+
+    def actionButtonPrimaryEvent(self):
+        pass
+
+    def actionButtonRemPrimaryEvent(self):
+        pass
+
+    def actionButtonEvent(self):
+        pass
+
+    def actionButtonRemEvent(self):
+        pass
+
+    def fileListRowChanged_event(self):
         self.listWidget_ColumnList.clear()
         if self.listWidget_FileList.currentItem() is not None:
             fileName = self.listWidget_FileList.currentItem().text()
