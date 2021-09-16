@@ -256,15 +256,21 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.dict_EventColumns[fileName] = []
         self.listWidget_FileList.addItem(QListWidgetItem(fileName))  # Add Item to List
 
+    def updateDateList(self):
+        self.listWidget_DateColumns.clear()
+        for key in self.dict_DateColumns.keys():
+            if self.dict_DateColumns[key] is not None:
+                self.listWidget_DateColumns.addItem(QListWidgetItem(key + " -> " + self.dict_DateColumns[key]))
+
     # -------------------------------- #
     # ----- Print/Show Functions ----- #
     # -------------------------------- #
     def prt_dict_tableFilePaths(self):
         for key in self.dict_tableFilesPaths.keys():
-            print("file-key: " + key)
+            print("file-key: ", key)
             for sec_key in self.dict_tableFilesPaths[key].keys():
-                print(str(sec_key) + ': ')
-                print(self.dict_tableFilesPaths[key][sec_key])
+                print(str(sec_key) + ': ', self.dict_tableFilesPaths[key][sec_key])
+                print()
             print()
 
     # ------------------ #
@@ -317,9 +323,12 @@ class WidgetMergeTableFilesCalendar(QWidget):
             self.fileListRowChanged_event()
 
     def actionButtonDateColumn(self):
-        currentFileName = self.listWidget_FileList.currentItem().text()
-        currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
-        print(currentFileName, " -> ", currentColumnSelected)
+        if self.listWidget_FileList.currentItem() is not None and self.listWidget_ColumnList.currentItem() is not None:
+            currentFileName = self.listWidget_FileList.currentItem().text()
+            currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
+            print(currentFileName, " -> ", currentColumnSelected)
+            self.dict_DateColumns[currentFileName] = currentColumnSelected
+            self.updateDateList()
 
     def actionButtonRemDateColumn(self):
         pass
