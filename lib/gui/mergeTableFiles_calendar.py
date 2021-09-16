@@ -140,10 +140,44 @@ class WidgetMergeTableFilesCalendar(QWidget):
         vbox_listFile.addWidget(self.listWidget_FileList)  # Add FileList
         vbox_listFile.addLayout(hbox_listFileButtons)  # Add vbox_listFileButtons layout
 
+        # Set Column vbox
+        labelColumnList = QLabel("Column List:")
+        vbox_listColumns = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listColumns.addWidget(labelColumnList)  # Add Label
+        vbox_listColumns.addWidget(self.listWidget_ColumnList)  # Add Column List
+
+        # Set Date vbox
+        labelDateList = QLabel("Date Column (one common column for each file):")
+        vbox_listDateColumns = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listDateColumns.addWidget(labelDateList)  # Add Label
+        vbox_listDateColumns.addWidget(self.listWidget_DateColumns)  # Add Column List
+
+        # Set PrimEvent vbox
+        labelPrimEventList = QLabel("Primary Event (one common column for each file):")
+        vbox_listPrimEventColumns = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listPrimEventColumns.addWidget(labelPrimEventList)  # Add Label
+        vbox_listPrimEventColumns.addWidget(self.listWidget_PrimEventColumns)  # Add Column List
+
+        # Set EventColumns vbox
+        labelEventColumnsList = QLabel("Other Events to be merged (they will be set under primary event):")
+        vbox_listEventColumns = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listEventColumns.addWidget(labelEventColumnsList)  # Add Label
+        vbox_listEventColumns.addWidget(self.listWidget_EventColumns)  # Add Column List
+
+        # Combine Column Boxes vbox
+        vbox_Combine_1 = QVBoxLayout()
+        vbox_Combine_1.addLayout(vbox_listColumns)
+        vbox_Combine_1.addLayout(vbox_listPrimEventColumns)
+
+        vbox_Combine_2 = QVBoxLayout()
+        vbox_Combine_2.addLayout(vbox_listDateColumns)
+        vbox_Combine_2.addLayout(vbox_listEventColumns)
+
         # Set ListWidget in hbox
         hbox_listWidget = QHBoxLayout()  # Create Horizontal Layout
-        hbox_listWidget.addLayout(vbox_listFile)  # Add hbox_listFile layout
-        hbox_listWidget.addWidget(self.listWidget_ColumnList)  # Add ColumnList
+        hbox_listWidget.addLayout(vbox_listFile)  # Add vbox_listFile layout
+        hbox_listWidget.addLayout(vbox_Combine_1)  # Add vbox_Combine_1 layout
+        hbox_listWidget.addLayout(vbox_Combine_2)  # Add vbox_Combine_2 layout
 
         # hbox_buttons.addSpacerItem(QSpacerItem(_INT_MAX_STRETCH, 0))  # Add Spacer
         # hbox_buttons.addWidget(self.buttonOk)  # Add the OK Button
