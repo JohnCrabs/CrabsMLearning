@@ -262,6 +262,19 @@ class WidgetMergeTableFilesCalendar(QWidget):
             if self.dict_DateColumns[key] is not None:
                 self.listWidget_DateColumns.addItem(QListWidgetItem(key + " -> " + self.dict_DateColumns[key]))
 
+    def updatePrimaryEventList(self):
+        self.listWidget_PrimEventColumns.clear()
+        for key in self.dict_PrimEventColumns.keys():
+            if self.dict_PrimEventColumns[key] is not None:
+                self.listWidget_PrimEventColumns.addItem(QListWidgetItem(key + " -> " + self.dict_PrimEventColumns[key]))
+
+    def updateEventsList(self):
+        self.listWidget_EventColumns.clear()
+        for key in self.dict_EventColumns.keys():
+            if self.dict_EventColumns[key] is not []:
+                for event in self.dict_EventColumns[key]:
+                    self.listWidget_EventColumns.addItem(QListWidgetItem(key + " -> " + event))
+
     # -------------------------------- #
     # ----- Print/Show Functions ----- #
     # -------------------------------- #
@@ -322,6 +335,8 @@ class WidgetMergeTableFilesCalendar(QWidget):
             self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())
             self.fileListRowChanged_event()
             self.updateDateList()
+            self.updatePrimaryEventList()
+            self.updateEventsList()
 
     def actionButtonDateColumn(self):
         if self.listWidget_FileList.currentItem() is not None and self.listWidget_ColumnList.currentItem() is not None:
@@ -335,13 +350,23 @@ class WidgetMergeTableFilesCalendar(QWidget):
         pass
 
     def actionButtonPrimaryEvent(self):
-        pass
+        if self.listWidget_FileList.currentItem() is not None and self.listWidget_ColumnList.currentItem() is not None:
+            currentFileName = self.listWidget_FileList.currentItem().text()
+            currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
+            print(currentFileName, " -> ", currentColumnSelected)
+            self.dict_PrimEventColumns[currentFileName] = currentColumnSelected
+            self.updatePrimaryEventList()
 
     def actionButtonRemPrimaryEvent(self):
         pass
 
     def actionButtonEvent(self):
-        pass
+        if self.listWidget_FileList.currentItem() is not None and self.listWidget_ColumnList.currentItem() is not None:
+            currentFileName = self.listWidget_FileList.currentItem().text()
+            currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
+            print(currentFileName, " -> ", currentColumnSelected)
+            self.dict_EventColumns[currentFileName].append(currentColumnSelected)
+            self.updateEventsList()
 
     def actionButtonRemEvent(self):
         pass
