@@ -3,7 +3,7 @@ import os
 import tkinter as tk
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
-    QListWidget, QListWidgetItem, QFileDialog
+    QListWidget, QListWidgetItem, QFileDialog, QLabel
 from PySide2.QtGui import QIcon, QPixmap
 
 import lib.core.file_manipulation as file_manip
@@ -71,6 +71,9 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.listWidget_FileList = QListWidget()
 
         self.listWidget_ColumnList = QListWidget()
+        self.listWidget_DateColumns = QListWidget()
+        self.listWidget_PrimEventColumns = QListWidget()
+        self.listWidget_EventColumns = QListWidget()
 
         # ----------------------- #
         # ----- Set Actions ----- #
@@ -82,6 +85,9 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # --------------------- #
         self.str_pathToTheProject = _NEW_PROJECT_DEFAULT_FOLDER  # var to store the projectPath
         self.dict_tableFilesPaths = {}  # a dictionary to store the table files
+        self.dict_DateColumns = {}  # a dictionary to store the date columns
+        self.dict_PrimEventColumns = {}  # a dictionary to store primary event columns
+        self.dict_EventColumns = {}  # a dictionary to store the merging event columns
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -128,7 +134,9 @@ class WidgetMergeTableFilesCalendar(QWidget):
         hbox_listFileButtons.addWidget(self.buttonRemove)  # Add buttonRemove
 
         # Set FileList in hbox
+        labelFileList = QLabel("Opened File List:")
         vbox_listFile = QVBoxLayout()  # Create a Vertical Box Layout
+        vbox_listFile.addWidget(labelFileList)  # Add Label
         vbox_listFile.addWidget(self.listWidget_FileList)  # Add FileList
         vbox_listFile.addLayout(hbox_listFileButtons)  # Add vbox_listFileButtons layout
 
@@ -208,15 +216,17 @@ class WidgetMergeTableFilesCalendar(QWidget):
             # self.prt_dict_tableFilePaths()
 
     def actionButtonRemove(self):
-        self.dict_tableFilesPaths.pop(self.listWidget_FileList.currentItem().text(), None)
-        self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())
-        self.listWidget_ColumnList.clear()
+        if self.listWidget_FileList.currentItem() is not None:
+            self.dict_tableFilesPaths.pop(self.listWidget_FileList.currentItem().text(), None)
+            self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())
+            self.itemClicked_event()
 
     def itemClicked_event(self):
         self.listWidget_ColumnList.clear()
-        fileName = self.listWidget_FileList.currentItem().text()
-        for column in self.dict_tableFilesPaths[fileName]['columns']:
-            self.listWidget_ColumnList.addItem(QListWidgetItem(column))
+        if self.listWidget_FileList.currentItem() is not None:
+            fileName = self.listWidget_FileList.currentItem().text()
+            for column in self.dict_tableFilesPaths[fileName]['columns']:
+                self.listWidget_ColumnList.addItem(QListWidgetItem(column))
 
 
 # ******************************************************* #
