@@ -52,18 +52,48 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.buttonAdd = QPushButton()  # Create button for Add
         self.buttonAdd.setMinimumWidth(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Width
         self.buttonAdd.setMaximumWidth(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Width
-        self.buttonAdd.setMinimumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Width
-        self.buttonAdd.setMaximumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Width
+        self.buttonAdd.setMinimumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Height
+        self.buttonAdd.setMaximumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Height
         self.buttonAdd.setIcon(QIcon(QPixmap(_ICON_ADD)))  # Add Icon
         self.buttonAdd.setToolTip('Add table files.')  # Add Description
 
         self.buttonRemove = QPushButton()  # Create button for Remove
         self.buttonRemove.setMinimumWidth(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Width
         self.buttonRemove.setMaximumWidth(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Width
-        self.buttonRemove.setMinimumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Width
-        self.buttonRemove.setMaximumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Width
+        self.buttonRemove.setMinimumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Height
+        self.buttonRemove.setMaximumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Height
         self.buttonRemove.setIcon(QIcon(QPixmap(_ICON_REMOVE)))  # Add Icon
-        self.buttonAdd.setToolTip('Remove table files.')  # Add Description
+        self.buttonRemove.setToolTip('Remove table files.')  # Add Description
+
+        self.buttonDateColumn = QPushButton("Date")
+        self.buttonDateColumn.setMinimumWidth(0)  # Set Minimum Width
+        self.buttonDateColumn.setMinimumHeight(0)  # Set Minimum Height
+        self.buttonDateColumn.setToolTip('Set selected column as Date Column.')  # Add Description
+
+        self.buttonRemDateColumn = QPushButton("Remove")
+        self.buttonRemDateColumn.setMinimumWidth(0)  # Set Minimum Width
+        self.buttonRemDateColumn.setMinimumHeight(0)  # Set Minimum Height
+        self.buttonRemDateColumn.setToolTip('Remove selected column as Date Column.')  # Add Description
+
+        self.buttonPrimaryEvent = QPushButton("Primary Event")
+        self.buttonPrimaryEvent.setMinimumWidth(0)  # Set Minimum Width
+        self.buttonPrimaryEvent.setMinimumHeight(0)  # Set Minimum Height
+        self.buttonPrimaryEvent.setToolTip('Set selected column as Primary Event Column.')  # Add Description
+
+        self.buttonRemPrimaryEvent = QPushButton("Remove")
+        self.buttonRemPrimaryEvent.setMinimumWidth(0)  # Set Minimum Width
+        self.buttonRemPrimaryEvent.setMinimumHeight(0)  # Set Minimum Height
+        self.buttonRemPrimaryEvent.setToolTip('Remove selected column as Primary Event Column.')  # Add Description
+
+        self.buttonEvent = QPushButton("Event Column")
+        self.buttonEvent.setMinimumWidth(0)  # Set Minimum Width
+        self.buttonEvent.setMinimumHeight(0)  # Set Minimum Height
+        self.buttonEvent.setToolTip('Set selected column as Event Column.')  # Add Description
+
+        self.buttonRemEvent = QPushButton("Remove")
+        self.buttonRemEvent.setMinimumWidth(0)  # Set Minimum Width
+        self.buttonRemEvent.setMinimumHeight(0)  # Set Minimum Height
+        self.buttonRemEvent.setToolTip('Remove selected column as Event Column.')  # Add Description
 
         # -------------------------------- #
         # ----- Set QListWidgetItems ----- #
@@ -71,6 +101,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.listWidget_FileList = QListWidget()
 
         self.listWidget_ColumnList = QListWidget()
+        self.listWidget_ColumnList.setSelectionMode(self.listWidget_FileList.ExtendedSelection)
         self.listWidget_DateColumns = QListWidget()
         self.listWidget_PrimEventColumns = QListWidget()
         self.listWidget_EventColumns = QListWidget()
@@ -114,6 +145,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 }
                 
                 QPushButton {
+                    color: black;
                     background-color: lightblue;
                 }
                 
@@ -140,6 +172,20 @@ class WidgetMergeTableFilesCalendar(QWidget):
         vbox_listFile.addWidget(self.listWidget_FileList)  # Add FileList
         vbox_listFile.addLayout(hbox_listFileButtons)  # Add vbox_listFileButtons layout
 
+        # Set column/remove buttons in vbox
+        hbox_listDateButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        # hbox_listDateButtons.addSpacerItem(QSpacerItem(_INT_MAX_STRETCH, 0))
+        hbox_listDateButtons.addWidget(self.buttonDateColumn)  # Add buttonDate
+        hbox_listDateButtons.addWidget(self.buttonRemDateColumn)  # Add buttonRemove
+
+        hbox_listPrimEventButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_listPrimEventButtons.addWidget(self.buttonPrimaryEvent)  # Add buttonDate
+        hbox_listPrimEventButtons.addWidget(self.buttonRemPrimaryEvent)  # Add buttonRemove
+
+        hbox_listEventsButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_listEventsButtons.addWidget(self.buttonEvent)  # Add buttonDate
+        hbox_listEventsButtons.addWidget(self.buttonRemEvent)  # Add buttonRemove
+
         # Set Column vbox
         labelColumnList = QLabel("Column List:")
         vbox_listColumns = QVBoxLayout()  # Create a Horizontal Box Layout
@@ -151,18 +197,21 @@ class WidgetMergeTableFilesCalendar(QWidget):
         vbox_listDateColumns = QVBoxLayout()  # Create a Horizontal Box Layout
         vbox_listDateColumns.addWidget(labelDateList)  # Add Label
         vbox_listDateColumns.addWidget(self.listWidget_DateColumns)  # Add Column List
+        vbox_listDateColumns.addLayout(hbox_listDateButtons)
 
         # Set PrimEvent vbox
         labelPrimEventList = QLabel("Primary Event (one common column for each file):")
         vbox_listPrimEventColumns = QVBoxLayout()  # Create a Horizontal Box Layout
         vbox_listPrimEventColumns.addWidget(labelPrimEventList)  # Add Label
         vbox_listPrimEventColumns.addWidget(self.listWidget_PrimEventColumns)  # Add Column List
+        vbox_listPrimEventColumns.addLayout(hbox_listPrimEventButtons)
 
         # Set EventColumns vbox
         labelEventColumnsList = QLabel("Other Events to be merged (they will be set under primary event):")
         vbox_listEventColumns = QVBoxLayout()  # Create a Horizontal Box Layout
         vbox_listEventColumns.addWidget(labelEventColumnsList)  # Add Label
         vbox_listEventColumns.addWidget(self.listWidget_EventColumns)  # Add Column List
+        vbox_listEventColumns.addLayout(hbox_listEventsButtons)
 
         # Combine Column Boxes vbox
         vbox_Combine_1 = QVBoxLayout()
@@ -178,10 +227,6 @@ class WidgetMergeTableFilesCalendar(QWidget):
         hbox_listWidget.addLayout(vbox_listFile)  # Add vbox_listFile layout
         hbox_listWidget.addLayout(vbox_Combine_1)  # Add vbox_Combine_1 layout
         hbox_listWidget.addLayout(vbox_Combine_2)  # Add vbox_Combine_2 layout
-
-        # hbox_buttons.addSpacerItem(QSpacerItem(_INT_MAX_STRETCH, 0))  # Add Spacer
-        # hbox_buttons.addWidget(self.buttonOk)  # Add the OK Button
-        # hbox_buttons.addWidget(self.buttonCancel)  # Add the CANCEL Button
 
         self.vbox_main_layout.addLayout(hbox_listWidget)
 
@@ -227,7 +272,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.buttonAdd.clicked.connect(self.actionButtonAdd)
         self.buttonRemove.clicked.connect(self.actionButtonRemove)
 
-        self.listWidget_FileList.itemClicked.connect(self.itemClicked_event)
+        self.listWidget_FileList.currentRowChanged.connect(self.itemClicked_event)
 
     def actionButtonAdd(self):
         # Open a dialog for CSV files
