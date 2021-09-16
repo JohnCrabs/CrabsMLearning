@@ -249,9 +249,11 @@ class WidgetMergeTableFilesCalendar(QWidget):
         fileName = fullPath.split('/')[-1:][0]
         self.dict_tableFilesPaths[fileName] = {'name': fileName,
                                                'full_path': fullPath,
-                                               'columns': file_manip.getColumnNames(fullPath, splitter=','),
-                                               'common_columns': 'nan',
-                                               'merge_columns': 'nan'}
+                                               'columns': file_manip.getColumnNames(fullPath, splitter=',')
+                                               }
+        self.dict_DateColumns[fileName] = None
+        self.dict_PrimEventColumns[fileName] = None
+        self.dict_EventColumns[fileName] = []
         self.listWidget_FileList.addItem(QListWidgetItem(fileName))  # Add Item to List
 
     # -------------------------------- #
@@ -300,19 +302,24 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 # print()
                 if fileName not in self.dict_tableFilesPaths.keys():
                     self.addItemsToList(filePath)
-                else:
-                    pass
 
+            if self.listWidget_FileList.currentItem() is None:  # Set row 0 as current row
+                self.listWidget_FileList.setCurrentRow(0)  # Set current row
             # self.prt_dict_tableFilePaths()
 
     def actionButtonRemove(self):
         if self.listWidget_FileList.currentItem() is not None:
             self.dict_tableFilesPaths.pop(self.listWidget_FileList.currentItem().text(), None)
+            self.dict_DateColumns.pop(self.listWidget_FileList.currentItem().text(), None)
+            self.dict_PrimEventColumns.pop(self.listWidget_FileList.currentItem().text(), None)
+            self.dict_EventColumns.pop(self.listWidget_FileList.currentItem().text(), None)
             self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())
             self.fileListRowChanged_event()
 
     def actionButtonDateColumn(self):
-        pass
+        currentFileName = self.listWidget_FileList.currentItem().text()
+        currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
+        print(currentFileName, " -> ", currentColumnSelected)
 
     def actionButtonRemDateColumn(self):
         pass
@@ -335,6 +342,9 @@ class WidgetMergeTableFilesCalendar(QWidget):
             fileName = self.listWidget_FileList.currentItem().text()
             for column in self.dict_tableFilesPaths[fileName]['columns']:
                 self.listWidget_ColumnList.addItem(QListWidgetItem(column))
+
+            if self.listWidget_ColumnList.currentItem() is None:  # Set first row selected
+                self.listWidget_ColumnList.setCurrentRow(0)
 
 
 # ******************************************************* #
