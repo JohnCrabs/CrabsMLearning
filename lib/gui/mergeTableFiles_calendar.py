@@ -321,6 +321,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
             self.dict_EventColumns.pop(self.listWidget_FileList.currentItem().text(), None)
             self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())
             self.fileListRowChanged_event()
+            self.updateDateList()
 
     def actionButtonDateColumn(self):
         if self.listWidget_FileList.currentItem() is not None and self.listWidget_ColumnList.currentItem() is not None:
