@@ -578,6 +578,10 @@ class WidgetTabDate(QWidget):
         # ---------------------- #
         self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
 
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+
     # --------------------------- #
     # ----- Reuse Functions ----- #
     # --------------------------- #
