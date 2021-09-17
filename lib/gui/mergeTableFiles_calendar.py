@@ -25,8 +25,20 @@ _ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128.png"
 # _ICON_ADD = _PROJECT_FOLDER + "/icon/add_cross_128x128_filled.png"
 # _ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128_filled.png"
 
+_DKEY_FILE_NAME = 'name'
+_DKEY_FULLPATH = 'full-path'
+_DKEY_COLUMNS = 'columns'
+_DKEY_DATE_COLUMN = 'date-column'
+_DKEY_PRIMARY_COLUMN = 'primary-column'
+_DKEY_EVENT_COLUMNS = 'event-columns'
+
 
 def setStyle_():
+    """
+    A function to store the style format of specific Qt Structure/Class component, such us
+    QListWidget, QPushButton, etc.
+    :return: The style
+    """
     style = """
             QListWidget {
                 background-color: white;
@@ -67,7 +79,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
                  winTitle='My Window', iconPath=''):
         super().__init__()
 
-        self.setStyleSheet(setStyle_())
+        self.setStyleSheet(setStyle_())  # Set the styleSheet
 
         # ---------------------- #
         # ----- Set Window ----- #
@@ -86,8 +98,9 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # ----- Set QTabWidget ----- #
         # -------------------------------- #
 
-        self.mainTabWidget = QTabWidget()
-        self.widgetTabFileManagement = WidgetTabFileManagement()
+        self.mainTabWidget = QTabWidget()  # Create a Tab Widget
+        self.widgetTabFileManagement = WidgetTabFileManagement()  # Create the first Tab of TabWidget
+        self.widgetTabDate = WidgetTabDate()  # Create a calendar Tab for TabWidget
 
         # -------------------------- #
         # ----- Set PushButton ----- #
@@ -116,12 +129,12 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # -------------------------------- #
         # ----- Set QListWidgetItems ----- #
         # -------------------------------- #
-        self.listWidget_FileList = QListWidget()
+        self.listWidget_FileList = QListWidget()  # Create a ListWidget
 
         # ----------------------- #
         # ----- Set Actions ----- #
         # ----------------------- #
-        self.setEvents_()
+        self.setEvents_()  # Set the events/actions of buttons, listWidgets, etc., components
 
         # --------------------- #
         # ----- Variables ----- #
@@ -136,11 +149,15 @@ class WidgetMergeTableFilesCalendar(QWidget):
     # ----- Reuse Functions ----- #
     # --------------------------- #
     def setWidget(self):
+        """
+        A function to create the widget components into the main QWidget
+        :return: Nothing
+        """
         # Set add/remove button in vbox
         hbox_listFileButtons = QHBoxLayout()  # Create a Horizontal Box Layout
         hbox_listFileButtons.addWidget(self.buttonAdd)  # Add buttonAdd
         hbox_listFileButtons.addWidget(self.buttonRemove)  # Add buttonRemove
-        hbox_listFileButtons.addWidget(self.buttonGenerate)
+        hbox_listFileButtons.addWidget(self.buttonGenerate)  # Add buttonGenerate
 
         # Set FileList in hbox
         labelFileList = QLabel("Opened File List:")
@@ -150,19 +167,29 @@ class WidgetMergeTableFilesCalendar(QWidget):
         vbox_listFile.addLayout(hbox_listFileButtons)  # Add vbox_listFileButtons layout
 
         # Set main Tab Widget
-        self.widgetTabFileManagement.setWidget()
-        self.mainTabWidget.addTab(self.widgetTabFileManagement, "File Management")
+        self.widgetTabFileManagement.setWidget()   # Set the Tab File Management Widget
+        self.mainTabWidget.addTab(self.widgetTabFileManagement, "File Management")  # Add it to mainTanWidget
+        self.widgetTabDate.setWidget()  # Set the Tab Date Widget
+        self.mainTabWidget.addTab(self.widgetTabDate, "Date Column Management")  # Add it to mainTabWidget
 
         # Set List and Tab Widget Layout
-        hbox_final_layout = QHBoxLayout()
-        hbox_final_layout.addLayout(vbox_listFile)
-        hbox_final_layout.addWidget(self.mainTabWidget)
+        hbox_final_layout = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_final_layout.addLayout(vbox_listFile)  # Add the listFile layout to finalLayout
+        hbox_final_layout.addWidget(self.mainTabWidget)  # Add the mainTabWidget to finalLayout
 
         # Set Main Layout
-        self.vbox_main_layout.addLayout(hbox_final_layout)
+        self.vbox_main_layout.addLayout(hbox_final_layout)  # Add the final layout to mainLayout
 
     def openFileDialog(self, dialogName='Pick a File', dialogOpenAt=file_manip.PATH_HOME, dialogFilters=None,
                        dialogMultipleSelection: bool = False):
+        """
+        A function to open a dialog for opening files.
+        :param dialogName: The dialog's name.
+        :param dialogOpenAt: The path the dialog will be opened
+        :param dialogFilters: The dialog's filter files
+        :param dialogMultipleSelection: A boolean to tell to dialog if multiple selection is supported
+        :return: True/False, dialog/None
+        """
         if dialogFilters is None:  # if dialogFilter is None
             dialogFilters = ['All Files (*.*)']  # set default Value
         dialog = QFileDialog(self, dialogName)  # Open a Browse Dialog
@@ -181,48 +208,56 @@ class WidgetMergeTableFilesCalendar(QWidget):
     # ---------------------------------- #
 
     def addItemsToList(self, fullPath):
-        fileName = fullPath.split('/')[-1:][0]
-        self.dict_tableFilesPaths[fileName] = {'name': fileName,
-                                               'full_path': fullPath,
-                                               'columns': file_manip.getColumnNames(fullPath, splitter=',')
+        fileName = fullPath.split('/')[-1:][0]  # find the name of the file
+        # Create the dictionary
+        self.dict_tableFilesPaths[fileName] = {_DKEY_FILE_NAME: fileName,
+                                               _DKEY_FULLPATH: fullPath,
+                                               _DKEY_COLUMNS: file_manip.getColumnNames(fullPath, splitter=','),
+                                               _DKEY_DATE_COLUMN: None,
+                                               _DKEY_PRIMARY_COLUMN: None,
+                                               _DKEY_EVENT_COLUMNS: []
                                                }
-        self.resetDateColumn(fileName)
-        self.resetPrimEventColumn(fileName)
-        self.dict_EventColumns[fileName] = []
         self.listWidget_FileList.addItem(QListWidgetItem(fileName))  # Add Item to List
 
     def resetDateColumn(self, fileName):
-        self.dict_DateColumns[fileName] = None
+        # Set DATE_COLUMN for the specified FILE to None
+        self.dict_tableFilesPaths[fileName][_DKEY_DATE_COLUMN] = None
 
     def resetPrimEventColumn(self, fileName):
-        self.dict_PrimEventColumns[fileName] = None
+        # Set PRIMARY_COLUMN for the specified FILE to None
+        self.dict_tableFilesPaths[fileName][_DKEY_PRIMARY_COLUMN] = None
 
     def resetEventColumn(self, fileName):
-        self.dict_EventColumns[fileName] = []
+        # Set EVENT_COLUMN for the specified FILE to [] -> EMPTY_LIST
+        self.dict_tableFilesPaths[fileName][_DKEY_EVENT_COLUMNS] = []
 
     def removeFromEventColumn(self, fileName, column):
-        if column in self.dict_EventColumns[fileName]:
-            self.dict_EventColumns[fileName].remove(column)
+        # Remove the specified COLUMN from EVENT_COLUMN_LIST for the specified FILE
+        if column in self.dict_tableFilesPaths[fileName][_DKEY_EVENT_COLUMNS]:
+            self.dict_tableFilesPaths[fileName][_DKEY_EVENT_COLUMNS].remove(column)
 
     def updateDateList(self):
-        self.widgetTabFileManagement.listWidget_DateColumns.clear()
-        for key in self.dict_DateColumns.keys():
-            if self.dict_DateColumns[key] is not None:
+        self.widgetTabFileManagement.listWidget_DateColumns.clear()  # Clear Date Widget
+        for key in self.dict_tableFilesPaths.keys():  # For each key  (fileName)
+            if self.dict_tableFilesPaths[key][_DKEY_DATE_COLUMN] is not None:  # if date key is not None
+                # Add ITEM to DATE widget
                 self.widgetTabFileManagement.listWidget_DateColumns.addItem(
-                    QListWidgetItem(key + " -> " + self.dict_DateColumns[key]))
+                    QListWidgetItem(key + " -> " + self.dict_tableFilesPaths[key][_DKEY_DATE_COLUMN]))
 
     def updatePrimaryEventList(self):
-        self.widgetTabFileManagement.listWidget_PrimEventColumns.clear()
-        for key in self.dict_PrimEventColumns.keys():
-            if self.dict_PrimEventColumns[key] is not None:
+        self.widgetTabFileManagement.listWidget_PrimEventColumns.clear()  # Clear Primary Event Widget
+        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
+            if self.dict_tableFilesPaths[key][_DKEY_PRIMARY_COLUMN] is not None:  # if primary event key is not None
+                # Add ITEM to PRIMARY_EVENT widget
                 self.widgetTabFileManagement.listWidget_PrimEventColumns.addItem(
-                    QListWidgetItem(key + " -> " + self.dict_PrimEventColumns[key]))
+                    QListWidgetItem(key + " -> " + self.dict_tableFilesPaths[key][_DKEY_PRIMARY_COLUMN]))
 
     def updateEventsList(self):
-        self.widgetTabFileManagement.listWidget_EventColumns.clear()
-        for key in self.dict_EventColumns.keys():
-            if self.dict_EventColumns[key] is not []:
-                for event in self.dict_EventColumns[key]:
+        self.widgetTabFileManagement.listWidget_EventColumns.clear()  # Clear Event Widget
+        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
+            if self.dict_tableFilesPaths[key][_DKEY_EVENT_COLUMNS] is not []:  # if event key is not []
+                for event in self.dict_tableFilesPaths[key][_DKEY_EVENT_COLUMNS]:  # for each EVENT
+                    # Add ITEM to EVENT widget
                     self.widgetTabFileManagement.listWidget_EventColumns.addItem(
                         QListWidgetItem(key + " -> " + event))
 
@@ -230,11 +265,14 @@ class WidgetMergeTableFilesCalendar(QWidget):
     # ----- Print/Show Functions ----- #
     # -------------------------------- #
     def prt_dict_tableFilePaths(self):
+        """
+        Print the dictionary tableFilesPaths values
+        :return: Nothing
+        """
         for key in self.dict_tableFilesPaths.keys():
             print("file-key: ", key)
             for sec_key in self.dict_tableFilesPaths[key].keys():
                 print(str(sec_key) + ': ', self.dict_tableFilesPaths[key][sec_key])
-                print()
             print()
 
     # ------------------ #
@@ -242,16 +280,20 @@ class WidgetMergeTableFilesCalendar(QWidget):
     # ------------------ #
     def setEvents_(self):
         # Button Events
-        self.buttonAdd.clicked.connect(self.actionButtonAdd)
-        self.buttonRemove.clicked.connect(self.actionButtonRemove)
+        self.buttonAdd.clicked.connect(self.actionButtonAdd)  # buttonAdd -> clicked
+        self.buttonRemove.clicked.connect(self.actionButtonRemove)  # buttonRemove -> clicked
 
+        # buttonDateColumn -> clicked
         self.widgetTabFileManagement.buttonDateColumn.clicked.connect(self.actionButtonDateColumn)
+        # buttonRemDateColumn -> clicked
         self.widgetTabFileManagement.buttonRemDateColumn.clicked.connect(self.actionButtonRemDateColumn)
-
+        # buttonPrimaryEvent -> clicked
         self.widgetTabFileManagement.buttonPrimaryEvent.clicked.connect(self.actionButtonPrimaryEvent)
+        # buttonRemPrimaryEvent -> clicked
         self.widgetTabFileManagement.buttonRemPrimaryEvent.clicked.connect(self.actionButtonRemPrimaryEvent)
-
+        # buttonEvent -> clicked
         self.widgetTabFileManagement.buttonEvent.clicked.connect(self.actionButtonEvent)
+        # buttonRemEvent -> clicked
         self.widgetTabFileManagement.buttonRemEvent.clicked.connect(self.actionButtonRemEvent)
 
         # ListWidget Events
@@ -266,115 +308,142 @@ class WidgetMergeTableFilesCalendar(QWidget):
 
         if success:  # if True
             for filePath in dialog.selectedFiles():  # for each file in all selected files
-                fileName = filePath.split('/')[-1:][0]
+                fileName = filePath.split('/')[-1:][0]  # get the filename
                 # print(fullPath)
                 # print(fileName)
                 # print()
-                if fileName not in self.dict_tableFilesPaths.keys():
-                    self.addItemsToList(filePath)
+                if fileName not in self.dict_tableFilesPaths.keys():  # if file haven't added before
+                    self.addItemsToList(filePath)  # add file to the table list
 
             if self.listWidget_FileList.currentItem() is None:  # Set row 0 as current row
                 self.listWidget_FileList.setCurrentRow(0)  # Set current row
             # self.prt_dict_tableFilePaths()
 
     def actionButtonRemove(self):
-        if self.listWidget_FileList.currentItem() is not None:
-            self.dict_tableFilesPaths.pop(self.listWidget_FileList.currentItem().text(), None)
-            self.dict_DateColumns.pop(self.listWidget_FileList.currentItem().text(), None)
-            self.dict_PrimEventColumns.pop(self.listWidget_FileList.currentItem().text(), None)
-            self.dict_EventColumns.pop(self.listWidget_FileList.currentItem().text(), None)
-            self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())
-            self.fileListRowChanged_event()
-            self.updateDateList()
-            self.updatePrimaryEventList()
-            self.updateEventsList()
+        if self.listWidget_FileList.currentItem() is not None:  # if some item is selected
+            self.dict_tableFilesPaths.pop(self.listWidget_FileList.currentItem().text(), None)  # Delete item from dict
+            self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())  # Delete item from widget
+            self.fileListRowChanged_event()  # run the row changed event
+            self.updateDateList()  # update DATE widget
+            self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
+            self.updateEventsList()  # update EVENT widget
 
     def actionButtonDateColumn(self):
+        # If some file is selected and some column is selected
         if self.listWidget_FileList.currentItem() is not None and \
                 self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is not None:
-            currentFileName = self.listWidget_FileList.currentItem().text()
+            currentFileName = self.listWidget_FileList.currentItem().text()  # get current file name
+            # get current column name
             currentColumnSelected = self.widgetTabFileManagement.listWidget_ColumnList.currentItem().text()
+            # If this column exist in the primary event list
+            if self.dict_tableFilesPaths[currentFileName][_DKEY_PRIMARY_COLUMN] == currentColumnSelected:
+                self.resetPrimEventColumn(currentFileName)  # Reset primary event list
+                self.updatePrimaryEventList()  # update Primary Event widget
+            # else if this column exist in the event list
+            elif currentColumnSelected in self.dict_tableFilesPaths[currentFileName][_DKEY_EVENT_COLUMNS]:
+                self.removeFromEventColumn(currentFileName, currentColumnSelected)  # remove it from the list
+                self.updateEventsList()  # update Event widget
+
             # print(currentFileName, " -> ", currentColumnSelected)
-            if self.dict_PrimEventColumns[currentFileName] == currentColumnSelected:
-                self.resetPrimEventColumn(currentFileName)
-            elif currentColumnSelected in self.dict_EventColumns[currentFileName]:
-                self.removeFromEventColumn(currentFileName, currentColumnSelected)
-            self.dict_DateColumns[currentFileName] = currentColumnSelected
-            self.updatePrimaryEventList()
-            self.updateEventsList()
-            self.updateDateList()
+
+            # Add it to the DATE_COLUMN
+            self.dict_tableFilesPaths[currentFileName][_DKEY_DATE_COLUMN] = currentColumnSelected
+            self.updateDateList()  # update Date widget
 
     def actionButtonRemDateColumn(self):
+        # If some file is selected and some columns are selected
         if self.widgetTabFileManagement.listWidget_DateColumns.isActiveWindow() and \
                 self.widgetTabFileManagement.listWidget_DateColumns.currentItem() is not None:
+            # get selected items
             selectedItems = self.widgetTabFileManagement.listWidget_DateColumns.selectedItems()
-            for item in selectedItems:
-                tmp_str = item.text()
-                fileName = tmp_str.split(' -> ')[0]
-                self.resetDateColumn(fileName)
-            self.updateDateList()
+            for item in selectedItems:  # for each item
+                tmp_str = item.text()  # get text
+                fileName = tmp_str.split(' -> ')[0]  # get fileName
+                self.resetDateColumn(fileName)  # remove DATE from the list
+            self.updateDateList()  # update DATE widget
 
     def actionButtonPrimaryEvent(self):
+        # If some file is selected and some column is selected
         if self.listWidget_FileList.currentItem() is not None and \
                 self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is not None:
-            currentFileName = self.listWidget_FileList.currentItem().text()
+            currentFileName = self.listWidget_FileList.currentItem().text()  # get current file name
+            # get current column name
             currentColumnSelected = self.widgetTabFileManagement.listWidget_ColumnList.currentItem().text()
-            if self.dict_DateColumns[currentFileName] == currentColumnSelected:
-                self.resetDateColumn(currentFileName)
-            elif currentColumnSelected in self.dict_EventColumns[currentFileName]:
-                self.removeFromEventColumn(currentFileName, currentColumnSelected)
+            # If this column exist in the date list
+            if self.dict_tableFilesPaths[currentFileName][_DKEY_DATE_COLUMN] == currentColumnSelected:
+                self.resetDateColumn(currentFileName)  # Reset date list
+                self.updateDateList()  # update Date widget
+            # else if this column exist in the event list
+            elif currentColumnSelected in self.dict_tableFilesPaths[currentFileName][_DKEY_EVENT_COLUMNS]:
+                self.removeFromEventColumn(currentFileName, currentColumnSelected)  # remove it from the list
+                self.updateEventsList()  # update Event widget
+
             # print(currentFileName, " -> ", currentColumnSelected)
-            self.dict_PrimEventColumns[currentFileName] = currentColumnSelected
-            self.updateDateList()
-            self.updateEventsList()
-            self.updatePrimaryEventList()
+
+            # Add it to the PRIMARY_EVENT
+            self.dict_tableFilesPaths[currentFileName][_DKEY_PRIMARY_COLUMN] = currentColumnSelected
+            self.updatePrimaryEventList()  # update Primary Event widget
 
     def actionButtonRemPrimaryEvent(self):
+        # If some file is selected and some columns are selected
         if self.widgetTabFileManagement.listWidget_PrimEventColumns.isActiveWindow() and \
                 self.widgetTabFileManagement.listWidget_PrimEventColumns.currentItem() is not None:
+            # get selected item
             selectedItems = self.widgetTabFileManagement.listWidget_PrimEventColumns.selectedItems()
-            for item in selectedItems:
-                tmp_str = item.text()
-                fileName = tmp_str.split(' -> ')[0]
-                self.resetPrimEventColumn(fileName)
-            self.updatePrimaryEventList()
+            for item in selectedItems:  # for each item
+                tmp_str = item.text()  # get text
+                fileName = tmp_str.split(' -> ')[0]  # get fileName
+                self.resetPrimEventColumn(fileName)  # remove PRIMARY_EVENT from the list
+            self.updatePrimaryEventList()  # update PRIMARY_EVENT wigdet
 
     def actionButtonEvent(self):
+        # If some file is selected and some columns are selected
         if self.listWidget_FileList.currentItem() is not None and \
                 self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is not None:
-            currentFileName = self.listWidget_FileList.currentItem().text()
+            currentFileName = self.listWidget_FileList.currentItem().text()  # get current file name
+            # get current columns selected
             currentSelectedItems = self.widgetTabFileManagement.listWidget_ColumnList.selectedItems()
-            for currentColumnSelected in currentSelectedItems:
+            for currentColumnSelected in currentSelectedItems:  # for each item selected
+                # If this column exist in the date list
+                if self.dict_tableFilesPaths[currentFileName][_DKEY_DATE_COLUMN] == currentColumnSelected.text():
+                    self.resetDateColumn(currentFileName)  # Reset date list
+                    self.updateDateList()  # update Date widget
+                # else if this column exist in the primary event list
+                elif self.dict_tableFilesPaths[currentFileName][_DKEY_EVENT_COLUMNS] == currentColumnSelected.text():
+                    self.resetPrimEventColumn(currentFileName)  # Reset primary event list
+                    self.updatePrimaryEventList()  # update Primary Event widget
+
+                # if this column is not in the EVENT List
+                if currentColumnSelected.text() not in self.dict_tableFilesPaths[currentFileName][_DKEY_EVENT_COLUMNS]:
+                    # Add it to list
+                    self.dict_tableFilesPaths[currentFileName][_DKEY_EVENT_COLUMNS].append(currentColumnSelected.text())
+
                 # print(currentFileName, " -> ", currentColumnSelected.text())
-                if self.dict_DateColumns[currentFileName] == currentColumnSelected.text():
-                    self.resetDateColumn(currentFileName)
-                elif self.dict_PrimEventColumns[currentFileName] == currentColumnSelected.text():
-                    self.resetPrimEventColumn(currentFileName)
-                if currentColumnSelected.text() not in self.dict_EventColumns[currentFileName]:
-                    self.dict_EventColumns[currentFileName].append(currentColumnSelected.text())
-            self.updateDateList()
-            self.updatePrimaryEventList()
-            self.updateEventsList()
+
+            self.updateEventsList()  # update Event widget
 
     def actionButtonRemEvent(self):
+        # If some file is selected and some columns are selected
         if self.widgetTabFileManagement.listWidget_EventColumns.currentItem() is not None:
+            # get selected items
             selectedItems = self.widgetTabFileManagement.listWidget_EventColumns.selectedItems()
-            for item in selectedItems:
-                tmp_str = item.text()
-                fileName = tmp_str.split(' -> ')[0]
-                columnName = tmp_str.split(' -> ')[1]
-                self.removeFromEventColumn(fileName, columnName)
-            self.updateEventsList()
+            for item in selectedItems:  # for each item
+                tmp_str = item.text()  # get text
+                fileName = tmp_str.split(' -> ')[0]  # get fileName
+                columnName = tmp_str.split(' -> ')[1]  # get columnName
+                self.removeFromEventColumn(fileName, columnName)  # remove event from the list
+            self.updateEventsList()  # update EVENT widget
 
     def fileListRowChanged_event(self):
-        self.widgetTabFileManagement.listWidget_ColumnList.clear()
-        if self.listWidget_FileList.currentItem() is not None:
-            fileName = self.listWidget_FileList.currentItem().text()
-            for column in self.dict_tableFilesPaths[fileName]['columns']:
+        self.widgetTabFileManagement.listWidget_ColumnList.clear()  # Clear Column Widget
+        if self.listWidget_FileList.currentItem() is not None:  # If current item is not None
+            fileName = self.listWidget_FileList.currentItem().text()  # get current item name
+            for column in self.dict_tableFilesPaths[fileName][_DKEY_COLUMNS]:  # for each column
+                # Add columns as ITEMS to widget
                 self.widgetTabFileManagement.listWidget_ColumnList.addItem(QListWidgetItem(column))
 
-            if self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is None:  # Set first row selected
-                self.widgetTabFileManagement.listWidget_ColumnList.setCurrentRow(0)
+            if self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is None:  # If COLUMN widget is not None
+                self.widgetTabFileManagement.listWidget_ColumnList.setCurrentRow(0)  # Set first row selected
 
 
 class WidgetTabFileManagement(QWidget):
@@ -496,6 +565,24 @@ class WidgetTabFileManagement(QWidget):
         hbox_listWidget.addLayout(vbox_Combine_2)  # Add vbox_Combine_2 layout
 
         self.vbox_main_layout.addLayout(hbox_listWidget)
+
+
+class WidgetTabDate(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet(setStyle_())
+
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+    # --------------------------- #
+    # ----- Reuse Functions ----- #
+    # --------------------------- #
+    def setWidget(self):
+        pass
 
 
 # ******************************************************* #
