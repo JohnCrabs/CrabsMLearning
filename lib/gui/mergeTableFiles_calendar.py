@@ -65,6 +65,11 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.buttonRemove.setIcon(QIcon(QPixmap(_ICON_REMOVE)))  # Add Icon
         self.buttonRemove.setToolTip('Remove table files.')  # Add Description
 
+        self.buttonGenerate = QPushButton("Generate")
+        self.buttonGenerate.setMinimumWidth(0)  # Set Minimum Width
+        self.buttonGenerate.setMinimumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Height
+        self.buttonGenerate.setToolTip('Open the generate window to proceed in the merging process.')  # Add Description
+
         self.buttonDateColumn = QPushButton("Date")
         self.buttonDateColumn.setMinimumWidth(0)  # Set Minimum Width
         self.buttonDateColumn.setMinimumHeight(0)  # Set Minimum Height
@@ -167,6 +172,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         hbox_listFileButtons = QHBoxLayout()  # Create a Horizontal Box Layout
         hbox_listFileButtons.addWidget(self.buttonAdd)  # Add buttonAdd
         hbox_listFileButtons.addWidget(self.buttonRemove)  # Add buttonRemove
+        hbox_listFileButtons.addWidget(self.buttonGenerate)
 
         # Set FileList in hbox
         labelFileList = QLabel("Opened File List:")

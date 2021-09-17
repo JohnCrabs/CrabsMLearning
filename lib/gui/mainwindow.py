@@ -46,8 +46,8 @@ class MainWindowTemplate(QMainWindow):
                                                                        iconPath=_ICON_PATH_LOGO_32x32)
 
         self.widgetMergeTableFilesCalendar = WidgetMergeTableFilesCalendar(w=1024, h=512,
-                                                                           minW=512, minH=512,
-                                                                           maxW=1024, maxH=512,
+                                                                           minW=1280, minH=840,
+                                                                           maxW=1280, maxH=840,
                                                                            winTitle='Merge Table Files',
                                                                            iconPath=_ICON_PATH_LOGO_32x32)
 
