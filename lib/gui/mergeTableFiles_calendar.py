@@ -1,12 +1,13 @@
 import sys
 import os
 import tkinter as tk
-from PySide2.QtCore import QUrl
+from PySide2.QtCore import QUrl, Qt
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
-    QListWidget, QListWidgetItem, QFileDialog, QLabel, QTabWidget
-from PySide2.QtGui import QIcon, QPixmap, QKeySequence
+    QListWidget, QListWidgetItem, QFileDialog, QLabel, QTabWidget, QComboBox, QCheckBox
+from PySide2.QtGui import QIcon, QPixmap
 
 import lib.core.file_manipulation as file_manip
+import lib.core.my_calendar_v2 as my_cal_v2
 
 _NEW_PROJECT_DEFAULT_FOLDER = file_manip.PATH_HOME
 _PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
@@ -31,6 +32,11 @@ _DKEY_COLUMNS = 'columns'
 _DKEY_DATE_COLUMN = 'date-column'
 _DKEY_PRIMARY_COLUMN = 'primary-column'
 _DKEY_EVENT_COLUMNS = 'event-columns'
+_DKEY_CHANGE_FILE_DATE_FORMAT_STATE = 'change-file-date-format'
+_DKEY_FILE_DATE_FORMAT = 'file-date-format'
+_DKEY_NEW_FILE_DATE_FORMAT = 'new-file-date-format'
+_DKEY_FILE_DATE_DELIMITER = 'file-date-delimiter'
+_DKEY_NEW_FILE_DATE_DELIMITER = 'new-file-date-delimiter'
 
 
 def setStyle_():
@@ -141,9 +147,6 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # --------------------- #
         self.str_pathToTheProject = _NEW_PROJECT_DEFAULT_FOLDER  # var to store the projectPath
         self.dict_tableFilesPaths = {}  # a dictionary to store the table files
-        self.dict_DateColumns = {}  # a dictionary to store the date columns
-        self.dict_PrimEventColumns = {}  # a dictionary to store primary event columns
-        self.dict_EventColumns = {}  # a dictionary to store the merging event columns
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -167,7 +170,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         vbox_listFile.addLayout(hbox_listFileButtons)  # Add vbox_listFileButtons layout
 
         # Set main Tab Widget
-        self.widgetTabFileManagement.setWidget()   # Set the Tab File Management Widget
+        self.widgetTabFileManagement.setWidget()  # Set the Tab File Management Widget
         self.mainTabWidget.addTab(self.widgetTabFileManagement, "File Management")  # Add it to mainTanWidget
         self.widgetTabDate.setWidget()  # Set the Tab Date Widget
         self.mainTabWidget.addTab(self.widgetTabDate, "Date Column Management")  # Add it to mainTabWidget
@@ -215,7 +218,12 @@ class WidgetMergeTableFilesCalendar(QWidget):
                                                _DKEY_COLUMNS: file_manip.getColumnNames(fullPath, splitter=','),
                                                _DKEY_DATE_COLUMN: None,
                                                _DKEY_PRIMARY_COLUMN: None,
-                                               _DKEY_EVENT_COLUMNS: []
+                                               _DKEY_EVENT_COLUMNS: [],
+                                               _DKEY_FILE_DATE_FORMAT: None,
+                                               _DKEY_FILE_DATE_DELIMITER: None,
+                                               _DKEY_CHANGE_FILE_DATE_FORMAT_STATE: False,
+                                               _DKEY_NEW_FILE_DATE_FORMAT: None,
+                                               _DKEY_NEW_FILE_DATE_DELIMITER: None
                                                }
         self.listWidget_FileList.addItem(QListWidgetItem(fileName))  # Add Item to List
 
@@ -261,6 +269,24 @@ class WidgetMergeTableFilesCalendar(QWidget):
                     self.widgetTabFileManagement.listWidget_EventColumns.addItem(
                         QListWidgetItem(key + " -> " + event))
 
+    def updateWidgetTabDate(self):
+        fileName = self.listWidget_FileList.currentItem().text()
+        if self.dict_tableFilesPaths[fileName][_DKEY_FILE_DATE_FORMAT] is None:
+            self.widgetTabDate.comboBox_DateFileFormat.setCurrentIndex(0)
+        else:
+            item = self.dict_tableFilesPaths[fileName][_DKEY_FILE_DATE_FORMAT]
+            self.widgetTabDate.comboBox_DateFileFormat.setCurrentText(item)
+
+        if self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT] is None:
+            self.widgetTabDate.comboBox_ChangeDateFileFormat.setCurrentIndex(0)
+        else:
+            item = self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT]
+            self.widgetTabDate.comboBox_ChangeDateFileFormat.setCurrentText(item)
+
+        state = self.dict_tableFilesPaths[fileName][_DKEY_CHANGE_FILE_DATE_FORMAT_STATE]
+        self.widgetTabDate.checkBox_ChangeDateFileFormat.setChecked(state)
+        self.widgetTabDate.comboBox_ChangeDateFileFormat.setEnabled(state)
+
     # -------------------------------- #
     # ----- Print/Show Functions ----- #
     # -------------------------------- #
@@ -297,7 +323,16 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.widgetTabFileManagement.buttonRemEvent.clicked.connect(self.actionButtonRemEvent)
 
         # ListWidget Events
-        self.listWidget_FileList.currentRowChanged.connect(self.fileListRowChanged_event)
+        self.listWidget_FileList.currentRowChanged.connect(self.actionFileListRowChanged_event)
+
+        # checkBox_ChangeDateFileFormat Event
+        self.widgetTabDate.checkBox_ChangeDateFileFormat.stateChanged.connect(self.actionChangeFileDateFormat)
+
+        # comboBox_DateFileFormat Event
+        self.widgetTabDate.comboBox_DateFileFormat.currentTextChanged.connect(self.actionComboBoxFileDateFormatChanged)
+        # comboBox_ChangeDateFileFormat Event
+        self.widgetTabDate.comboBox_ChangeDateFileFormat.currentTextChanged.connect(
+            self.actionComboBoxChangeFileDateFormatChanged)
 
     def actionButtonAdd(self):
         # Open a dialog for CSV files
@@ -323,7 +358,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         if self.listWidget_FileList.currentItem() is not None:  # if some item is selected
             self.dict_tableFilesPaths.pop(self.listWidget_FileList.currentItem().text(), None)  # Delete item from dict
             self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())  # Delete item from widget
-            self.fileListRowChanged_event()  # run the row changed event
+            self.actionFileListRowChanged_event()  # run the row changed event
             self.updateDateList()  # update DATE widget
             self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
             self.updateEventsList()  # update EVENT widget
@@ -434,7 +469,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 self.removeFromEventColumn(fileName, columnName)  # remove event from the list
             self.updateEventsList()  # update EVENT widget
 
-    def fileListRowChanged_event(self):
+    def actionFileListRowChanged_event(self):
         self.widgetTabFileManagement.listWidget_ColumnList.clear()  # Clear Column Widget
         if self.listWidget_FileList.currentItem() is not None:  # If current item is not None
             fileName = self.listWidget_FileList.currentItem().text()  # get current item name
@@ -444,6 +479,37 @@ class WidgetMergeTableFilesCalendar(QWidget):
 
             if self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is None:  # If COLUMN widget is not None
                 self.widgetTabFileManagement.listWidget_ColumnList.setCurrentRow(0)  # Set first row selected
+        self.updateWidgetTabDate()
+
+    def actionChangeFileDateFormat(self):
+        state = self.widgetTabDate.checkBox_ChangeDateFileFormat.isChecked()
+        self.widgetTabDate.comboBox_ChangeDateFileFormat.setEnabled(state)
+        if self.listWidget_FileList.currentItem() is not None:
+            fileName = self.listWidget_FileList.currentItem().text()
+            self.dict_tableFilesPaths[fileName][_DKEY_CHANGE_FILE_DATE_FORMAT_STATE] = state
+            if state:
+                if self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT] is None:
+                    self.widgetTabDate.comboBox_ChangeDateFileFormat.setCurrentIndex(0)
+                else:
+                    item = self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT]
+                    self.widgetTabDate.comboBox_ChangeDateFileFormat.setCurrentText(item)
+            # self.prt_dict_tableFilePaths()
+
+    def actionComboBoxFileDateFormatChanged(self):
+        item = self.widgetTabDate.comboBox_DateFileFormat.currentText()
+        fileName = self.listWidget_FileList.currentItem().text()
+        if item == 'NULL':
+            self.dict_tableFilesPaths[fileName][_DKEY_FILE_DATE_FORMAT] = None
+        else:
+            self.dict_tableFilesPaths[fileName][_DKEY_FILE_DATE_FORMAT] = item
+
+    def actionComboBoxChangeFileDateFormatChanged(self):
+        item = self.widgetTabDate.comboBox_ChangeDateFileFormat.currentText()
+        fileName = self.listWidget_FileList.currentItem().text()
+        if item == 'NULL':
+            self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT] = None
+        else:
+            self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT] = item
 
 
 class WidgetTabFileManagement(QWidget):
@@ -578,15 +644,103 @@ class WidgetTabDate(QWidget):
         # ---------------------- #
         self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
 
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
+        # ------------------------ #
+        # ----- Set CheckBox ----- #
+        # ------------------------ #
+        self.checkBox_ChangeDateFileFormat = QCheckBox("Change Date Format (to):")
+
+        # ------------------------ #
+        # ----- Set ComboBox ----- #
+        # ------------------------ #
+        self.comboBox_DateFileFormat = QComboBox()
+        self.comboBox_ChangeDateFileFormat = QComboBox()
+        self.setComboBoxes()
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
     # --------------------------- #
     def setWidget(self):
-        pass
+        # Create Labels
+        label_DateFileFormat = QLabel("Date File Format:")
+        # label_ChangeDateFileFormat = QLabel("Change Date Format (to):")
+        label_includeTimeColumn = QLabel("Include Time Column:")
+
+        # Horizontal Layout for date format
+        hbox_DateFormat = QHBoxLayout()
+        hbox_DateFormat.addWidget(label_DateFileFormat)
+        hbox_DateFormat.addWidget(self.comboBox_DateFileFormat)
+        hbox_DateFormat.addWidget(self.checkBox_ChangeDateFileFormat)
+        hbox_DateFormat.addWidget(self.comboBox_ChangeDateFileFormat)
+
+        # Main Layout
+        self.vbox_main_layout.addLayout(hbox_DateFormat)
+        self.vbox_main_layout.addSpacerItem(QSpacerItem(0, _INT_MAX_STRETCH))
+
+    # ------------------- #
+    # ----- Setters ----- #
+    # ------------------- #
+    def setComboBoxes(self):
+        # DateFileFormat
+        self.comboBox_DateFileFormat.addItem("<NULL>")
+
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.DD_MM_YYYY)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.DD_YYYY_MM)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.D_M_YYYY)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.D_YYYY_M)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.DD_MM_YY)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.DD_YY_MM)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.D_M_YY)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.D_YY_M)
+
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.MM_DD_YYYY)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.MM_YYYY_DD)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.M_D_YYYY)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.M_YYYY_D)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.MM_DD_YY)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.MM_YY_DD)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.M_D_YY)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.M_YY_D)
+
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.YYYY_MM_DD)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.YYYY_DD_MM)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.YYYY_M_D)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.YYYY_D_M)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.YY_MM_DD)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.YY_DD_MM)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.YY_M_D)
+        self.comboBox_DateFileFormat.addItem(my_cal_v2.YY_D_M)
+
+        # ChangeDateFileFormat
+        state = self.checkBox_ChangeDateFileFormat.isChecked()
+        self.comboBox_ChangeDateFileFormat.setEnabled(state)
+        self.comboBox_ChangeDateFileFormat.addItem("<NULL>")
+
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.DD_MM_YYYY)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.DD_YYYY_MM)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.D_M_YYYY)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.D_YYYY_M)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.DD_MM_YY)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.DD_YY_MM)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.D_M_YY)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.D_YY_M)
+
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.MM_DD_YYYY)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.MM_YYYY_DD)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.M_D_YYYY)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.M_YYYY_D)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.MM_DD_YY)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.MM_YY_DD)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.M_D_YY)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.M_YY_D)
+
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YYYY_MM_DD)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YYYY_DD_MM)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YYYY_M_D)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YYYY_D_M)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YY_MM_DD)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YY_DD_MM)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YY_M_D)
+        self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YY_D_M)
 
 
 # ******************************************************* #
