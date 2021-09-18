@@ -137,6 +137,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # ----- Set QListWidgetItems ----- #
         # -------------------------------- #
         self.listWidget_FileList = QListWidget()  # Create a ListWidget
+        self.fileName = None
 
         # ----------------------- #
         # ----- Set Actions ----- #
@@ -221,10 +222,10 @@ class WidgetMergeTableFilesCalendar(QWidget):
                                                _DKEY_PRIMARY_COLUMN: None,
                                                _DKEY_EVENT_COLUMNS: [],
                                                _DKEY_FILE_DATE_FORMAT: None,
-                                               _DKEY_FILE_DATE_DELIMITER: None,
+                                               _DKEY_FILE_DATE_DELIMITER: '',
                                                _DKEY_CHANGE_FILE_DATE_FORMAT_STATE: False,
                                                _DKEY_NEW_FILE_DATE_FORMAT: None,
-                                               _DKEY_NEW_FILE_DATE_DELIMITER: None
+                                               _DKEY_NEW_FILE_DATE_DELIMITER: ''
                                                }
         self.listWidget_FileList.addItem(QListWidgetItem(fileName))  # Add Item to List
 
@@ -271,22 +272,43 @@ class WidgetMergeTableFilesCalendar(QWidget):
                         QListWidgetItem(key + " -> " + event))
 
     def updateWidgetTabDate(self):
-        fileName = self.listWidget_FileList.currentItem().text()
-        if self.dict_tableFilesPaths[fileName][_DKEY_FILE_DATE_FORMAT] is None:
+        if self.dict_tableFilesPaths[self.fileName][_DKEY_FILE_DATE_FORMAT] is None:
             self.widgetTabDate.comboBox_DateFileFormat.setCurrentIndex(0)
         else:
-            item = self.dict_tableFilesPaths[fileName][_DKEY_FILE_DATE_FORMAT]
+            item = self.dict_tableFilesPaths[self.fileName][_DKEY_FILE_DATE_FORMAT]
             self.widgetTabDate.comboBox_DateFileFormat.setCurrentText(item)
 
-        if self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT] is None:
+        if self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_FORMAT] is None:
             self.widgetTabDate.comboBox_ChangeDateFileFormat.setCurrentIndex(0)
         else:
-            item = self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT]
+            item = self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_FORMAT]
             self.widgetTabDate.comboBox_ChangeDateFileFormat.setCurrentText(item)
 
-        state = self.dict_tableFilesPaths[fileName][_DKEY_CHANGE_FILE_DATE_FORMAT_STATE]
+        state = self.dict_tableFilesPaths[self.fileName][_DKEY_CHANGE_FILE_DATE_FORMAT_STATE]
         self.widgetTabDate.checkBox_ChangeDateFileFormat.setChecked(state)
         self.widgetTabDate.comboBox_ChangeDateFileFormat.setEnabled(state)
+
+        if self.dict_tableFilesPaths[self.fileName][_DKEY_FILE_DATE_DELIMITER] == my_cal_v2.del_slash:
+            self.widgetTabDate.lineEdit_DateFileCustom.setText('')
+            self.widgetTabDate.radioButton_DateFileSlash.setChecked(True)
+        elif self.dict_tableFilesPaths[self.fileName][_DKEY_FILE_DATE_DELIMITER] == my_cal_v2.del_dash:
+            self.widgetTabDate.lineEdit_DateFileCustom.setText('')
+            self.widgetTabDate.radioButton_DateFileDash.setChecked(True)
+        else:
+            tmp_text = self.dict_tableFilesPaths[self.fileName][_DKEY_FILE_DATE_DELIMITER]
+            self.widgetTabDate.lineEdit_DateFileCustom.setText(tmp_text)
+            self.widgetTabDate.radioButton_DateFileCustom.setChecked(True)
+
+        if self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_DELIMITER] == my_cal_v2.del_slash:
+            self.widgetTabDate.lineEdit_NewDateFileCustom.setText('')
+            self.widgetTabDate.radioButton_NewDateFileSlash.setChecked(True)
+        elif self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_DELIMITER] == my_cal_v2.del_dash:
+            self.widgetTabDate.lineEdit_NewDateFileCustom.setText('')
+            self.widgetTabDate.radioButton_NewDateFileDash.setChecked(True)
+        else:
+            tmp_text = self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_DELIMITER]
+            self.widgetTabDate.lineEdit_NewDateFileCustom.setText(tmp_text)
+            self.widgetTabDate.radioButton_NewDateFileCustom.setChecked(True)
 
     # -------------------------------- #
     # ----- Print/Show Functions ----- #
@@ -309,6 +331,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # Button Events
         self.buttonAdd.clicked.connect(self.actionButtonAdd)  # buttonAdd -> clicked
         self.buttonRemove.clicked.connect(self.actionButtonRemove)  # buttonRemove -> clicked
+        self.buttonGenerate.clicked.connect(self.actionButtonGenerate)  # buttonGenerate -> clicked
 
         # buttonDateColumn -> clicked
         self.widgetTabFileManagement.buttonDateColumn.clicked.connect(self.actionButtonDateColumn)
@@ -335,6 +358,24 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.widgetTabDate.comboBox_ChangeDateFileFormat.currentTextChanged.connect(
             self.actionComboBoxChangeFileDateFormatChanged)
 
+        # radioButton_DateFileSlash
+        self.widgetTabDate.radioButton_DateFileSlash.toggled.connect(self.actionRadioButtFileDelSlash)
+        # radioButton_DateFileDash
+        self.widgetTabDate.radioButton_DateFileDash.toggled.connect(self.actionRadioButtFileDelDash)
+        # radioButton_DateFileCustom
+        self.widgetTabDate.radioButton_DateFileCustom.toggled.connect(self.actionRadioButtCustom)
+        # lineEdit_DateFileCustom
+        self.widgetTabDate.lineEdit_DateFileCustom.textChanged.connect(self.actionRadioButtCustom)
+
+        # radioButton_DateFileSlash
+        self.widgetTabDate.radioButton_NewDateFileSlash.toggled.connect(self.actionRadioButtFileDelNewSlash)
+        # radioButton_DateFileDash
+        self.widgetTabDate.radioButton_NewDateFileDash.toggled.connect(self.actionRadioButtFileDelNewDash)
+        # radioButton_DateFileCustom
+        self.widgetTabDate.radioButton_NewDateFileCustom.toggled.connect(self.actionRadioButtNewCustom)
+        # lineEdit_DateFileCustom
+        self.widgetTabDate.lineEdit_NewDateFileCustom.textChanged.connect(self.actionRadioButtNewCustom)
+
     def actionButtonAdd(self):
         # Open a dialog for CSV files
         success, dialog = self.openFileDialog(dialogName='Open Table File (Currently strictly CSV)',
@@ -357,33 +398,35 @@ class WidgetMergeTableFilesCalendar(QWidget):
 
     def actionButtonRemove(self):
         if self.listWidget_FileList.currentItem() is not None:  # if some item is selected
-            self.dict_tableFilesPaths.pop(self.listWidget_FileList.currentItem().text(), None)  # Delete item from dict
+            self.dict_tableFilesPaths.pop(self.fileName, None)  # Delete item from dict
             self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())  # Delete item from widget
             self.actionFileListRowChanged_event()  # run the row changed event
             self.updateDateList()  # update DATE widget
             self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
             self.updateEventsList()  # update EVENT widget
 
+    def actionButtonGenerate(self):
+        pass
+
     def actionButtonDateColumn(self):
         # If some file is selected and some column is selected
         if self.listWidget_FileList.currentItem() is not None and \
                 self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is not None:
-            currentFileName = self.listWidget_FileList.currentItem().text()  # get current file name
             # get current column name
             currentColumnSelected = self.widgetTabFileManagement.listWidget_ColumnList.currentItem().text()
             # If this column exist in the primary event list
-            if self.dict_tableFilesPaths[currentFileName][_DKEY_PRIMARY_COLUMN] == currentColumnSelected:
-                self.resetPrimEventColumn(currentFileName)  # Reset primary event list
+            if self.dict_tableFilesPaths[self.fileName][_DKEY_PRIMARY_COLUMN] == currentColumnSelected:
+                self.resetPrimEventColumn(self.fileName)  # Reset primary event list
                 self.updatePrimaryEventList()  # update Primary Event widget
             # else if this column exist in the event list
-            elif currentColumnSelected in self.dict_tableFilesPaths[currentFileName][_DKEY_EVENT_COLUMNS]:
-                self.removeFromEventColumn(currentFileName, currentColumnSelected)  # remove it from the list
+            elif currentColumnSelected in self.dict_tableFilesPaths[self.fileName][_DKEY_EVENT_COLUMNS]:
+                self.removeFromEventColumn(self.fileName, currentColumnSelected)  # remove it from the list
                 self.updateEventsList()  # update Event widget
 
             # print(currentFileName, " -> ", currentColumnSelected)
 
             # Add it to the DATE_COLUMN
-            self.dict_tableFilesPaths[currentFileName][_DKEY_DATE_COLUMN] = currentColumnSelected
+            self.dict_tableFilesPaths[self.fileName][_DKEY_DATE_COLUMN] = currentColumnSelected
             self.updateDateList()  # update Date widget
 
     def actionButtonRemDateColumn(self):
@@ -402,22 +445,21 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # If some file is selected and some column is selected
         if self.listWidget_FileList.currentItem() is not None and \
                 self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is not None:
-            currentFileName = self.listWidget_FileList.currentItem().text()  # get current file name
             # get current column name
             currentColumnSelected = self.widgetTabFileManagement.listWidget_ColumnList.currentItem().text()
             # If this column exist in the date list
-            if self.dict_tableFilesPaths[currentFileName][_DKEY_DATE_COLUMN] == currentColumnSelected:
-                self.resetDateColumn(currentFileName)  # Reset date list
+            if self.dict_tableFilesPaths[self.fileName][_DKEY_DATE_COLUMN] == currentColumnSelected:
+                self.resetDateColumn(self.fileName)  # Reset date list
                 self.updateDateList()  # update Date widget
             # else if this column exist in the event list
-            elif currentColumnSelected in self.dict_tableFilesPaths[currentFileName][_DKEY_EVENT_COLUMNS]:
-                self.removeFromEventColumn(currentFileName, currentColumnSelected)  # remove it from the list
+            elif currentColumnSelected in self.dict_tableFilesPaths[self.fileName][_DKEY_EVENT_COLUMNS]:
+                self.removeFromEventColumn(self.fileName, currentColumnSelected)  # remove it from the list
                 self.updateEventsList()  # update Event widget
 
             # print(currentFileName, " -> ", currentColumnSelected)
 
             # Add it to the PRIMARY_EVENT
-            self.dict_tableFilesPaths[currentFileName][_DKEY_PRIMARY_COLUMN] = currentColumnSelected
+            self.dict_tableFilesPaths[self.fileName][_DKEY_PRIMARY_COLUMN] = currentColumnSelected
             self.updatePrimaryEventList()  # update Primary Event widget
 
     def actionButtonRemPrimaryEvent(self):
@@ -436,23 +478,22 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # If some file is selected and some columns are selected
         if self.listWidget_FileList.currentItem() is not None and \
                 self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is not None:
-            currentFileName = self.listWidget_FileList.currentItem().text()  # get current file name
             # get current columns selected
             currentSelectedItems = self.widgetTabFileManagement.listWidget_ColumnList.selectedItems()
             for currentColumnSelected in currentSelectedItems:  # for each item selected
                 # If this column exist in the date list
-                if self.dict_tableFilesPaths[currentFileName][_DKEY_DATE_COLUMN] == currentColumnSelected.text():
-                    self.resetDateColumn(currentFileName)  # Reset date list
+                if self.dict_tableFilesPaths[self.fileName][_DKEY_DATE_COLUMN] == currentColumnSelected.text():
+                    self.resetDateColumn(self.fileName)  # Reset date list
                     self.updateDateList()  # update Date widget
                 # else if this column exist in the primary event list
-                elif self.dict_tableFilesPaths[currentFileName][_DKEY_EVENT_COLUMNS] == currentColumnSelected.text():
-                    self.resetPrimEventColumn(currentFileName)  # Reset primary event list
+                elif self.dict_tableFilesPaths[self.fileName][_DKEY_EVENT_COLUMNS] == currentColumnSelected.text():
+                    self.resetPrimEventColumn(self.fileName)  # Reset primary event list
                     self.updatePrimaryEventList()  # update Primary Event widget
 
                 # if this column is not in the EVENT List
-                if currentColumnSelected.text() not in self.dict_tableFilesPaths[currentFileName][_DKEY_EVENT_COLUMNS]:
+                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][_DKEY_EVENT_COLUMNS]:
                     # Add it to list
-                    self.dict_tableFilesPaths[currentFileName][_DKEY_EVENT_COLUMNS].append(currentColumnSelected.text())
+                    self.dict_tableFilesPaths[self.fileName][_DKEY_EVENT_COLUMNS].append(currentColumnSelected.text())
 
                 # print(currentFileName, " -> ", currentColumnSelected.text())
 
@@ -473,44 +514,71 @@ class WidgetMergeTableFilesCalendar(QWidget):
     def actionFileListRowChanged_event(self):
         self.widgetTabFileManagement.listWidget_ColumnList.clear()  # Clear Column Widget
         if self.listWidget_FileList.currentItem() is not None:  # If current item is not None
-            fileName = self.listWidget_FileList.currentItem().text()  # get current item name
-            for column in self.dict_tableFilesPaths[fileName][_DKEY_COLUMNS]:  # for each column
+            self.fileName = self.listWidget_FileList.currentItem().text()  # get current item name
+            for column in self.dict_tableFilesPaths[self.fileName][_DKEY_COLUMNS]:  # for each column
                 # Add columns as ITEMS to widget
                 self.widgetTabFileManagement.listWidget_ColumnList.addItem(QListWidgetItem(column))
 
             if self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is None:  # If COLUMN widget is not None
                 self.widgetTabFileManagement.listWidget_ColumnList.setCurrentRow(0)  # Set first row selected
+        else:
+            self.fileName = None
         self.updateWidgetTabDate()
 
     def actionChangeFileDateFormat(self):
         state = self.widgetTabDate.checkBox_ChangeDateFileFormat.isChecked()
         self.widgetTabDate.updateNewDateToggleState()
         if self.listWidget_FileList.currentItem() is not None:
-            fileName = self.listWidget_FileList.currentItem().text()
-            self.dict_tableFilesPaths[fileName][_DKEY_CHANGE_FILE_DATE_FORMAT_STATE] = state
+            self.dict_tableFilesPaths[self.fileName][_DKEY_CHANGE_FILE_DATE_FORMAT_STATE] = state
             if state:
-                if self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT] is None:
+                if self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_FORMAT] is None:
                     self.widgetTabDate.comboBox_ChangeDateFileFormat.setCurrentIndex(0)
                 else:
-                    item = self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT]
+                    item = self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_FORMAT]
                     self.widgetTabDate.comboBox_ChangeDateFileFormat.setCurrentText(item)
             # self.prt_dict_tableFilePaths()
 
     def actionComboBoxFileDateFormatChanged(self):
-        item = self.widgetTabDate.comboBox_DateFileFormat.currentText()
-        fileName = self.listWidget_FileList.currentItem().text()
-        if item == 'NULL':
-            self.dict_tableFilesPaths[fileName][_DKEY_FILE_DATE_FORMAT] = None
-        else:
-            self.dict_tableFilesPaths[fileName][_DKEY_FILE_DATE_FORMAT] = item
+        if self.fileName is not None:
+            item = self.widgetTabDate.comboBox_DateFileFormat.currentText()
+            if item == 'NULL':
+                self.dict_tableFilesPaths[self.fileName][_DKEY_FILE_DATE_FORMAT] = None
+            else:
+                self.dict_tableFilesPaths[self.fileName][_DKEY_FILE_DATE_FORMAT] = item
 
     def actionComboBoxChangeFileDateFormatChanged(self):
-        item = self.widgetTabDate.comboBox_ChangeDateFileFormat.currentText()
-        fileName = self.listWidget_FileList.currentItem().text()
-        if item == 'NULL':
-            self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT] = None
-        else:
-            self.dict_tableFilesPaths[fileName][_DKEY_NEW_FILE_DATE_FORMAT] = item
+        if self.fileName is not None:
+            item = self.widgetTabDate.comboBox_ChangeDateFileFormat.currentText()
+            if item == 'NULL' and self.fileName is not None:
+                self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_FORMAT] = None
+            else:
+                self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_FORMAT] = item
+
+    def actionRadioButtFileDelSlash(self):
+        if self.widgetTabDate.radioButton_DateFileSlash.isChecked() and self.fileName is not None:
+            self.dict_tableFilesPaths[self.fileName][_DKEY_FILE_DATE_DELIMITER] = my_cal_v2.del_slash
+
+    def actionRadioButtFileDelDash(self):
+        if self.widgetTabDate.radioButton_DateFileDash.isChecked() and self.fileName is not None:
+            self.dict_tableFilesPaths[self.fileName][_DKEY_FILE_DATE_DELIMITER] = my_cal_v2.del_dash
+
+    def actionRadioButtCustom(self):
+        if self.widgetTabDate.radioButton_DateFileCustom.isChecked() and self.fileName is not None:
+            delim = self.widgetTabDate.lineEdit_DateFileCustom.text()
+            self.dict_tableFilesPaths[self.fileName][_DKEY_FILE_DATE_DELIMITER] = delim
+
+    def actionRadioButtFileDelNewSlash(self):
+        if self.widgetTabDate.radioButton_NewDateFileSlash.isChecked() and self.fileName is not None:
+            self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_DELIMITER] = my_cal_v2.del_slash
+
+    def actionRadioButtFileDelNewDash(self):
+        if self.widgetTabDate.radioButton_NewDateFileDash.isChecked() and self.fileName is not None:
+            self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_DELIMITER] = my_cal_v2.del_dash
+
+    def actionRadioButtNewCustom(self):
+        if self.widgetTabDate.radioButton_NewDateFileCustom.isChecked() and self.fileName is not None:
+            delim = self.widgetTabDate.lineEdit_NewDateFileCustom.text()
+            self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_DELIMITER] = delim
 
 
 class WidgetTabFileManagement(QWidget):
@@ -666,9 +734,11 @@ class WidgetTabDate(QWidget):
         # ------------------------ #
         self.lineEdit_DateFileCustom = QLineEdit()
         self.lineEdit_DateFileCustom.setMaxLength(3)
+        self.lineEdit_DateFileCustom.setToolTip("Can be < >, <,>, <.>, <->, </>, <#>, <;>, <:>, etc.")
 
         self.lineEdit_NewDateFileCustom = QLineEdit()
         self.lineEdit_NewDateFileCustom.setMaxLength(3)
+        self.lineEdit_DateFileCustom.setToolTip("Can be < >, <,>, <.>, <->, </>, <#>, <;>, <:>, etc.")
 
         # ------------------------ #
         # ----- Set ComboBox ----- #
