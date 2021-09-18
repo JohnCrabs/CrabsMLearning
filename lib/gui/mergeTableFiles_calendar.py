@@ -501,8 +501,6 @@ class WidgetMergeTableFilesCalendar(QWidget):
             print("ERROR: The needed number of file is at least 2!")
             return
 
-
-
     def actionButtonDateColumn(self):
         # If some file is selected and some column is selected
         if self.listWidget_FileList.currentItem() is not None and \
