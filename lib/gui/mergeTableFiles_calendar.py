@@ -1,9 +1,10 @@
 import sys
 import os
 import tkinter as tk
-from PySide2.QtCore import QUrl, Qt
+from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
-    QListWidget, QListWidgetItem, QFileDialog, QLabel, QTabWidget, QComboBox, QCheckBox
+    QListWidget, QListWidgetItem, QFileDialog, QLabel, QTabWidget, QComboBox, QCheckBox, QRadioButton, QLineEdit, \
+    QButtonGroup
 from PySide2.QtGui import QIcon, QPixmap
 
 import lib.core.file_manipulation as file_manip
@@ -429,7 +430,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 tmp_str = item.text()  # get text
                 fileName = tmp_str.split(' -> ')[0]  # get fileName
                 self.resetPrimEventColumn(fileName)  # remove PRIMARY_EVENT from the list
-            self.updatePrimaryEventList()  # update PRIMARY_EVENT wigdet
+            self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
 
     def actionButtonEvent(self):
         # If some file is selected and some columns are selected
@@ -483,7 +484,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
 
     def actionChangeFileDateFormat(self):
         state = self.widgetTabDate.checkBox_ChangeDateFileFormat.isChecked()
-        self.widgetTabDate.comboBox_ChangeDateFileFormat.setEnabled(state)
+        self.widgetTabDate.updateNewDateToggleState()
         if self.listWidget_FileList.currentItem() is not None:
             fileName = self.listWidget_FileList.currentItem().text()
             self.dict_tableFilesPaths[fileName][_DKEY_CHANGE_FILE_DATE_FORMAT_STATE] = state
@@ -649,6 +650,26 @@ class WidgetTabDate(QWidget):
         # ------------------------ #
         self.checkBox_ChangeDateFileFormat = QCheckBox("Change Date Format (to):")
 
+        # --------------------------- #
+        # ----- Set RadioButton ----- #
+        # --------------------------- #
+        self.radioButton_DateFileSlash = QRadioButton("Slash (/)")
+        self.radioButton_DateFileDash = QRadioButton("Dash (-)")
+        self.radioButton_DateFileCustom = QRadioButton("Custom:")
+
+        self.radioButton_NewDateFileSlash = QRadioButton("Slash (/)")
+        self.radioButton_NewDateFileDash = QRadioButton("Dash (-)")
+        self.radioButton_NewDateFileCustom = QRadioButton("Custom:")
+
+        # ------------------------ #
+        # ----- Set LineEdit ----- #
+        # ------------------------ #
+        self.lineEdit_DateFileCustom = QLineEdit()
+        self.lineEdit_DateFileCustom.setMaxLength(3)
+
+        self.lineEdit_NewDateFileCustom = QLineEdit()
+        self.lineEdit_NewDateFileCustom.setMaxLength(3)
+
         # ------------------------ #
         # ----- Set ComboBox ----- #
         # ------------------------ #
@@ -662,8 +683,8 @@ class WidgetTabDate(QWidget):
     def setWidget(self):
         # Create Labels
         label_DateFileFormat = QLabel("Date File Format:")
-        # label_ChangeDateFileFormat = QLabel("Change Date Format (to):")
-        label_includeTimeColumn = QLabel("Include Time Column:")
+        label_Delimiter = QLabel("Delimiter:")
+        label_NewDelimiter = QLabel("New Delimiter:")
 
         # Horizontal Layout for date format
         hbox_DateFormat = QHBoxLayout()
@@ -672,9 +693,41 @@ class WidgetTabDate(QWidget):
         hbox_DateFormat.addWidget(self.checkBox_ChangeDateFileFormat)
         hbox_DateFormat.addWidget(self.comboBox_ChangeDateFileFormat)
 
+        # Horizontal Layout for delimiter
+        buttGroup_CurrentDateDelim = QButtonGroup(self)
+        buttGroup_CurrentDateDelim.addButton(self.radioButton_DateFileSlash)
+        buttGroup_CurrentDateDelim.addButton(self.radioButton_DateFileDash)
+        buttGroup_CurrentDateDelim.addButton(self.radioButton_DateFileCustom)
+
+        buttGroup_NewDateDelim = QButtonGroup(self)
+        buttGroup_NewDateDelim.addButton(self.radioButton_NewDateFileSlash)
+        buttGroup_NewDateDelim.addButton(self.radioButton_NewDateFileDash)
+        buttGroup_NewDateDelim.addButton(self.radioButton_NewDateFileCustom)
+
+        hbox_CurrentDateDelim = QHBoxLayout()
+        hbox_CurrentDateDelim.addWidget(label_Delimiter)
+        hbox_CurrentDateDelim.addWidget(self.radioButton_DateFileSlash)
+        hbox_CurrentDateDelim.addWidget(self.radioButton_DateFileDash)
+        hbox_CurrentDateDelim.addWidget(self.radioButton_DateFileCustom)
+        hbox_CurrentDateDelim.addWidget(self.lineEdit_DateFileCustom)
+
+        hbox_NewDateDelim = QHBoxLayout()
+        hbox_NewDateDelim.addWidget(label_NewDelimiter)
+        hbox_NewDateDelim.addWidget(self.radioButton_NewDateFileSlash)
+        hbox_NewDateDelim.addWidget(self.radioButton_NewDateFileDash)
+        hbox_NewDateDelim.addWidget(self.radioButton_NewDateFileCustom)
+        hbox_NewDateDelim.addWidget(self.lineEdit_NewDateFileCustom)
+
+        hbox_Delimeter = QHBoxLayout()
+        hbox_Delimeter.addLayout(hbox_CurrentDateDelim)
+        hbox_Delimeter.addLayout(hbox_NewDateDelim)
+
         # Main Layout
         self.vbox_main_layout.addLayout(hbox_DateFormat)
+        self.vbox_main_layout.addLayout(hbox_Delimeter)
         self.vbox_main_layout.addSpacerItem(QSpacerItem(0, _INT_MAX_STRETCH))
+
+        self.updateNewDateToggleState()
 
     # ------------------- #
     # ----- Setters ----- #
@@ -711,8 +764,6 @@ class WidgetTabDate(QWidget):
         self.comboBox_DateFileFormat.addItem(my_cal_v2.YY_D_M)
 
         # ChangeDateFileFormat
-        state = self.checkBox_ChangeDateFileFormat.isChecked()
-        self.comboBox_ChangeDateFileFormat.setEnabled(state)
         self.comboBox_ChangeDateFileFormat.addItem("<NULL>")
 
         self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.DD_MM_YYYY)
@@ -741,6 +792,16 @@ class WidgetTabDate(QWidget):
         self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YY_DD_MM)
         self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YY_M_D)
         self.comboBox_ChangeDateFileFormat.addItem(my_cal_v2.YY_D_M)
+
+    def updateNewDateToggleState(self):
+        state = self.checkBox_ChangeDateFileFormat.isChecked()
+        self.comboBox_ChangeDateFileFormat.setEnabled(state)
+
+        self.radioButton_NewDateFileSlash.setEnabled(state)
+        self.radioButton_NewDateFileDash.setEnabled(state)
+        self.radioButton_NewDateFileCustom.setEnabled(state)
+
+        self.lineEdit_NewDateFileCustom.setEnabled(state)
 
 
 # ******************************************************* #
