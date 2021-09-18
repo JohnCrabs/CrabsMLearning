@@ -433,28 +433,75 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 if listInput[i][tmpPrimaryEventIndex] not in list_primary_event:
                     list_primary_event.append(listInput[i][tmpPrimaryEventIndex])
 
+        primary_event_index = None
+        date_index = None
         if self.dict_tableFilesPaths.keys().__len__() >= 2:
+            # Error Checking
+            for fileName in self.dict_tableFilesPaths.keys():
+                if self.dict_tableFilesPaths[fileName][_DKEY_DATE_COLUMN] is not None:
+                    date_column = self.dict_tableFilesPaths[fileName][_DKEY_DATE_COLUMN]
+                    date_index = self.dict_tableFilesPaths[fileName][_DKEY_COLUMNS].index(date_column)
+                else:
+                    print("ERROR: <", fileName, "> has not a Date column specified!")
+                    return
+
+                if self.dict_tableFilesPaths[fileName][_DKEY_PRIMARY_COLUMN] is not None:
+                    primary_event = self.dict_tableFilesPaths[fileName][_DKEY_PRIMARY_COLUMN]
+                    primary_event_index = self.dict_tableFilesPaths[fileName][_DKEY_COLUMNS].index(primary_event)
+                else:
+                    print("ERROR: <", fileName, "> has no Primary event specified!")
+                    return
+
+                if self.dict_tableFilesPaths[fileName][_DKEY_EVENT_COLUMNS].__len__() == 0:
+                    print("ERROR: <", fileName, "> has not a single Event specified!")
+                    return
+
+            # Set Primary Event List and Event List
             for fileName in self.dict_tableFilesPaths.keys():
                 filePath = self.dict_tableFilesPaths[fileName][_DKEY_FULLPATH]
                 delimiter = self.dict_tableFilesPaths[fileName][_DKEY_COLUMN_DELIMITER]
                 fileData = my_cal_v2.read_csv(filePath, delimiter)
-                if self.dict_tableFilesPaths[fileName][_DKEY_PRIMARY_COLUMN] is not None:
-                    if self.dict_tableFilesPaths[fileName][_DKEY_EVENT_COLUMNS].__len__() > 0:
-                        primary_event = self.dict_tableFilesPaths[fileName][_DKEY_PRIMARY_COLUMN]
-                        primary_event_index = self.dict_tableFilesPaths[fileName][_DKEY_COLUMNS].index(primary_event)
-                        list_of_selected_events = self.dict_tableFilesPaths[fileName][_DKEY_EVENT_COLUMNS]
-                        set_list_primary_event(fileData, list_of_selected_events, primary_event_index)
-                    else:
-                        print("ERROR: <", fileName, "> has not a single Event specified!")
-                        return
-                else:
-                    print("ERROR: <", fileName, "> has no Primary event specified!")
-                    return
+                list_of_selected_events = self.dict_tableFilesPaths[fileName][_DKEY_EVENT_COLUMNS]
+                set_list_primary_event(fileData, list_of_selected_events, primary_event_index)
+
+            # Create the Calendar
+            # We need to write code (widget to set up this parameters) **************************************
+            event_calendar = my_cal_v2.MyCalendar(list_of_years=[2020, 2021], is_time=False,
+                                                  date_format=my_cal_v2.YYYY_MM_DD,
+                                                  date_delimiter=my_cal_v2.del_dash,
+                                                  time_format=my_cal_v2.HH_MM,
+                                                  time_delimiter=my_cal_v2.del_colon,
+                                                  hour_start=0, hour_end=0, hour_step=1,
+                                                  minute_start=0, minute_end=0, minute_step=0)
+            event_calendar.add_list_key_event_to_calendar(list_key_event=list_primary_event)
+            event_calendar.add_list_key_event_to_calendar(list_key_event=list_primary_event,
+                                                          list_of_headers=list_of_events)
+
+            # ***********************************************************************************************
+
+            # Add events to Calender (we may need to edit calendar lib so to be fully compatible with the interface)
+            for fileName in self.dict_tableFilesPaths.keys():
+                filePath = self.dict_tableFilesPaths[fileName][_DKEY_FULLPATH]
+                delimiter = self.dict_tableFilesPaths[fileName][_DKEY_COLUMN_DELIMITER]
+                fileData = my_cal_v2.read_csv(filePath, delimiter)
+                event_calendar.add_events_to_calendar(list_of_events=fileData,
+                                                      date_index=date_index,
+                                                      time_index=None,
+                                                      first_row_header=True,
+                                                      list_of_headers=None, event_index=primary_event_index)
+
+            # Export Final List
+            # We need to write code (widget to set up this parameters) **************************************
+            list_calendar = event_calendar.dict_to_list(date_range=['2020-01-01', '2021-05-23'])
+            my_cal_v2.write_csv(csv_path="export_folder/covid_measures_2021.csv",
+                                list_write=list_calendar, delimiter=my_cal_v2.del_comma)
+            # ***********************************************************************************************
+
         else:
             print("ERROR: The needed number of file is at least 2!")
             return
 
-        print(list_primary_event)
+
 
     def actionButtonDateColumn(self):
         # If some file is selected and some column is selected
