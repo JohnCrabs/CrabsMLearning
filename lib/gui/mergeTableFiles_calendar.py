@@ -45,6 +45,7 @@ _DKEY_NEW_FILE_DATE_DELIMITER = 'new-file-date-delimiter'
 
 _DKEY_MYCALV2_START_YEAR = 'start-year'
 _DKEY_MYCALV2_END_YEAR = 'end-year'
+_DKEY_MYCALV2_TIME_COLUMN_STATE = 'time-column-state'
 
 
 def setStyle_():
@@ -149,6 +150,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # ----- Set QListWidgetItems ----- #
         # -------------------------------- #
         self.listWidget_FileList = QListWidget()  # Create a ListWidget
+        self.listWidget_FileList.setMinimumWidth(300)
         self.listWidget_ColumnList = QListWidget()  # Create a ListWidget
         self.listWidget_ColumnList.setSelectionMode(QListWidget.ExtendedSelection)  # Set Extended Selection
         self.fileName = None
@@ -352,6 +354,10 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 self.widgetTabDate.lineEdit_NewDateFileCustom.setText(tmp_text)
                 self.widgetTabDate.radioButton_NewDateFileCustom.setChecked(True)
 
+    def setCalendarV2settings(self):
+        self.dict_myCalendar_v2_settings = {_DKEY_MYCALV2_START_YEAR: my_cal_v2.getCurrentYear().__int__(),
+                                            _DKEY_MYCALV2_END_YEAR: my_cal_v2.getCurrentYear().__int__()}
+
     # -------------------------------- #
     # ----- Print/Show Functions ----- #
     # -------------------------------- #
@@ -421,6 +427,9 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.widgetTabDate.radioButton_NewDateFileCustom.toggled.connect(self.actionRadioButtNewCustom)
         # lineEdit_DateFileCustom
         self.widgetTabDate.lineEdit_NewDateFileCustom.textChanged.connect(self.actionRadioButtNewCustom)
+
+        # spinBox_startYear
+        self.widgetTabMyCalendarOptions.spinBox_startYear.textChanged.connect(self.actionSpinBoxStartYear)
 
     def actionButtonAdd(self):
         # Open a dialog for CSV files
@@ -775,7 +784,10 @@ class WidgetMergeTableFilesCalendar(QWidget):
             self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_DELIMITER] = delim
 
     def actionSpinBoxStartYear(self):
-        pass
+        start_year = self.widgetTabMyCalendarOptions.spinBox_startYear.text()
+        self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_START_YEAR] = int(start_year.__str__())
+        print(self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_START_YEAR])
+        print(start_year)
 
     def actionSpinBoxEndYear(self):
         pass
