@@ -772,7 +772,8 @@ class MyCalendar:
                             self.dict_calendar[date][event][header] = NaN
 
     def add_events_to_calendar(self, list_of_events: [], date_index, time_index, first_row_header: bool,
-                               list_of_headers=None, no_data_value=NaN, event_index=None, input_event_name=None):
+                               list_of_headers=None, no_data_value=NaN, event_index=None, input_event_name=None,
+                               add_events_in_this_list=None):
         self.event_names = []
         self.header_names = []
         start_index = 0
@@ -804,14 +805,25 @@ class MyCalendar:
                     event_name = input_event_name
                     for j in range(0, header_size):
                         header_name = list_of_headers[j]
-                        if header_name not in self.header_names:
-                            self.header_names.append(header_name)
-                        if event_name not in self.dict_calendar[date][time].keys():
-                            self.dict_calendar[date][time][event_name] = {}
-                        if list_of_events[i][j] is '':
-                            self.dict_calendar[date][time][event_name][header_name] = no_data_value
+                        if add_events_in_this_list is not None:
+                            if header_name in add_events_in_this_list:
+                                if header_name not in self.header_names:
+                                    self.header_names.append(header_name)
+                                if event_name not in self.dict_calendar[date][time].keys():
+                                    self.dict_calendar[date][time][event_name] = {}
+                                if list_of_events[i][j] is '':
+                                    self.dict_calendar[date][time][event_name][header_name] = no_data_value
+                                else:
+                                    self.dict_calendar[date][time][event_name][header_name] = list_of_events[i][j]
                         else:
-                            self.dict_calendar[date][time][event_name][header_name] = list_of_events[i][j]
+                            if header_name not in self.header_names:
+                                self.header_names.append(header_name)
+                            if event_name not in self.dict_calendar[date][time].keys():
+                                self.dict_calendar[date][time][event_name] = {}
+                            if list_of_events[i][j] is '':
+                                self.dict_calendar[date][time][event_name][header_name] = no_data_value
+                            else:
+                                self.dict_calendar[date][time][event_name][header_name] = list_of_events[i][j]
 
             else:
                 # print(i, date, list_of_events[i][event_index], list_of_events[i])
@@ -821,14 +833,26 @@ class MyCalendar:
                         self.event_names.append(event_name)
                     for j in range(0, header_size):
                         header_name = list_of_events[0][j]
-                        if header_name not in self.header_names:
-                            self.header_names.append(header_name)
-                        if event_name not in self.dict_calendar[date].keys():
-                            self.dict_calendar[date][event_name] = {}
-                        if list_of_events[i][j] is '':
-                            self.dict_calendar[date][event_name][header_name] = no_data_value
+                        if add_events_in_this_list is not None:
+                            if header_name in add_events_in_this_list:
+                                if header_name not in self.header_names:
+                                    self.header_names.append(header_name)
+                                if event_name not in self.dict_calendar[date].keys():
+                                    self.dict_calendar[date][event_name] = {}
+                                if list_of_events[i][j] is '':
+                                    self.dict_calendar[date][event_name][header_name] = no_data_value
+                                else:
+                                    self.dict_calendar[date][event_name][header_name] = list_of_events[i][j]
                         else:
-                            self.dict_calendar[date][event_name][header_name] = list_of_events[i][j]
+                            if header_name in self.header_names and event_name in self.dict_calendar[date].keys():
+                                if header_name not in self.header_names:
+                                    self.header_names.append(header_name)
+                                if event_name not in self.dict_calendar[date].keys():
+                                    self.dict_calendar[date][event_name] = {}
+                                if list_of_events[i][j] is '':
+                                    self.dict_calendar[date][event_name][header_name] = no_data_value
+                                else:
+                                    self.dict_calendar[date][event_name][header_name] = list_of_events[i][j]
                 else:
                     pass
 

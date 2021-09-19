@@ -4,7 +4,7 @@ import tkinter as tk
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
     QListWidget, QListWidgetItem, QFileDialog, QLabel, QTabWidget, QComboBox, QCheckBox, QRadioButton, QLineEdit, \
-    QButtonGroup
+    QButtonGroup, QSpinBox
 from PySide2.QtGui import QIcon, QPixmap
 
 import lib.core.file_manipulation as file_manip
@@ -32,6 +32,7 @@ _DKEY_FULLPATH = 'full-path'
 _DKEY_COLUMNS = 'columns'
 _DKEY_COLUMN_DELIMITER = 'column-delimiter'
 _DKEY_DATE_COLUMN = 'date-column'
+_DKEY_TIME_COLUMN = 'time-column'
 _DKEY_PRIMARY_COLUMN = 'primary-column'
 _DKEY_EVENT_COLUMNS = 'event-columns'
 _DKEY_CHANGE_FILE_DATE_FORMAT_STATE = 'change-file-date-format'
@@ -113,6 +114,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.mainTabWidget = QTabWidget()  # Create a Tab Widget
         self.widgetTabFileManagement = WidgetTabFileManagement()  # Create the first Tab of TabWidget
         self.widgetTabDate = WidgetTabDate()  # Create a calendar Tab for TabWidget
+        self.widgetMyCalendarOptions = WidgetMyCalendarOptions()  # Create a calendar Option Tab
 
         # -------------------------- #
         # ----- Set PushButton ----- #
@@ -142,6 +144,8 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # ----- Set QListWidgetItems ----- #
         # -------------------------------- #
         self.listWidget_FileList = QListWidget()  # Create a ListWidget
+        self.listWidget_ColumnList = QListWidget()  # Create a ListWidget
+        self.listWidget_ColumnList.setSelectionMode(QListWidget.ExtendedSelection)  # Set Extended Selection
         self.fileName = None
 
         # ----------------------- #
@@ -166,6 +170,12 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # Disable Generate Button
         self.buttonGenerate.setEnabled(False)
 
+        # Set Column vbox
+        labelColumnList = QLabel("Column List:")
+        vbox_listColumns = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listColumns.addWidget(labelColumnList)  # Add Label
+        vbox_listColumns.addWidget(self.listWidget_ColumnList)  # Add Column List
+
         # Set add/remove button in vbox
         hbox_listFileButtons = QHBoxLayout()  # Create a Horizontal Box Layout
         hbox_listFileButtons.addWidget(self.buttonAdd)  # Add buttonAdd
@@ -177,6 +187,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         vbox_listFile = QVBoxLayout()  # Create a Vertical Box Layout
         vbox_listFile.addWidget(labelFileList)  # Add Label
         vbox_listFile.addWidget(self.listWidget_FileList)  # Add FileList
+        vbox_listFile.addLayout(vbox_listColumns)  # Add listColumns
         vbox_listFile.addLayout(hbox_listFileButtons)  # Add vbox_listFileButtons layout
 
         # Set main Tab Widget
@@ -228,6 +239,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
                                                _DKEY_COLUMNS: file_manip.getColumnNames(fullPath, splitter=splitter),
                                                _DKEY_COLUMN_DELIMITER: splitter,
                                                _DKEY_DATE_COLUMN: None,
+                                               _DKEY_TIME_COLUMN: None,
                                                _DKEY_PRIMARY_COLUMN: None,
                                                _DKEY_EVENT_COLUMNS: [],
                                                _DKEY_FILE_DATE_FORMAT: None,
@@ -241,6 +253,10 @@ class WidgetMergeTableFilesCalendar(QWidget):
     def resetDateColumn(self, fileName):
         # Set DATE_COLUMN for the specified FILE to None
         self.dict_tableFilesPaths[fileName][_DKEY_DATE_COLUMN] = None
+
+    def resetTimeColumn(self, fileName):
+        # Set DATE_COLUMN for the specified FILE to None
+        self.dict_tableFilesPaths[fileName][_DKEY_TIME_COLUMN] = None
 
     def resetPrimEventColumn(self, fileName):
         # Set PRIMARY_COLUMN for the specified FILE to None
@@ -262,6 +278,14 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 # Add ITEM to DATE widget
                 self.widgetTabFileManagement.listWidget_DateColumns.addItem(
                     QListWidgetItem(key + " -> " + self.dict_tableFilesPaths[key][_DKEY_DATE_COLUMN]))
+
+    def updateTimeList(self):
+        self.widgetTabFileManagement.listWidget_TimeColumns.clear()  # Clear Date Widget
+        for key in self.dict_tableFilesPaths.keys():  # For each key  (fileName)
+            if self.dict_tableFilesPaths[key][_DKEY_TIME_COLUMN] is not None:  # if date key is not None
+                # Add ITEM to DATE widget
+                self.widgetTabFileManagement.listWidget_TimeColumns.addItem(
+                    QListWidgetItem(key + " -> " + self.dict_tableFilesPaths[key][_DKEY_TIME_COLUMN]))
 
     def updatePrimaryEventList(self):
         self.widgetTabFileManagement.listWidget_PrimEventColumns.clear()  # Clear Primary Event Widget
@@ -347,6 +371,10 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.widgetTabFileManagement.buttonDateColumn.clicked.connect(self.actionButtonDateColumn)
         # buttonRemDateColumn -> clicked
         self.widgetTabFileManagement.buttonRemDateColumn.clicked.connect(self.actionButtonRemDateColumn)
+        # buttonTimeColumn -> clicked
+        self.widgetTabFileManagement.buttonTimeColumn.clicked.connect(self.actionButtonTimeColumn)
+        # buttonRemTimeColumn -> clicked
+        self.widgetTabFileManagement.buttonRemTimeColumn.clicked.connect(self.actionButtonRemTimeColumn)
         # buttonPrimaryEvent -> clicked
         self.widgetTabFileManagement.buttonPrimaryEvent.clicked.connect(self.actionButtonPrimaryEvent)
         # buttonRemPrimaryEvent -> clicked
@@ -433,23 +461,33 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 if listInput[i][tmpPrimaryEventIndex] not in list_primary_event:
                     list_primary_event.append(listInput[i][tmpPrimaryEventIndex])
 
-        primary_event_index = None
-        date_index = None
+        dict_primary_event_index = {}
+        dict_date_index = {}
         if self.dict_tableFilesPaths.keys().__len__() >= 2:
             # Error Checking
+            bool_add_primary_event = True
+            bool_add_date_column = True
             for fileName in self.dict_tableFilesPaths.keys():
-                if self.dict_tableFilesPaths[fileName][_DKEY_DATE_COLUMN] is not None:
-                    date_column = self.dict_tableFilesPaths[fileName][_DKEY_DATE_COLUMN]
-                    date_index = self.dict_tableFilesPaths[fileName][_DKEY_COLUMNS].index(date_column)
-                else:
-                    print("ERROR: <", fileName, "> has not a Date column specified!")
-                    return
-
                 if self.dict_tableFilesPaths[fileName][_DKEY_PRIMARY_COLUMN] is not None:
                     primary_event = self.dict_tableFilesPaths[fileName][_DKEY_PRIMARY_COLUMN]
                     primary_event_index = self.dict_tableFilesPaths[fileName][_DKEY_COLUMNS].index(primary_event)
+                    dict_primary_event_index[fileName] = primary_event_index
+                    if bool_add_primary_event:
+                        list_of_events.append(primary_event)
+                        bool_add_primary_event = False
                 else:
                     print("ERROR: <", fileName, "> has no Primary event specified!")
+                    return
+
+                if self.dict_tableFilesPaths[fileName][_DKEY_DATE_COLUMN] is not None:
+                    date_column = self.dict_tableFilesPaths[fileName][_DKEY_DATE_COLUMN]
+                    date_index = self.dict_tableFilesPaths[fileName][_DKEY_COLUMNS].index(date_column)
+                    dict_date_index[fileName] = date_index
+                    if bool_add_date_column:
+                        list_of_events.append(date_column)
+                        bool_add_date_column = False
+                else:
+                    print("ERROR: <", fileName, "> has not a Date column specified!")
                     return
 
                 if self.dict_tableFilesPaths[fileName][_DKEY_EVENT_COLUMNS].__len__() == 0:
@@ -462,7 +500,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 delimiter = self.dict_tableFilesPaths[fileName][_DKEY_COLUMN_DELIMITER]
                 fileData = my_cal_v2.read_csv(filePath, delimiter)
                 list_of_selected_events = self.dict_tableFilesPaths[fileName][_DKEY_EVENT_COLUMNS]
-                set_list_primary_event(fileData, list_of_selected_events, primary_event_index)
+                set_list_primary_event(fileData, list_of_selected_events, dict_primary_event_index[fileName])
 
             # Create the Calendar
             # We need to write code (widget to set up this parameters) **************************************
@@ -481,21 +519,27 @@ class WidgetMergeTableFilesCalendar(QWidget):
 
             # Add events to Calender (we may need to edit calendar lib so to be fully compatible with the interface)
             for fileName in self.dict_tableFilesPaths.keys():
+                print(fileName)
                 filePath = self.dict_tableFilesPaths[fileName][_DKEY_FULLPATH]
                 delimiter = self.dict_tableFilesPaths[fileName][_DKEY_COLUMN_DELIMITER]
                 fileData = my_cal_v2.read_csv(filePath, delimiter)
                 event_calendar.add_events_to_calendar(list_of_events=fileData,
-                                                      date_index=date_index,
+                                                      date_index=dict_date_index[fileName],
                                                       time_index=None,
                                                       first_row_header=True,
-                                                      list_of_headers=None, event_index=primary_event_index)
+                                                      list_of_headers=None,
+                                                      event_index=dict_primary_event_index[fileName],
+                                                      add_events_in_this_list=list_of_events)
 
             # Export Final List
             # We need to write code (widget to set up this parameters) **************************************
             list_calendar = event_calendar.dict_to_list(date_range=['2020-01-01', '2021-05-23'])
-            my_cal_v2.write_csv(csv_path="export_folder/covid_measures_2021.csv",
+            my_cal_v2.write_csv(csv_path=_PROJECT_FOLDER + "/export_folder/covid_measures_2021.csv",
                                 list_write=list_calendar, delimiter=my_cal_v2.del_comma)
             # ***********************************************************************************************
+            # event_calendar.print(5)
+
+            print("Finished Successfully!")
 
         else:
             print("ERROR: The needed number of file is at least 2!")
@@ -504,11 +548,15 @@ class WidgetMergeTableFilesCalendar(QWidget):
     def actionButtonDateColumn(self):
         # If some file is selected and some column is selected
         if self.listWidget_FileList.currentItem() is not None and \
-                self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is not None:
+                self.listWidget_ColumnList.currentItem() is not None:
             # get current column name
-            currentColumnSelected = self.widgetTabFileManagement.listWidget_ColumnList.currentItem().text()
+            currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
+            # If this column exist in the time list
+            if self.dict_tableFilesPaths[self.fileName][_DKEY_TIME_COLUMN] == currentColumnSelected:
+                self.resetTimeColumn(self.fileName)  # Reset primary event list
+                self.updateTimeList()  # update Primary Event widget
             # If this column exist in the primary event list
-            if self.dict_tableFilesPaths[self.fileName][_DKEY_PRIMARY_COLUMN] == currentColumnSelected:
+            elif self.dict_tableFilesPaths[self.fileName][_DKEY_PRIMARY_COLUMN] == currentColumnSelected:
                 self.resetPrimEventColumn(self.fileName)  # Reset primary event list
                 self.updatePrimaryEventList()  # update Primary Event widget
             # else if this column exist in the event list
@@ -534,16 +582,57 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 self.resetDateColumn(fileName)  # remove DATE from the list
             self.updateDateList()  # update DATE widget
 
-    def actionButtonPrimaryEvent(self):
+    def actionButtonTimeColumn(self):
         # If some file is selected and some column is selected
         if self.listWidget_FileList.currentItem() is not None and \
-                self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is not None:
+                self.listWidget_ColumnList.currentItem() is not None:
             # get current column name
-            currentColumnSelected = self.widgetTabFileManagement.listWidget_ColumnList.currentItem().text()
+            currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
             # If this column exist in the date list
             if self.dict_tableFilesPaths[self.fileName][_DKEY_DATE_COLUMN] == currentColumnSelected:
                 self.resetDateColumn(self.fileName)  # Reset date list
                 self.updateDateList()  # update Date widget
+            # If this column exist in the primary event list
+            elif self.dict_tableFilesPaths[self.fileName][_DKEY_PRIMARY_COLUMN] == currentColumnSelected:
+                self.resetPrimEventColumn(self.fileName)  # Reset primary event list
+                self.updatePrimaryEventList()  # update Primary Event widget
+            # else if this column exist in the event list
+            elif currentColumnSelected in self.dict_tableFilesPaths[self.fileName][_DKEY_EVENT_COLUMNS]:
+                self.removeFromEventColumn(self.fileName, currentColumnSelected)  # remove it from the list
+                self.updateEventsList()  # update Event widget
+
+            # print(currentFileName, " -> ", currentColumnSelected)
+
+            # Add it to the DATE_COLUMN
+            self.dict_tableFilesPaths[self.fileName][_DKEY_TIME_COLUMN] = currentColumnSelected
+            self.updateTimeList()  # update Date widget
+
+    def actionButtonRemTimeColumn(self):
+        # If some file is selected and some columns are selected
+        if self.widgetTabFileManagement.listWidget_DateColumns.isActiveWindow() and \
+                self.widgetTabFileManagement.listWidget_TimeColumns.currentItem() is not None:
+            # get selected items
+            selectedItems = self.widgetTabFileManagement.listWidget_TimeColumns.selectedItems()
+            for item in selectedItems:  # for each item
+                tmp_str = item.text()  # get text
+                fileName = tmp_str.split(' -> ')[0]  # get fileName
+                self.resetTimeColumn(fileName)  # remove DATE from the list
+            self.updateTimeList()  # update DATE widget
+
+    def actionButtonPrimaryEvent(self):
+        # If some file is selected and some column is selected
+        if self.listWidget_FileList.currentItem() is not None and \
+                self.listWidget_ColumnList.currentItem() is not None:
+            # get current column name
+            currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
+            # If this column exist in the date list
+            if self.dict_tableFilesPaths[self.fileName][_DKEY_DATE_COLUMN] == currentColumnSelected:
+                self.resetDateColumn(self.fileName)  # Reset date list
+                self.updateDateList()  # update Date widget
+            # If this column exist in the time list
+            elif self.dict_tableFilesPaths[self.fileName][_DKEY_TIME_COLUMN] == currentColumnSelected:
+                self.resetTimeColumn(self.fileName)  # Reset primary event list
+                self.updateTimeList()  # update Primary Event widget
             # else if this column exist in the event list
             elif currentColumnSelected in self.dict_tableFilesPaths[self.fileName][_DKEY_EVENT_COLUMNS]:
                 self.removeFromEventColumn(self.fileName, currentColumnSelected)  # remove it from the list
@@ -570,14 +659,18 @@ class WidgetMergeTableFilesCalendar(QWidget):
     def actionButtonEvent(self):
         # If some file is selected and some columns are selected
         if self.listWidget_FileList.currentItem() is not None and \
-                self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is not None:
+                self.listWidget_ColumnList.currentItem() is not None:
             # get current columns selected
-            currentSelectedItems = self.widgetTabFileManagement.listWidget_ColumnList.selectedItems()
+            currentSelectedItems = self.listWidget_ColumnList.selectedItems()
             for currentColumnSelected in currentSelectedItems:  # for each item selected
                 # If this column exist in the date list
                 if self.dict_tableFilesPaths[self.fileName][_DKEY_DATE_COLUMN] == currentColumnSelected.text():
                     self.resetDateColumn(self.fileName)  # Reset date list
                     self.updateDateList()  # update Date widget
+                # If this column exist in the time list
+                elif self.dict_tableFilesPaths[self.fileName][_DKEY_TIME_COLUMN] == currentColumnSelected:
+                    self.resetTimeColumn(self.fileName)  # Reset primary event list
+                    self.updateTimeList()  # update Primary Event widget
                 # else if this column exist in the primary event list
                 elif self.dict_tableFilesPaths[self.fileName][_DKEY_EVENT_COLUMNS] == currentColumnSelected.text():
                     self.resetPrimEventColumn(self.fileName)  # Reset primary event list
@@ -605,15 +698,15 @@ class WidgetMergeTableFilesCalendar(QWidget):
             self.updateEventsList()  # update EVENT widget
 
     def actionFileListRowChanged_event(self):
-        self.widgetTabFileManagement.listWidget_ColumnList.clear()  # Clear Column Widget
+        self.listWidget_ColumnList.clear()  # Clear Column Widget
         if self.listWidget_FileList.currentItem() is not None:  # If current item is not None
             self.fileName = self.listWidget_FileList.currentItem().text()  # get current item name
             for column in self.dict_tableFilesPaths[self.fileName][_DKEY_COLUMNS]:  # for each column
                 # Add columns as ITEMS to widget
-                self.widgetTabFileManagement.listWidget_ColumnList.addItem(QListWidgetItem(column))
+                self.listWidget_ColumnList.addItem(QListWidgetItem(column))
 
-            if self.widgetTabFileManagement.listWidget_ColumnList.currentItem() is None:  # If COLUMN widget is not None
-                self.widgetTabFileManagement.listWidget_ColumnList.setCurrentRow(0)  # Set first row selected
+            if self.listWidget_ColumnList.currentItem() is None:  # If COLUMN widget is not None
+                self.listWidget_ColumnList.setCurrentRow(0)  # Set first row selected
         else:
             self.fileName = None
         self.updateWidgetTabDate()
@@ -689,45 +782,56 @@ class WidgetTabFileManagement(QWidget):
         # ----- Set PushButton ----- #
         # -------------------------- #
         self.buttonDateColumn = QPushButton("Date")
-        self.buttonDateColumn.setMinimumWidth(0)  # Set Minimum Width
-        self.buttonDateColumn.setMinimumHeight(0)  # Set Minimum Height
+        self.buttonDateColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonDateColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
         self.buttonDateColumn.setShortcut("D")  # Set Shortcut
         self.buttonDateColumn.setToolTip('Set selected column as Date Column.')  # Add Description
 
         self.buttonRemDateColumn = QPushButton("Remove")
-        self.buttonRemDateColumn.setMinimumWidth(0)  # Set Minimum Width
-        self.buttonRemDateColumn.setMinimumHeight(0)  # Set Minimum Height
-        self.buttonRemDateColumn.setToolTip('Remove selected column as Date Column.')  # Add Description
+        self.buttonRemDateColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemDateColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemDateColumn.setToolTip('Remove selected column from Date List.')  # Add Description
+
+        self.buttonTimeColumn = QPushButton("Time")
+        self.buttonTimeColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonTimeColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonTimeColumn.setShortcut("T")  # Set Shortcut
+        self.buttonTimeColumn.setToolTip('Set selected column as Time Column.')  # Add Description
+
+        self.buttonRemTimeColumn = QPushButton("Remove")
+        self.buttonRemTimeColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemTimeColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemTimeColumn.setToolTip('Remove selected column from Time List.')  # Add Description
 
         self.buttonPrimaryEvent = QPushButton("Primary Event")
-        self.buttonPrimaryEvent.setMinimumWidth(0)  # Set Minimum Width
-        self.buttonPrimaryEvent.setMinimumHeight(0)  # Set Minimum Height
+        self.buttonPrimaryEvent.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonPrimaryEvent.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
         self.buttonPrimaryEvent.setShortcut("P")  # Set Shortcut
         self.buttonPrimaryEvent.setToolTip('Set selected column as Primary Event Column.')  # Add Description
 
         self.buttonRemPrimaryEvent = QPushButton("Remove")
-        self.buttonRemPrimaryEvent.setMinimumWidth(0)  # Set Minimum Width
-        self.buttonRemPrimaryEvent.setMinimumHeight(0)  # Set Minimum Height
-        self.buttonRemPrimaryEvent.setToolTip('Remove selected column as Primary Event Column.')  # Add Description
+        self.buttonRemPrimaryEvent.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemPrimaryEvent.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemPrimaryEvent.setToolTip('Remove selected column from Primary Event List.')  # Add Description
 
         self.buttonEvent = QPushButton("Event Column")
-        self.buttonEvent.setMinimumWidth(0)  # Set Minimum Width
-        self.buttonEvent.setMinimumHeight(0)  # Set Minimum Height
+        self.buttonEvent.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonEvent.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
         self.buttonEvent.setShortcut("E")  # Set Shortcut
         self.buttonEvent.setToolTip('Set selected column as Event Column.')  # Add Description
 
         self.buttonRemEvent = QPushButton("Remove")
-        self.buttonRemEvent.setMinimumWidth(0)  # Set Minimum Width
-        self.buttonRemEvent.setMinimumHeight(0)  # Set Minimum Height
-        self.buttonRemEvent.setToolTip('Remove selected column as Event Column.')  # Add Description
+        self.buttonRemEvent.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemEvent.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemEvent.setToolTip('Remove selected column from Event List.')  # Add Description
 
         # -------------------------------- #
         # ----- Set QListWidgetItems ----- #
         # -------------------------------- #
-        self.listWidget_ColumnList = QListWidget()
-        self.listWidget_ColumnList.setSelectionMode(QListWidget.ExtendedSelection)
         self.listWidget_DateColumns = QListWidget()
         self.listWidget_DateColumns.setSelectionMode(QListWidget.ExtendedSelection)
+        self.listWidget_TimeColumns = QListWidget()
+        self.listWidget_TimeColumns.setSelectionMode(QListWidget.ExtendedSelection)
         self.listWidget_PrimEventColumns = QListWidget()
         self.listWidget_PrimEventColumns.setSelectionMode(QListWidget.ExtendedSelection)
         self.listWidget_EventColumns = QListWidget()
@@ -739,52 +843,58 @@ class WidgetTabFileManagement(QWidget):
     def setWidget(self):
         # Set column/remove buttons in vbox
         hbox_listDateButtons = QHBoxLayout()  # Create a Horizontal Box Layout
-        # hbox_listDateButtons.addSpacerItem(QSpacerItem(_INT_MAX_STRETCH, 0))
         hbox_listDateButtons.addWidget(self.buttonDateColumn)  # Add buttonDate
         hbox_listDateButtons.addWidget(self.buttonRemDateColumn)  # Add buttonRemove
 
+        hbox_listTimeButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_listTimeButtons.addWidget(self.buttonTimeColumn)  # Add buttonTime
+        hbox_listTimeButtons.addWidget(self.buttonRemTimeColumn)  # Add buttonRemove
+
         hbox_listPrimEventButtons = QHBoxLayout()  # Create a Horizontal Box Layout
-        hbox_listPrimEventButtons.addWidget(self.buttonPrimaryEvent)  # Add buttonDate
+        hbox_listPrimEventButtons.addWidget(self.buttonPrimaryEvent)  # Add buttonPrimaryEvent
         hbox_listPrimEventButtons.addWidget(self.buttonRemPrimaryEvent)  # Add buttonRemove
 
         hbox_listEventsButtons = QHBoxLayout()  # Create a Horizontal Box Layout
-        hbox_listEventsButtons.addWidget(self.buttonEvent)  # Add buttonDate
+        hbox_listEventsButtons.addWidget(self.buttonEvent)  # Add buttonEvent
         hbox_listEventsButtons.addWidget(self.buttonRemEvent)  # Add buttonRemove
 
-        # Set Column vbox
-        labelColumnList = QLabel("Column List:")
-        vbox_listColumns = QVBoxLayout()  # Create a Horizontal Box Layout
-        vbox_listColumns.addWidget(labelColumnList)  # Add Label
-        vbox_listColumns.addWidget(self.listWidget_ColumnList)  # Add Column List
+        # Set Time vbox
+        timeText = "Time Column (One common column from each file. This column is " \
+                   "\noptional and needs to check the time option in Calendar Options Tab):"
+        labelTimeList = QLabel(timeText)
+        vbox_listTimeColumns = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listTimeColumns.addWidget(labelTimeList)  # Add Label
+        vbox_listTimeColumns.addWidget(self.listWidget_TimeColumns)  # Add Column List
+        vbox_listTimeColumns.addLayout(hbox_listTimeButtons)  # Add Layout
 
         # Set Date vbox
-        labelDateList = QLabel("Date Column (one common column for each file):")
+        labelDateList = QLabel("Date Column\n(one common column for each file):")
         vbox_listDateColumns = QVBoxLayout()  # Create a Horizontal Box Layout
         vbox_listDateColumns.addWidget(labelDateList)  # Add Label
         vbox_listDateColumns.addWidget(self.listWidget_DateColumns)  # Add Column List
-        vbox_listDateColumns.addLayout(hbox_listDateButtons)
+        vbox_listDateColumns.addLayout(hbox_listDateButtons)  # Add Layout
 
         # Set PrimEvent vbox
-        labelPrimEventList = QLabel("Primary Event (one common column for each file):")
+        labelPrimEventList = QLabel("Primary Event\n(one common column for each file):")
         vbox_listPrimEventColumns = QVBoxLayout()  # Create a Horizontal Box Layout
         vbox_listPrimEventColumns.addWidget(labelPrimEventList)  # Add Label
         vbox_listPrimEventColumns.addWidget(self.listWidget_PrimEventColumns)  # Add Column List
-        vbox_listPrimEventColumns.addLayout(hbox_listPrimEventButtons)
+        vbox_listPrimEventColumns.addLayout(hbox_listPrimEventButtons)  # Add Layout
 
         # Set EventColumns vbox
-        labelEventColumnsList = QLabel("Other Events to be merged (they will be set under primary event):")
+        labelEventColumnsList = QLabel("Other Events to be merged\n(they will be set under primary event):")
         vbox_listEventColumns = QVBoxLayout()  # Create a Horizontal Box Layout
         vbox_listEventColumns.addWidget(labelEventColumnsList)  # Add Label
         vbox_listEventColumns.addWidget(self.listWidget_EventColumns)  # Add Column List
-        vbox_listEventColumns.addLayout(hbox_listEventsButtons)
+        vbox_listEventColumns.addLayout(hbox_listEventsButtons)  # Add Layout
 
         # Combine Column Boxes vbox
         vbox_Combine_1 = QVBoxLayout()
-        vbox_Combine_1.addLayout(vbox_listColumns)
+        vbox_Combine_1.addLayout(vbox_listDateColumns)
         vbox_Combine_1.addLayout(vbox_listPrimEventColumns)
 
         vbox_Combine_2 = QVBoxLayout()
-        vbox_Combine_2.addLayout(vbox_listDateColumns)
+        vbox_Combine_2.addLayout(vbox_listTimeColumns)
         vbox_Combine_2.addLayout(vbox_listEventColumns)
 
         # Set ListWidget in hbox
@@ -965,6 +1075,27 @@ class WidgetTabDate(QWidget):
         self.radioButton_NewDateFileCustom.setEnabled(state)
 
         self.lineEdit_NewDateFileCustom.setEnabled(state)
+
+
+class WidgetMyCalendarOptions(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet(setStyle_())
+
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+    # --------------------------- #
+    # ----- Reuse Functions ----- #
+    # --------------------------- #
+    def setWidget(self):
+        pass
+
+        # Main Layout
+        # self.vbox_main_layout.addLayout(hbox_DateFormat)
 
 
 # ******************************************************* #
