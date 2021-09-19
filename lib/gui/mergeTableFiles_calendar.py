@@ -10,6 +10,7 @@ from PySide2.QtGui import QIcon, QPixmap
 import lib.core.file_manipulation as file_manip
 import lib.core.my_calendar_v2 as my_cal_v2
 
+
 _NEW_PROJECT_DEFAULT_FOLDER = file_manip.PATH_HOME
 _PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
@@ -1096,9 +1097,11 @@ class WidgetMyCalendarOptions(QWidget):
         self.spinBox_startYear = QSpinBox()
         self.spinBox_startYear.setMaximum(9999)
         self.spinBox_startYear.setMinimum(0)
+        self.spinBox_startYear.setValue(my_cal_v2.getCurrentYear())
         self.spinBox_endYear = QSpinBox()
         self.spinBox_endYear.setMaximum(9999)
         self.spinBox_endYear.setMinimum(0)
+        self.spinBox_endYear.setValue(my_cal_v2.getCurrentYear())
 
     # --------------------------- #
     # ----- Reuse Functions ----- #

@@ -476,6 +476,29 @@ def change_date_format_from_string(str_date: str, date_format_from: str, date_fo
 # ---------- 3) GENERAL USED ---------- #
 # ------------------------------------- #
 
+def getCurrentYear():
+    return dt.datetime.now().year
+
+
+def getCurrentMonth():
+    return dt.datetime.now().month
+
+
+def getCurrentDay():
+    return dt.datetime.now().day
+
+
+def getCurrentHour():
+    return dt.datetime.now().hour
+
+
+def getCurrentMinute():
+    return dt.datetime.now().minute
+
+
+def getCurrentSecond():
+    return dt.datetime.now().second
+
 
 def isLeap(year=dt.datetime.now().year):
     """
