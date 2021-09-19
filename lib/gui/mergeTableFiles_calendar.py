@@ -114,7 +114,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.mainTabWidget = QTabWidget()  # Create a Tab Widget
         self.widgetTabFileManagement = WidgetTabFileManagement()  # Create the first Tab of TabWidget
         self.widgetTabDate = WidgetTabDate()  # Create a calendar Tab for TabWidget
-        self.widgetMyCalendarOptions = WidgetMyCalendarOptions()  # Create a calendar Option Tab
+        self.widgetTabMyCalendarOptions = WidgetMyCalendarOptions()  # Create a calendar Option Tab
 
         # -------------------------- #
         # ----- Set PushButton ----- #
@@ -195,6 +195,8 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.mainTabWidget.addTab(self.widgetTabFileManagement, "File Management")  # Add it to mainTanWidget
         self.widgetTabDate.setWidget()  # Set the Tab Date Widget
         self.mainTabWidget.addTab(self.widgetTabDate, "Date Column Management")  # Add it to mainTabWidget
+        self.widgetTabMyCalendarOptions.setWidget()  # Set my Calendar Option Tab
+        self.mainTabWidget.addTab(self.widgetTabMyCalendarOptions, "MyCalendar_V2 Settings")
 
         # Set List and Tab Widget Layout
         hbox_final_layout = QHBoxLayout()  # Create a Horizontal Box Layout
