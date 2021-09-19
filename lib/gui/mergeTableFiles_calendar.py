@@ -43,6 +43,10 @@ _DKEY_FILE_DATE_DELIMITER = 'file-date-delimiter'
 _DKEY_NEW_FILE_DATE_DELIMITER = 'new-file-date-delimiter'
 
 
+_DKEY_MYCALV2_START_YEAR = 'start-year'
+_DKEY_MYCALV2_END_YEAR = 'end-year'
+
+
 def setStyle_():
     """
     A function to store the style format of specific Qt Structure/Class component, such us
@@ -159,6 +163,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # --------------------- #
         self.str_pathToTheProject = _NEW_PROJECT_DEFAULT_FOLDER  # var to store the projectPath
         self.dict_tableFilesPaths = {}  # a dictionary to store the table files
+        self.dict_myCalendar_v2_settings = {}  # a dictionary to store the calendar settings
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -768,6 +773,12 @@ class WidgetMergeTableFilesCalendar(QWidget):
         if self.widgetTabDate.radioButton_NewDateFileCustom.isChecked() and self.fileName is not None:
             delim = self.widgetTabDate.lineEdit_NewDateFileCustom.text()
             self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_DELIMITER] = delim
+
+    def actionSpinBoxStartYear(self):
+        pass
+
+    def actionSpinBoxEndYear(self):
+        pass
 
 
 class WidgetTabFileManagement(QWidget):
