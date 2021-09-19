@@ -166,6 +166,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.str_pathToTheProject = _NEW_PROJECT_DEFAULT_FOLDER  # var to store the projectPath
         self.dict_tableFilesPaths = {}  # a dictionary to store the table files
         self.dict_myCalendar_v2_settings = {}  # a dictionary to store the calendar settings
+        self.setCalendarV2settings()
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -430,6 +431,8 @@ class WidgetMergeTableFilesCalendar(QWidget):
 
         # spinBox_startYear
         self.widgetTabMyCalendarOptions.spinBox_startYear.textChanged.connect(self.actionSpinBoxStartYear)
+        # spinBox_endYear
+        self.widgetTabMyCalendarOptions.spinBox_endYear.textChanged.connect(self.actionSpinBoxEndYear)
 
     def actionButtonAdd(self):
         # Open a dialog for CSV files
@@ -467,20 +470,28 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 self.buttonGenerate.setEnabled(False)
 
     def actionButtonGenerate(self):
-        list_primary_event = []
-        list_of_events = []
+        list_primary_event = []  # create a list to store the primary events
+        list_of_events = []  # create list to store the actual events
+        list_of_year = []  # a list to store the years for the calendar
 
         def set_list_primary_event(listInput, listOfSelectedEvents, tmpPrimaryEventIndex=0):
-            for event_name in listInput[0]:
+            """
+            A tmp function to create the list_primary_event and the list_of_events
+            :param listInput: The list of all data
+            :param listOfSelectedEvents: The list of selected event columns
+            :param tmpPrimaryEventIndex:  The primary event index
+            :return: Nothing
+            """
+            for event_name in listInput[0]:  # for each event_name (column) in data list
                 if event_name in listOfSelectedEvents and event_name not in list_of_events:
                     list_of_events.append(event_name)
             for i in range(1, len(listInput)):
                 if listInput[i][tmpPrimaryEventIndex] not in list_primary_event:
                     list_primary_event.append(listInput[i][tmpPrimaryEventIndex])
 
-        dict_primary_event_index = {}
-        dict_date_index = {}
-        if self.dict_tableFilesPaths.keys().__len__() >= 2:
+        dict_primary_event_index = {}  # a dictionary to store the primary event indexes
+        dict_date_index = {}   # a dictionary to store the date column indexes
+        if self.dict_tableFilesPaths.keys().__len__() >= 2:  # if there are at least 2 files (safety if)
             # Error Checking
             bool_add_primary_event = True
             bool_add_date_column = True
@@ -521,7 +532,12 @@ class WidgetMergeTableFilesCalendar(QWidget):
 
             # Create the Calendar
             # We need to write code (widget to set up this parameters) **************************************
-            event_calendar = my_cal_v2.MyCalendar(list_of_years=[2020, 2021], is_time=False,
+            for i in range(self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_START_YEAR],
+                           self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_END_YEAR] + 1):
+                list_of_year.append(i)
+            # print(list_of_year)
+
+            event_calendar = my_cal_v2.MyCalendar(list_of_years=list_of_year, is_time=False,
                                                   date_format=my_cal_v2.YYYY_MM_DD,
                                                   date_delimiter=my_cal_v2.del_dash,
                                                   time_format=my_cal_v2.HH_MM,
@@ -784,13 +800,18 @@ class WidgetMergeTableFilesCalendar(QWidget):
             self.dict_tableFilesPaths[self.fileName][_DKEY_NEW_FILE_DATE_DELIMITER] = delim
 
     def actionSpinBoxStartYear(self):
-        start_year = self.widgetTabMyCalendarOptions.spinBox_startYear.text()
-        self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_START_YEAR] = int(start_year.__str__())
-        print(self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_START_YEAR])
-        print(start_year)
+        year = self.widgetTabMyCalendarOptions.spinBox_startYear.text()
+        self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_START_YEAR] = int(year.__str__())
+        # print(type(self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_START_YEAR]),
+        #       self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_START_YEAR])
+        # print(type(year), year)
 
     def actionSpinBoxEndYear(self):
-        pass
+        year = self.widgetTabMyCalendarOptions.spinBox_endYear.text()
+        self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_END_YEAR] = int(year.__str__())
+        # print(type(self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_END_YEAR]),
+        #       self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_END_YEAR])
+        # print(type(year), year)
 
 
 class WidgetTabFileManagement(QWidget):
