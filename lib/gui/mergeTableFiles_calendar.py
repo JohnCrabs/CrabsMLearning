@@ -1090,14 +1090,46 @@ class WidgetMyCalendarOptions(QWidget):
         # ---------------------- #
         self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
 
+        # ------------------------ #
+        # ----- Set QSpinBox ----- #
+        # ------------------------ #
+        self.spinBox_startYear = QSpinBox()
+        self.spinBox_startYear.setMaximum(9999)
+        self.spinBox_startYear.setMinimum(0)
+        self.spinBox_endYear = QSpinBox()
+        self.spinBox_endYear.setMaximum(9999)
+        self.spinBox_endYear.setMinimum(0)
+
     # --------------------------- #
     # ----- Reuse Functions ----- #
     # --------------------------- #
     def setWidget(self):
-        pass
+        # Set labels
+        label_yearSection = QLabel("Set the year range:")
+        label_StartYear = QLabel("Start Year:")
+        label_EndYear = QLabel("End Year:")
+
+        # Set SpinBox Layouts
+        hbox_startYear = QHBoxLayout()
+        hbox_startYear.addWidget(label_StartYear)
+        hbox_startYear.addWidget(self.spinBox_startYear)
+
+        hbox_endYear = QHBoxLayout()
+        hbox_endYear.addWidget(label_EndYear)
+        hbox_endYear.addWidget(self.spinBox_endYear)
+
+        hbox_yearLayout = QHBoxLayout()
+        hbox_yearLayout.addLayout(hbox_startYear)
+        hbox_yearLayout.addLayout(hbox_endYear)
+        hbox_yearLayout.addSpacerItem(QSpacerItem(_INT_MAX_STRETCH, 0))
+
+        vbox_finalYearLayout = QVBoxLayout()
+        vbox_finalYearLayout.addWidget(label_yearSection)
+        vbox_finalYearLayout.addLayout(hbox_yearLayout)
 
         # Main Layout
-        # self.vbox_main_layout.addLayout(hbox_DateFormat)
+        self.vbox_main_layout.addLayout(vbox_finalYearLayout)
+        self.vbox_main_layout.addSpacerItem(QSpacerItem(0, _INT_MAX_STRETCH))
 
 
 # ******************************************************* #
