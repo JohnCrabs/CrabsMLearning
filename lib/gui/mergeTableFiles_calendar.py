@@ -49,6 +49,10 @@ _DKEY_MYCALV2_TIME_COLUMN_STATE = 'time-column-state'
 _DKEY_MYCALV2_DATE_FORMAT = 'date-format'
 _DKEY_MYCALV2_DATE_DELIMITER = 'date-delimiter'
 
+_MYCALV2_DEFAULT_YEAR = my_cal_v2.getCurrentYear()
+_MYCALV2_DEFAULT_DATE_FORMAT = my_cal_v2.DD_MM_YYYY
+_MYCALV2_DEFAULT_DATE_DELIM = my_cal_v2.del_dash
+
 
 def setStyle_():
     """
@@ -358,8 +362,10 @@ class WidgetMergeTableFilesCalendar(QWidget):
                 self.widgetTabDate.radioButton_NewDateFileCustom.setChecked(True)
 
     def setCalendarV2settings(self):
-        self.dict_myCalendar_v2_settings = {_DKEY_MYCALV2_START_YEAR: my_cal_v2.getCurrentYear().__int__(),
-                                            _DKEY_MYCALV2_END_YEAR: my_cal_v2.getCurrentYear().__int__()}
+        self.dict_myCalendar_v2_settings = {_DKEY_MYCALV2_START_YEAR: _MYCALV2_DEFAULT_YEAR.__int__(),
+                                            _DKEY_MYCALV2_END_YEAR: _MYCALV2_DEFAULT_YEAR.__int__(),
+                                            _DKEY_MYCALV2_DATE_FORMAT: _MYCALV2_DEFAULT_DATE_FORMAT,
+                                            _DKEY_MYCALV2_DATE_DELIMITER: _MYCALV2_DEFAULT_DATE_DELIM}
 
     # -------------------------------- #
     # ----- Print/Show Functions ----- #
@@ -435,6 +441,18 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.widgetTabMyCalendarOptions.spinBox_startYear.textChanged.connect(self.actionSpinBoxStartYear)
         # spinBox_endYear
         self.widgetTabMyCalendarOptions.spinBox_endYear.textChanged.connect(self.actionSpinBoxEndYear)
+        # comboBox_DateFormat
+        self.widgetTabMyCalendarOptions.comboBox_DateFormat.currentTextChanged.connect(self.actionComboBoxMyCalV2Date)
+        # radioButton_DateSlash
+        self.widgetTabMyCalendarOptions.radioButton_DateSlash.toggled.connect(self.actionRadioButtMyCalV2DateDelimSlash)
+        # radioButton_DateDash
+        self.widgetTabMyCalendarOptions.radioButton_DateDash.toggled.connect(self.actionRadioButtMyCalV2DateDelimDash)
+        # radioButton_DateCustom
+        self.widgetTabMyCalendarOptions.radioButton_DateCustom.toggled.connect(
+            self.actionRadioButtMyCalV2DateDelimCustom)
+        # lineEdit_DateCustom
+        self.widgetTabMyCalendarOptions.lineEdit_DateCustom.textChanged.connect(
+            self.actionRadioButtMyCalV2DateDelimCustom)
 
     def actionButtonAdd(self):
         # Open a dialog for CSV files
@@ -475,6 +493,9 @@ class WidgetMergeTableFilesCalendar(QWidget):
         list_primary_event = []  # create a list to store the primary events
         list_of_events = []  # create list to store the actual events
         list_of_year = []  # a list to store the years for the calendar
+
+        myCalV2_DateFormat = self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_DATE_FORMAT]
+        myCalV2_DateDelimiter = self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_DATE_DELIMITER]
 
         def set_list_primary_event(listInput, listOfSelectedEvents, tmpPrimaryEventIndex=0):
             """
@@ -540,8 +561,8 @@ class WidgetMergeTableFilesCalendar(QWidget):
             # print(list_of_year)
 
             event_calendar = my_cal_v2.MyCalendar(list_of_years=list_of_year, is_time=False,
-                                                  date_format=my_cal_v2.YYYY_MM_DD,
-                                                  date_delimiter=my_cal_v2.del_dash,
+                                                  date_format=myCalV2_DateFormat,
+                                                  date_delimiter=myCalV2_DateDelimiter,
                                                   time_format=my_cal_v2.HH_MM,
                                                   time_delimiter=my_cal_v2.del_colon,
                                                   hour_start=0, hour_end=0, hour_step=1,
@@ -816,16 +837,22 @@ class WidgetMergeTableFilesCalendar(QWidget):
         # print(type(year), year)
 
     def actionComboBoxMyCalV2Date(self):
-        pass
+        value = self.widgetTabMyCalendarOptions.comboBox_DateFormat.currentText()
+        self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_DATE_FORMAT] = value
 
-    def actionComboBoxMyCalV2DateDelimSlash(self):
-        pass
+    def actionRadioButtMyCalV2DateDelimSlash(self):
+        if self.widgetTabMyCalendarOptions.radioButton_DateSlash.isChecked():
+            self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_DATE_DELIMITER] = my_cal_v2.del_slash
 
-    def actionComboBoxMyCalV2DateDelimDash(self):
-        pass
+    def actionRadioButtMyCalV2DateDelimDash(self):
+        if self.widgetTabMyCalendarOptions.radioButton_DateDash.isChecked():
+            self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_DATE_DELIMITER] = my_cal_v2.del_dash
 
-    def actionComboBoxMyCalV2DateDelimCustom(self):
-        pass
+    def actionRadioButtMyCalV2DateDelimCustom(self):
+        if self.widgetTabMyCalendarOptions.radioButton_DateCustom.isChecked():
+            delim = self.widgetTabMyCalendarOptions.lineEdit_DateCustom.text()
+            self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_DATE_DELIMITER] = delim
+
 
 class WidgetTabFileManagement(QWidget):
     def __init__(self):
@@ -1154,11 +1181,11 @@ class WidgetMyCalendarOptions(QWidget):
         self.spinBox_startYear = QSpinBox()
         self.spinBox_startYear.setMaximum(9999)
         self.spinBox_startYear.setMinimum(0)
-        self.spinBox_startYear.setValue(my_cal_v2.getCurrentYear())
+        self.spinBox_startYear.setValue(_MYCALV2_DEFAULT_YEAR)
         self.spinBox_endYear = QSpinBox()
         self.spinBox_endYear.setMaximum(9999)
         self.spinBox_endYear.setMinimum(0)
-        self.spinBox_endYear.setValue(my_cal_v2.getCurrentYear())
+        self.spinBox_endYear.setValue(_MYCALV2_DEFAULT_YEAR)
 
         # --------------------------- #
         # ----- Set RadioButton ----- #
@@ -1280,6 +1307,8 @@ class WidgetMyCalendarOptions(QWidget):
         self.comboBox_DateFormat.addItem(my_cal_v2.YY_DD_MM)
         self.comboBox_DateFormat.addItem(my_cal_v2.YY_M_D)
         self.comboBox_DateFormat.addItem(my_cal_v2.YY_D_M)
+
+        self.comboBox_DateFormat.setCurrentText(_MYCALV2_DEFAULT_DATE_FORMAT)
 
 # ******************************************************* #
 # ********************   EXECUTION   ******************** #
