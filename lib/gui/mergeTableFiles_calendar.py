@@ -5,7 +5,7 @@ from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
     QListWidget, QListWidgetItem, QFileDialog, QLabel, QTabWidget, QComboBox, QCheckBox, QRadioButton, QLineEdit, \
     QButtonGroup, QSpinBox
-from PySide2.QtGui import QIcon, QPixmap
+from PySide2.QtGui import QIcon, QPixmap, QFont
 
 import lib.core.file_manipulation as file_manip
 import lib.core.my_calendar_v2 as my_cal_v2
@@ -46,6 +46,8 @@ _DKEY_NEW_FILE_DATE_DELIMITER = 'new-file-date-delimiter'
 _DKEY_MYCALV2_START_YEAR = 'start-year'
 _DKEY_MYCALV2_END_YEAR = 'end-year'
 _DKEY_MYCALV2_TIME_COLUMN_STATE = 'time-column-state'
+_DKEY_MYCALV2_DATE_FORMAT = 'date-format'
+_DKEY_MYCALV2_DATE_DELIMITER = 'date-delimiter'
 
 
 def setStyle_():
@@ -485,9 +487,9 @@ class WidgetMergeTableFilesCalendar(QWidget):
             for event_name in listInput[0]:  # for each event_name (column) in data list
                 if event_name in listOfSelectedEvents and event_name not in list_of_events:
                     list_of_events.append(event_name)
-            for i in range(1, len(listInput)):
-                if listInput[i][tmpPrimaryEventIndex] not in list_primary_event:
-                    list_primary_event.append(listInput[i][tmpPrimaryEventIndex])
+            for index in range(1, len(listInput)):
+                if listInput[index][tmpPrimaryEventIndex] not in list_primary_event:
+                    list_primary_event.append(listInput[index][tmpPrimaryEventIndex])
 
         dict_primary_event_index = {}  # a dictionary to store the primary event indexes
         dict_date_index = {}   # a dictionary to store the date column indexes
@@ -813,6 +815,17 @@ class WidgetMergeTableFilesCalendar(QWidget):
         #       self.dict_myCalendar_v2_settings[_DKEY_MYCALV2_END_YEAR])
         # print(type(year), year)
 
+    def actionComboBoxMyCalV2Date(self):
+        pass
+
+    def actionComboBoxMyCalV2DateDelimSlash(self):
+        pass
+
+    def actionComboBoxMyCalV2DateDelimDash(self):
+        pass
+
+    def actionComboBoxMyCalV2DateDelimCustom(self):
+        pass
 
 class WidgetTabFileManagement(QWidget):
     def __init__(self):
@@ -1147,14 +1160,47 @@ class WidgetMyCalendarOptions(QWidget):
         self.spinBox_endYear.setMinimum(0)
         self.spinBox_endYear.setValue(my_cal_v2.getCurrentYear())
 
+        # --------------------------- #
+        # ----- Set RadioButton ----- #
+        # --------------------------- #
+        self.radioButton_DateSlash = QRadioButton("Slash (/)")
+        self.radioButton_DateSlash.setChecked(True)
+        self.radioButton_DateDash = QRadioButton("Dash (-)")
+        self.radioButton_DateCustom = QRadioButton("Custom:")
+
+        # ------------------------ #
+        # ----- Set ComboBox ----- #
+        # ------------------------ #
+        self.comboBox_DateFormat = QComboBox()
+        self.comboBox_DateFormat.setMinimumWidth(100)
+        self.setComboBoxes()
+
+        # ------------------------ #
+        # ----- Set LineEdit ----- #
+        # ------------------------ #
+        self.lineEdit_DateCustom = QLineEdit()
+        self.lineEdit_DateCustom.setMaxLength(3)
+        self.lineEdit_DateCustom.setMaximumWidth(100)
+        self.lineEdit_DateCustom.setToolTip("Can be < >, <,>, <.>, <->, </>, <#>, <;>, <:>, etc.")
+
     # --------------------------- #
     # ----- Reuse Functions ----- #
     # --------------------------- #
     def setWidget(self):
         # Set labels
+        boldFont = QFont()
+        boldFont.setBold(True)
+
         label_yearSection = QLabel("Set the year range:")
+        label_yearSection.setFont(boldFont)
         label_StartYear = QLabel("Start Year:")
         label_EndYear = QLabel("End Year:")
+
+        label_timeDateSection = QLabel("Time Date Settings:")
+        label_timeDateSection.setFont(boldFont)
+        label_DateFormat = QLabel("Set Calendar Date Format\n"
+                                  "(Needs to be the same with files):")
+        label_DateDelimiter = QLabel("Delimiter:")
 
         # Set SpinBox Layouts
         hbox_startYear = QHBoxLayout()
@@ -1174,14 +1220,71 @@ class WidgetMyCalendarOptions(QWidget):
         vbox_finalYearLayout.addWidget(label_yearSection)
         vbox_finalYearLayout.addLayout(hbox_yearLayout)
 
+        # Set Radio Buttons
+        buttGroup_DateDelim = QButtonGroup(self)
+        buttGroup_DateDelim.addButton(self.radioButton_DateSlash)
+        buttGroup_DateDelim.addButton(self.radioButton_DateDash)
+        buttGroup_DateDelim.addButton(self.radioButton_DateCustom)
+
+        hbox_dateButtons = QHBoxLayout()
+        hbox_dateButtons.addWidget(label_DateDelimiter)
+        hbox_dateButtons.addWidget(self.radioButton_DateSlash)
+        hbox_dateButtons.addWidget(self.radioButton_DateDash)
+        hbox_dateButtons.addWidget(self.radioButton_DateCustom)
+        hbox_dateButtons.addWidget(self.lineEdit_DateCustom)
+
+        # Set ComboBox
+        hbox_ComboDate = QHBoxLayout()
+        hbox_ComboDate.addWidget(label_DateFormat)
+        hbox_ComboDate.addWidget(self.comboBox_DateFormat)
+        hbox_ComboDate.addLayout(hbox_dateButtons)
+        hbox_ComboDate.addSpacerItem(QSpacerItem(250, 0))
+
+        vbox_finalTimeDateLayout = QVBoxLayout()
+        vbox_finalTimeDateLayout.addWidget(label_timeDateSection)
+        vbox_finalTimeDateLayout.addLayout(hbox_ComboDate)
+
         # Main Layout
         self.vbox_main_layout.addLayout(vbox_finalYearLayout)
+        self.vbox_main_layout.addLayout(vbox_finalTimeDateLayout)
         self.vbox_main_layout.addSpacerItem(QSpacerItem(0, _INT_MAX_STRETCH))
 
+    # ------------------- #
+    # ----- Setters ----- #
+    # ------------------- #
+    def setComboBoxes(self):
+        # DateFileFormat
+        self.comboBox_DateFormat.addItem(my_cal_v2.DD_MM_YYYY)
+        self.comboBox_DateFormat.addItem(my_cal_v2.DD_YYYY_MM)
+        self.comboBox_DateFormat.addItem(my_cal_v2.D_M_YYYY)
+        self.comboBox_DateFormat.addItem(my_cal_v2.D_YYYY_M)
+        self.comboBox_DateFormat.addItem(my_cal_v2.DD_MM_YY)
+        self.comboBox_DateFormat.addItem(my_cal_v2.DD_YY_MM)
+        self.comboBox_DateFormat.addItem(my_cal_v2.D_M_YY)
+        self.comboBox_DateFormat.addItem(my_cal_v2.D_YY_M)
+
+        self.comboBox_DateFormat.addItem(my_cal_v2.MM_DD_YYYY)
+        self.comboBox_DateFormat.addItem(my_cal_v2.MM_YYYY_DD)
+        self.comboBox_DateFormat.addItem(my_cal_v2.M_D_YYYY)
+        self.comboBox_DateFormat.addItem(my_cal_v2.M_YYYY_D)
+        self.comboBox_DateFormat.addItem(my_cal_v2.MM_DD_YY)
+        self.comboBox_DateFormat.addItem(my_cal_v2.MM_YY_DD)
+        self.comboBox_DateFormat.addItem(my_cal_v2.M_D_YY)
+        self.comboBox_DateFormat.addItem(my_cal_v2.M_YY_D)
+
+        self.comboBox_DateFormat.addItem(my_cal_v2.YYYY_MM_DD)
+        self.comboBox_DateFormat.addItem(my_cal_v2.YYYY_DD_MM)
+        self.comboBox_DateFormat.addItem(my_cal_v2.YYYY_M_D)
+        self.comboBox_DateFormat.addItem(my_cal_v2.YYYY_D_M)
+        self.comboBox_DateFormat.addItem(my_cal_v2.YY_MM_DD)
+        self.comboBox_DateFormat.addItem(my_cal_v2.YY_DD_MM)
+        self.comboBox_DateFormat.addItem(my_cal_v2.YY_M_D)
+        self.comboBox_DateFormat.addItem(my_cal_v2.YY_D_M)
 
 # ******************************************************* #
 # ********************   EXECUTION   ******************** #
 # ******************************************************* #
+
 
 def exec_app(w=512, h=512, minW=256, minH=256, maxW=512, maxH=512, winTitle='My Window', iconPath=''):
     myApp = QApplication(sys.argv)  # Set Up Application
