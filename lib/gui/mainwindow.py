@@ -8,6 +8,7 @@ from PySide2.QtGui import QIcon
 
 from lib.gui.mergeTableFiles_simple import WidgetMergeTableFilesSimple
 from lib.gui.mergeTableFiles_calendar import WidgetMergeTableFilesCalendar
+from lib.gui.machineLearningSequential import WidgetMachineLearningSequential
 
 _STR_PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
@@ -51,6 +52,12 @@ class MainWindowTemplate(QMainWindow):
                                                                            winTitle='Merge Table Files',
                                                                            iconPath=_ICON_PATH_LOGO_32x32)
 
+        self.widgetMachineLearningSequential = WidgetMachineLearningSequential(w=1024, h=512,
+                                                                               minW=1280, minH=840,
+                                                                               maxW=1280, maxH=840,
+                                                                               winTitle='Machine Learning Sequential',
+                                                                               iconPath=_ICON_PATH_LOGO_32x32)
+
         #                               #
         # ***************************** #
 
@@ -76,15 +83,24 @@ class MainWindowTemplate(QMainWindow):
         self.actionExit.setToolTip('Application exit.')  # ToolTip
 
         # ____ TOOLS ____ #
+        # Action MergeTF_Simple
         self.actionMergeTF_Simple = QAction('Simple Merge' + self.setSpaces(_INT_SPACES))  # MergeTableFiles
         # self.actionMergeTableFiles.setShortcut()
         self.actionMergeTF_Simple.setToolTip('Merge multiple table files using specific columns in one table file.')
 
+        # Action MergeTF_Calendar
         self.actionMergeTF_Calendar = QAction(QIcon(_ICON_PATH_CALENDAR_48x48), 'Calendar Merge' +
                                               self.setSpaces(_INT_SPACES))  # MergeTableFiles
         # self.actionMergeTableFiles.setShortcut()
         self.actionMergeTF_Calendar.setToolTip('Merge multiple table files using specific columns in one table file.' +
                                                ' One at least must be date column.')
+
+        # Action MergeTF_Calendar
+        self.actionSequentialMachineLearning = QAction('Sequential Machine Learning' +
+                                                       self.setSpaces(_INT_SPACES))  # MergeTableFiles
+        # self.actionSequentialMachineLearning.setShortcut()
+        self.actionSequentialMachineLearning.setToolTip('Create a sequential model using a variety of machine' +
+                                                        'learning tools')
 
         # ******************* #
 
@@ -181,6 +197,9 @@ class MainWindowTemplate(QMainWindow):
 
         menuTools.addSeparator()
 
+        menuMachineLearning = menuTools.addMenu("Machine Learning")
+        menuMachineLearning.addAction(self.actionSequentialMachineLearning)
+
     # ------------------ #
     # ----- Events ----- #
     # ------------------ #
@@ -203,6 +222,9 @@ class MainWindowTemplate(QMainWindow):
         self.actionMergeTF_Simple.triggered.connect(self.actionMergeTF_Simple_func_)  # actionMergeTF_Simple
         self.actionMergeTF_Calendar.triggered.connect(self.actionMergeTF_Calendar_func_)  # actionMergeTF_Calendar
 
+        # actionSequentialMachineLearning
+        self.actionSequentialMachineLearning.triggered.connect(self.actionMachineLearningSequential_func_)
+
     # ************ #
     # *** File *** #
     # ************ #
@@ -220,6 +242,10 @@ class MainWindowTemplate(QMainWindow):
     def actionMergeTF_Calendar_func_(self):
         self.widgetMergeTableFilesCalendar.setWidget()
         self.widgetMergeTableFilesCalendar.show()
+
+    def actionMachineLearningSequential_func_(self):
+        self.widgetMachineLearningSequential.setWidget()
+        self.widgetMachineLearningSequential.show()
 
 
 # ******************************************************* #

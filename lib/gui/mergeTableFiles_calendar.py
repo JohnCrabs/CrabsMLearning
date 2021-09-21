@@ -120,7 +120,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
         self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
 
         # -------------------------------- #
-        # ----- Set QTabWidget ----- #
+        # ----- Set QTabWidget ----------- #
         # -------------------------------- #
 
         self.mainTabWidget = QTabWidget()  # Create a Tab Widget
@@ -589,7 +589,7 @@ class WidgetMergeTableFilesCalendar(QWidget):
 
             # Export Final List
             # We need to write code (widget to set up this parameters) **************************************
-            list_calendar = event_calendar.dict_to_list(date_range=['2020-01-01', '2021-05-23'])
+            list_calendar = event_calendar.dict_to_list(date_range=['2020-03-01', '2021-09-20'])
             my_cal_v2.write_csv(csv_path=_PROJECT_FOLDER + "/export_folder/covid_measures_2021.csv",
                                 list_write=list_calendar, delimiter=my_cal_v2.del_comma)
             # ***********************************************************************************************
