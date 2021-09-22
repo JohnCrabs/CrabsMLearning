@@ -29,9 +29,9 @@ _ICON_PATH_EXIT_APP_48x48 = _STR_PROJECT_FOLDER + '/icon/exit_app_48x48.png'
 _ICON_PATH_CALENDAR_48x48 = _STR_PROJECT_FOLDER + '/icon/calendar_48x48.png'
 
 
-class MainWindowTemplate(QMainWindow):
+class MainWindowCrabsMLearning(QMainWindow):
     def __init__(self, app, w=512, h=512, minW=256, minH=256, winTitle='My Window', iconPath='', parent=None):
-        super(MainWindowTemplate, self).__init__(parent)  # super().__init__()
+        super(MainWindowCrabsMLearning, self).__init__(parent)  # super().__init__()
         self.app = app
 
         # ----------------------------- #
@@ -255,8 +255,8 @@ class MainWindowTemplate(QMainWindow):
 
 def exec_app(w=512, h=512, minW=256, minH=256, winTitle='My Window', iconPath=''):
     myApp = QApplication(sys.argv)  # Set Up Application
-    mainWin = MainWindowTemplate(myApp, w=w, h=h, minW=minW, minH=minH, winTitle=winTitle,
-                                 iconPath=iconPath)  # Create MainWindow
+    mainWin = MainWindowCrabsMLearning(myApp, w=w, h=h, minW=minW, minH=minH, winTitle=winTitle,
+                                       iconPath=iconPath)  # Create MainWindow
     mainWin.show()  # Show Window
     myApp.exec_()  # Execute Application
     sys.exit(0)  # Exit Application

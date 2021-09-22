@@ -29,6 +29,8 @@ _ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128.png"
 _DKEY_FILE_NAME = 'name'
 _DKEY_FULLPATH = 'full-path'
 _DKEY_COLUMNS = 'columns'
+_DKEY_INPUT_LIST = 'input-list'
+_DKEY_OUTPUT_LIST = 'output-list'
 
 
 def setStyle_():
@@ -88,6 +90,7 @@ class WidgetMachineLearningSequential(QWidget):
         # -------------------------------- #
 
         self.mainTabWidget = QTabWidget()  # Create a Tab Widget
+        self.widgetTabInputOutput = WidgetTabInputOutput()  # A tab for input output columns
 
         # ---------------------- #
         # ----- Set Window ----- #
@@ -121,10 +124,10 @@ class WidgetMachineLearningSequential(QWidget):
         self.buttonRemove.setIcon(QIcon(QPixmap(_ICON_REMOVE)))  # Add Icon
         self.buttonRemove.setToolTip('Remove table files.')  # Add Description
 
-        self.buttonGenerate = QPushButton("Generate")
-        self.buttonGenerate.setMinimumWidth(0)  # Set Minimum Width
-        self.buttonGenerate.setMinimumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Height
-        self.buttonGenerate.setToolTip('Open the generate window to proceed in the merging process.')  # Add Description
+        self.buttonExecute = QPushButton("Execute")
+        self.buttonExecute.setMinimumWidth(0)  # Set Minimum Width
+        self.buttonExecute.setMinimumHeight(_INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Height
+        self.buttonExecute.setToolTip('Run the machine learning process.')  # Add Description
 
         # -------------------------------- #
         # ----- Set QListWidgetItems ----- #
@@ -155,7 +158,7 @@ class WidgetMachineLearningSequential(QWidget):
         :return: Nothing
         """
         # Disable Generate Button
-        self.buttonGenerate.setEnabled(False)
+        self.buttonExecute.setEnabled(False)
 
         # Set Column vbox
         labelColumnList = QLabel("Column List:")
@@ -167,7 +170,7 @@ class WidgetMachineLearningSequential(QWidget):
         hbox_listFileButtons = QHBoxLayout()  # Create a Horizontal Box Layout
         hbox_listFileButtons.addWidget(self.buttonAdd)  # Add buttonAdd
         hbox_listFileButtons.addWidget(self.buttonRemove)  # Add buttonRemove
-        hbox_listFileButtons.addWidget(self.buttonGenerate)  # Add buttonGenerate
+        hbox_listFileButtons.addWidget(self.buttonExecute)  # Add buttonGenerate
 
         # Set FileList in hbox
         labelFileList = QLabel("Opened File List:")
@@ -176,6 +179,10 @@ class WidgetMachineLearningSequential(QWidget):
         vbox_listFile.addWidget(self.listWidget_FileList)  # Add FileList
         vbox_listFile.addLayout(vbox_listColumns)  # Add listColumns
         vbox_listFile.addLayout(hbox_listFileButtons)  # Add vbox_listFileButtons layout
+
+        # Set main Tab Widget
+        self.widgetTabInputOutput.setWidget()  # Set the Tab File Management Widget
+        self.mainTabWidget.addTab(self.widgetTabInputOutput, "Input/Output Management")  # Add it to mainTanWidget
 
         # Set List and Tab Widget Layout
         hbox_final_layout = QHBoxLayout()  # Create a Horizontal Box Layout
@@ -208,6 +215,34 @@ class WidgetMachineLearningSequential(QWidget):
         else:
             return False, None
 
+    def updateInputList(self):
+        self.widgetTabInputOutput.listWidget_InputColumns.clear()  # Clear Event Widget
+        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
+            if self.dict_tableFilesPaths[key][_DKEY_INPUT_LIST] is not []:  # if event key is not []
+                for event in self.dict_tableFilesPaths[key][_DKEY_INPUT_LIST]:  # for each EVENT
+                    # Add ITEM to INPUT widget
+                    self.widgetTabInputOutput.listWidget_InputColumns.addItem(
+                        QListWidgetItem(key + " -> " + event))
+
+    def removeFromInputColumn(self, fileName, column):
+        # Remove the specified COLUMN from INPUT_COLUMN_LIST for the specified FILE
+        if column in self.dict_tableFilesPaths[fileName][_DKEY_INPUT_LIST]:
+            self.dict_tableFilesPaths[fileName][_DKEY_INPUT_LIST].remove(column)
+
+    def updateOutputList(self):
+        self.widgetTabInputOutput.listWidget_OutputColumns.clear()  # Clear Event Widget
+        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
+            if self.dict_tableFilesPaths[key][_DKEY_OUTPUT_LIST] is not []:  # if event key is not []
+                for event in self.dict_tableFilesPaths[key][_DKEY_OUTPUT_LIST]:  # for each EVENT
+                    # Add ITEM to OUTPUT widget
+                    self.widgetTabInputOutput.listWidget_OutputColumns.addItem(
+                        QListWidgetItem(key + " -> " + event))
+
+    def removeFromOutputColumn(self, fileName, column):
+        # Remove the specified COLUMN from OUTPUT_COLUMN_LIST for the specified FILE
+        if column in self.dict_tableFilesPaths[fileName][_DKEY_OUTPUT_LIST]:
+            self.dict_tableFilesPaths[fileName][_DKEY_OUTPUT_LIST].remove(column)
+
     # ---------------------------------- #
     # ----- Reuse Action Functions ----- #
     # ---------------------------------- #
@@ -217,7 +252,9 @@ class WidgetMachineLearningSequential(QWidget):
         # Create the dictionary
         self.dict_tableFilesPaths[fileName] = {_DKEY_FILE_NAME: fileName,
                                                _DKEY_FULLPATH: fullPath,
-                                               _DKEY_COLUMNS: file_manip.getColumnNames(fullPath, splitter=splitter)
+                                               _DKEY_COLUMNS: file_manip.getColumnNames(fullPath, splitter=splitter),
+                                               _DKEY_INPUT_LIST: [],
+                                               _DKEY_OUTPUT_LIST: []
                                                }
         self.listWidget_FileList.addItem(QListWidgetItem(fileName))  # Add Item to List
 
@@ -242,10 +279,18 @@ class WidgetMachineLearningSequential(QWidget):
         # Button Events
         self.buttonAdd.clicked.connect(self.actionButtonAdd)  # buttonAdd -> clicked
         self.buttonRemove.clicked.connect(self.actionButtonRemove)  # buttonRemove -> clicked
-        self.buttonGenerate.clicked.connect(self.actionButtonGenerate)  # buttonGenerate -> clicked
+        self.buttonExecute.clicked.connect(self.actionButtonExecute)  # buttonGenerate -> clicked
 
         # ListWidget Events
         self.listWidget_FileList.currentRowChanged.connect(self.actionFileListRowChanged_event)
+        # buttonInputColumn
+        self.widgetTabInputOutput.buttonInputColumn.clicked.connect(self.actionButtonInput)
+        # buttonRemInputColumn
+        self.widgetTabInputOutput.buttonRemInputColumn.clicked.connect(self.actionButtonRemInput)
+        # buttonOutputColumn
+        self.widgetTabInputOutput.buttonOutputColumn.clicked.connect(self.actionButtonOutput)
+        # buttonRemOutputColumn
+        self.widgetTabInputOutput.buttonRemOutputColumn.clicked.connect(self.actionButtonRemOutput)
 
     def actionButtonAdd(self):
         # Open a dialog for CSV files
@@ -266,8 +311,8 @@ class WidgetMachineLearningSequential(QWidget):
             if self.listWidget_FileList.currentItem() is None:  # Set row 0 as current row
                 self.listWidget_FileList.setCurrentRow(0)  # Set current row
 
-            if self.dict_tableFilesPaths.keys().__len__() >= 2:
-                self.buttonGenerate.setEnabled(True)
+            if self.dict_tableFilesPaths.keys().__len__() >= 1:
+                self.buttonExecute.setEnabled(True)
             # self.prt_dict_tableFilePaths()
 
     def actionButtonRemove(self):
@@ -275,14 +320,13 @@ class WidgetMachineLearningSequential(QWidget):
             self.dict_tableFilesPaths.pop(self.fileName, None)  # Delete item from dict
             self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())  # Delete item from widget
             self.actionFileListRowChanged_event()  # run the row changed event
-            self.updateDateList()  # update DATE widget
             self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
             self.updateEventsList()  # update EVENT widget
 
             if self.dict_tableFilesPaths.keys().__len__() < 1:
                 self.buttonGenerate.setEnabled(False)
 
-    def actionButtonGenerate(self):
+    def actionButtonExecute(self):
         pass
 
     def actionFileListRowChanged_event(self):
@@ -297,6 +341,141 @@ class WidgetMachineLearningSequential(QWidget):
                 self.listWidget_ColumnList.setCurrentRow(0)  # Set first row selected
         else:
             self.fileName = None
+
+    def actionButtonInput(self):
+        # If some file is selected and some columns are selected
+        if self.listWidget_FileList.currentItem() is not None and \
+                self.listWidget_ColumnList.currentItem() is not None:
+            # get current columns selected
+            currentSelectedItems = self.listWidget_ColumnList.selectedItems()
+            for currentColumnSelected in currentSelectedItems:  # for each item selected
+                # if this column is not in the INPUT List
+                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][_DKEY_INPUT_LIST]:
+                    # Add it to list
+                    self.dict_tableFilesPaths[self.fileName][_DKEY_INPUT_LIST].append(currentColumnSelected.text())
+                # print(currentFileName, " -> ", currentColumnSelected.text())
+            self.updateInputList()  # update Event widget
+
+    def actionButtonRemInput(self):
+        # If some file is selected and some columns are selected
+        if self.widgetTabInputOutput.listWidget_InputColumns.currentItem() is not None:
+            # get selected items
+            selectedItems = self.widgetTabInputOutput.listWidget_InputColumns.selectedItems()
+            for item in selectedItems:  # for each item
+                tmp_str = item.text()  # get text
+                fileName = tmp_str.split(' -> ')[0]  # get fileName
+                columnName = tmp_str.split(' -> ')[1]  # get columnName
+                self.removeFromInputColumn(fileName, columnName)  # remove event from the list
+            self.updateInputList()  # update EVENT widget
+
+    def actionButtonOutput(self):
+        # If some file is selected and some columns are selected
+        if self.listWidget_FileList.currentItem() is not None and \
+                self.listWidget_ColumnList.currentItem() is not None:
+            # get current columns selected
+            currentSelectedItems = self.listWidget_ColumnList.selectedItems()
+            for currentColumnSelected in currentSelectedItems:  # for each item selected
+                # if this column is not in the INPUT List
+                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][_DKEY_OUTPUT_LIST]:
+                    # Add it to list
+                    self.dict_tableFilesPaths[self.fileName][_DKEY_OUTPUT_LIST].append(currentColumnSelected.text())
+                # print(currentFileName, " -> ", currentColumnSelected.text())
+            self.updateOutputList()  # update Event widget
+
+    def actionButtonRemOutput(self):
+        # If some file is selected and some columns are selected
+        if self.widgetTabInputOutput.listWidget_OutputColumns.currentItem() is not None:
+            # get selected items
+            selectedItems = self.widgetTabInputOutput.listWidget_OutputColumns.selectedItems()
+            for item in selectedItems:  # for each item
+                tmp_str = item.text()  # get text
+                fileName = tmp_str.split(' -> ')[0]  # get fileName
+                columnName = tmp_str.split(' -> ')[1]  # get columnName
+                self.removeFromOutputColumn(fileName, columnName)  # remove event from the list
+            self.updateOutputList()  # update EVENT widget
+
+
+class WidgetTabInputOutput(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet(setStyle_())
+
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+        # -------------------------- #
+        # ----- Set PushButton ----- #
+        # -------------------------- #
+        self.buttonInputColumn = QPushButton("Add Input Column (X)")
+        self.buttonInputColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonInputColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonInputColumn.setShortcut("I")  # Set Shortcut
+        self.buttonInputColumn.setToolTip('Set selected column as Input Column.')  # Add Description
+
+        self.buttonRemInputColumn = QPushButton("Remove")
+        self.buttonRemInputColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemInputColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemInputColumn.setToolTip('Remove selected column from Input List.')  # Add Description
+
+        self.buttonOutputColumn = QPushButton("Add Output Column (Y)")
+        self.buttonOutputColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonOutputColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonOutputColumn.setShortcut("O")  # Set Shortcut
+        self.buttonOutputColumn.setToolTip('Set selected column as Output Column.')  # Add Description
+
+        self.buttonRemOutputColumn = QPushButton("Remove")
+        self.buttonRemOutputColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemOutputColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemOutputColumn.setToolTip('Remove selected column from Output List.')  # Add Description
+
+        # -------------------------------- #
+        # ----- Set QListWidgetItems ----- #
+        # -------------------------------- #
+        self.listWidget_InputColumns = QListWidget()
+        self.listWidget_InputColumns.setSelectionMode(QListWidget.ExtendedSelection)
+        self.listWidget_OutputColumns = QListWidget()
+        self.listWidget_OutputColumns.setSelectionMode(QListWidget.ExtendedSelection)
+
+    # --------------------------- #
+    # ----- Reuse Functions ----- #
+    # --------------------------- #
+    def setWidget(self):
+        # Set column/remove buttons in vbox
+        hbox_listInputButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_listInputButtons.addWidget(self.buttonInputColumn)  # Add buttonDate
+        hbox_listInputButtons.addWidget(self.buttonRemInputColumn)  # Add buttonRemove
+
+        hbox_listOutputButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_listOutputButtons.addWidget(self.buttonOutputColumn)  # Add buttonTime
+        hbox_listOutputButtons.addWidget(self.buttonRemOutputColumn)  # Add buttonRemove
+
+        # Set Time vbox
+        labelInputList = QLabel("Input Columns:\n" +
+                                "(the columns that will be used as training/test/validation " +
+                                "input\nfor the machine learning)")
+        vbox_listInputColumns = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listInputColumns.addWidget(labelInputList)  # Add Label
+        vbox_listInputColumns.addWidget(self.listWidget_InputColumns)  # Add Column List
+        vbox_listInputColumns.addLayout(hbox_listInputButtons)  # Add Layout
+
+        # Set Date vbox
+        labelOutputList = QLabel("Output Columns:\n" +
+                                 "(the columns that will be used as training/test/validation " +
+                                 "output\nfor the machine learning)")
+        vbox_listOutputColumns = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listOutputColumns.addWidget(labelOutputList)  # Add Label
+        vbox_listOutputColumns.addWidget(self.listWidget_OutputColumns)  # Add Column List
+        vbox_listOutputColumns.addLayout(hbox_listOutputButtons)  # Add Layout
+
+        # Set ListWidget in hbox
+        hbox_listWidget = QHBoxLayout()  # Create Horizontal Layout
+        hbox_listWidget.addLayout(vbox_listInputColumns)  # Add vbox_Combine_1 layout
+        hbox_listWidget.addLayout(vbox_listOutputColumns)  # Add vbox_Combine_2 layout
+
+        self.vbox_main_layout.addLayout(hbox_listWidget)
 
 
 # ******************************************************* #
