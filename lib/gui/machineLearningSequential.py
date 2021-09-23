@@ -327,7 +327,8 @@ class WidgetMachineLearningSequential(QWidget):
                 self.buttonGenerate.setEnabled(False)
 
     def actionButtonExecute(self):
-        pass
+        if self.dict_tableFilesPaths.keys().__len__() >= 1:  # if there are at least 2 files (safety if)
+            pass
 
     def actionFileListRowChanged_event(self):
         self.listWidget_ColumnList.clear()  # Clear Column Widget
