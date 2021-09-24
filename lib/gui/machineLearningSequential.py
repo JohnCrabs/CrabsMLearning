@@ -1,5 +1,6 @@
 import sys
 import os
+import pandas as pd
 import tkinter as tk
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
@@ -31,6 +32,11 @@ _DKEY_FULLPATH = 'full-path'
 _DKEY_COLUMNS = 'columns'
 _DKEY_INPUT_LIST = 'input-list'
 _DKEY_OUTPUT_LIST = 'output-list'
+_DKEY_PRIMARY_EVENT_COLUMN = 'primary-event'
+
+_DKEY_MLP_SEQUENCE_STEP_INDEX = 'sequence-index'
+_DKEY_MLP_TEST_PERCENTAGE = 'test-percentage'
+_DKEY_MLP_VALIDATION_PERCENTAGE = 'validation-percentage'
 
 
 def setStyle_():
@@ -149,6 +155,10 @@ class WidgetMachineLearningSequential(QWidget):
         self.str_pathToTheProject = _NEW_PROJECT_DEFAULT_FOLDER  # var to store the projectPath
         self.dict_tableFilesPaths = {}  # a dictionary to store the table files
 
+        self.dict_machineLearningParameters = {_DKEY_MLP_SEQUENCE_STEP_INDEX: 7,
+                                               _DKEY_MLP_TEST_PERCENTAGE: 0.25,
+                                               _DKEY_MLP_VALIDATION_PERCENTAGE: 0.20}
+
     # --------------------------- #
     # ----- Reuse Functions ----- #
     # --------------------------- #
@@ -243,6 +253,19 @@ class WidgetMachineLearningSequential(QWidget):
         if column in self.dict_tableFilesPaths[fileName][_DKEY_OUTPUT_LIST]:
             self.dict_tableFilesPaths[fileName][_DKEY_OUTPUT_LIST].remove(column)
 
+    def updatePrimaryEventList(self):
+        self.widgetTabInputOutput.listWidget_PrimaryEvent.clear()  # Clear Primary Event Widget
+        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
+            # if primary event key is not None
+            if self.dict_tableFilesPaths[key][_DKEY_PRIMARY_EVENT_COLUMN] is not None:
+                # Add ITEM to PRIMARY_EVENT widget
+                self.widgetTabInputOutput.listWidget_PrimaryEvent.addItem(
+                    QListWidgetItem(key + " -> " + self.dict_tableFilesPaths[key][_DKEY_PRIMARY_EVENT_COLUMN]))
+
+    def resetPrimEventColumn(self, fileName):
+        # Set PRIMARY_COLUMN for the specified FILE to None
+        self.dict_tableFilesPaths[fileName][_DKEY_PRIMARY_EVENT_COLUMN] = None
+
     # ---------------------------------- #
     # ----- Reuse Action Functions ----- #
     # ---------------------------------- #
@@ -254,7 +277,8 @@ class WidgetMachineLearningSequential(QWidget):
                                                _DKEY_FULLPATH: fullPath,
                                                _DKEY_COLUMNS: file_manip.getColumnNames(fullPath, splitter=splitter),
                                                _DKEY_INPUT_LIST: [],
-                                               _DKEY_OUTPUT_LIST: []
+                                               _DKEY_OUTPUT_LIST: [],
+                                               _DKEY_PRIMARY_EVENT_COLUMN: None
                                                }
         self.listWidget_FileList.addItem(QListWidgetItem(fileName))  # Add Item to List
 
@@ -291,6 +315,10 @@ class WidgetMachineLearningSequential(QWidget):
         self.widgetTabInputOutput.buttonOutputColumn.clicked.connect(self.actionButtonOutput)
         # buttonRemOutputColumn
         self.widgetTabInputOutput.buttonRemOutputColumn.clicked.connect(self.actionButtonRemOutput)
+        # buttonPrimaryEvent
+        self.widgetTabInputOutput.buttonPrimaryEvent.clicked.connect(self.actionButtonPrimaryEvent)
+        # buttonRemPrimaryEvent
+        self.widgetTabInputOutput.buttonRemPrimaryEvent.clicked.connect(self.actionButtonRemPrimaryEvent)
 
     def actionButtonAdd(self):
         # Open a dialog for CSV files
@@ -327,8 +355,139 @@ class WidgetMachineLearningSequential(QWidget):
                 self.buttonGenerate.setEnabled(False)
 
     def actionButtonExecute(self):
+        dict_list_input_columns = {}
+        dict_list_output_columns = {}
+        dict_primary_event_column = {}
+        dict_data_storing = {}
+        dict_max_values_for_input_columns = {}
+        dict_max_values_for_output_columns = {}
+
+        sequenceStepIndex = self.dict_machineLearningParameters[_DKEY_MLP_SEQUENCE_STEP_INDEX]
+        list_of_input_headers = []
+        list_of_output_headers_real = []
+        list_of_output_headers_pred = []
+
+        DKEY_INPUT = 'INPUT'
+        DKEY_OUTPUT = 'OUTPUT'
+        DKEY_DATA = 'DATA'
+        DKEY_TRAIN = 'TRAIN'
+        DKEY_TEST = 'TEST'
+        DKEY_VAL = 'VAL'
+        dict_dataset_categorized_by_event = {}
+        dict_sequential_dataset = {}
+
         if self.dict_tableFilesPaths.keys().__len__() >= 1:  # if there are at least 2 files (safety if)
-            pass
+            # Error Checking and store information
+            list_of_primary_events = []
+            for fileName in self.dict_tableFilesPaths.keys():
+                if self.dict_tableFilesPaths[fileName][_DKEY_INPUT_LIST]:
+                    dict_list_input_columns[fileName] = self.dict_tableFilesPaths[fileName][_DKEY_INPUT_LIST]
+                else:
+                    print("ERROR: <", fileName, "> has no INPUT columns specified!")
+                    return
+
+                if self.dict_tableFilesPaths[fileName][_DKEY_OUTPUT_LIST]:
+                    dict_list_output_columns[fileName] = self.dict_tableFilesPaths[fileName][_DKEY_OUTPUT_LIST]
+                else:
+                    print("ERROR: <", fileName, "> has no OUTPUT columns specified!")
+                    return
+
+                dict_primary_event_column[fileName] = self.dict_tableFilesPaths[fileName][_DKEY_PRIMARY_EVENT_COLUMN]
+                list_of_primary_events.append(dict_primary_event_column[fileName])
+
+                dict_data_storing[fileName] = pd.read_csv(self.dict_tableFilesPaths[fileName][_DKEY_FULLPATH])
+                dict_data_storing[fileName].fillna(method='ffill', inplace=True)
+                dict_data_storing[fileName].fillna(method='bfill', inplace=True)
+
+                dict_max_values_for_input_columns[fileName] = {}
+                dict_max_values_for_output_columns[fileName] = {}
+
+                for inp_column in dict_list_input_columns[fileName]:
+                    dict_max_values_for_input_columns[fileName][inp_column] = dict_data_storing[fileName][inp_column].max()
+
+                for out_column in dict_list_output_columns[fileName]:
+                    dict_max_values_for_output_columns[fileName][out_column] = dict_data_storing[fileName][out_column].max()
+
+            # print(dict_list_input_columns)
+            # print(dict_list_output_columns)
+            print(dict_max_values_for_input_columns)
+            print(dict_max_values_for_output_columns)
+
+            # Set the output headers
+            for index in range(0, sequenceStepIndex):
+                for fileName in self.dict_tableFilesPaths.keys():
+                    for inp_column in dict_list_input_columns[fileName]:
+                        list_of_input_headers.append(inp_column + "_SEQ_" + str(index))
+                    for out_column in dict_list_output_columns[fileName]:
+                        list_of_output_headers_real.append(out_column + "_SEQ_" + str(index) + "_REAL")
+                        list_of_output_headers_pred.append(out_column + "_SEQ_" + str(index) + "_PRED")
+
+            # Check if the user has set a Primary Event or not and follow the specified path
+            if list_of_primary_events.count(None) != len(list_of_primary_events):
+                if list_of_primary_events.count(None) != 0:
+                    print("ERROR: All files must have common primary event")
+                    return
+                unique_list_of_common_primary_events = []
+                for fileName in self.dict_tableFilesPaths.keys():
+                    for event in dict_data_storing[fileName][dict_primary_event_column[fileName]]:
+                        if event not in unique_list_of_common_primary_events:
+                            unique_list_of_common_primary_events.append(event)
+                # print(unique_list_of_common_primary_events)
+                print("Found ", unique_list_of_common_primary_events.__len__(), " unique events!")
+
+                # Categorized the data by event
+                print("Categorize data by selected Primary Event...")
+                for fileName in self.dict_tableFilesPaths.keys():
+                    dict_dataset_categorized_by_event[fileName] = {}
+                    dict_dataset_categorized_by_event[fileName][DKEY_DATA] = {}
+                    for uniq_event in unique_list_of_common_primary_events:
+                        dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event] = {}
+                        tmp_final_arr_input = []
+                        tmp_final_arr_output = []
+                        for key_index in dict_data_storing[fileName][dict_primary_event_column[fileName]].keys():
+                            if dict_data_storing[fileName][dict_primary_event_column[fileName]][key_index] == uniq_event:
+                                tmp_arr_input = []
+                                tmp_arr_output = []
+                                for input_column in dict_list_input_columns[fileName]:
+                                    value = dict_data_storing[fileName][input_column][key_index] / dict_max_values_for_input_columns[fileName][input_column]
+                                    tmp_arr_input.append(value)
+
+                                for output_column in dict_list_output_columns[fileName]:
+                                    value = dict_data_storing[fileName][output_column][key_index] / dict_max_values_for_output_columns[fileName][output_column]
+                                    tmp_arr_output.append(value)
+                                tmp_final_arr_input.append(tmp_arr_input)
+                                tmp_final_arr_output.append(tmp_arr_output)
+
+                        dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_INPUT] = tmp_final_arr_input
+                        dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT] = tmp_final_arr_output
+                # print(dict_dataset_categorized_by_event)
+
+                # Create the sequential data
+                print("Create sequential dataset for each Primary Event... (sequence step = ", sequenceStepIndex, " )")
+                for fileName in self.dict_tableFilesPaths.keys():
+                    dict_sequential_dataset[fileName] = {}
+                    dict_sequential_dataset[fileName][DKEY_DATA] = {}
+                    for uniq_event in unique_list_of_common_primary_events:
+                        dict_sequential_dataset[fileName][DKEY_DATA][uniq_event] = {}
+                        dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT] = []
+                        dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT] = []
+                        input_size = dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_INPUT].__len__()
+                        for uniq_index in range(0, input_size - (2 * sequenceStepIndex + 1)):
+                            tmp_arr_input = []
+                            tmp_arr_output = []
+
+                            for i in range(uniq_index, uniq_index + sequenceStepIndex):
+                                tmp_arr_input.extend(
+                                    dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_INPUT][i])
+                                tmp_arr_output.extend(
+                                    dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT][i+sequenceStepIndex])
+                            dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT].append(tmp_arr_input)
+                            dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT].append(tmp_arr_output)
+
+                # print(dict_sequential_dataset)
+
+            else:
+                pass
 
     def actionFileListRowChanged_event(self):
         self.listWidget_ColumnList.clear()  # Clear Column Widget
@@ -395,6 +554,39 @@ class WidgetMachineLearningSequential(QWidget):
                 self.removeFromOutputColumn(fileName, columnName)  # remove event from the list
             self.updateOutputList()  # update EVENT widget
 
+    def actionButtonPrimaryEvent(self):
+        # If some file is selected and some column is selected
+        if self.listWidget_FileList.currentItem() is not None and \
+                self.listWidget_ColumnList.currentItem() is not None:
+            # get current column name
+            currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
+            # If this column exist in the input list
+            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][_DKEY_INPUT_LIST]:
+                self.removeFromInputColumn(self.fileName, currentColumnSelected)  # remove it from the list
+                self.updateInputList()  # update Input widget
+            # If this column exist in the output list
+            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][_DKEY_OUTPUT_LIST]:
+                self.removeFromOutputColumn(self.fileName, currentColumnSelected)  # remove it from the list
+                self.updateOutputList()  # update Input widget
+
+            # print(currentFileName, " -> ", currentColumnSelected)
+
+            # Add it to the PRIMARY_EVENT
+            self.dict_tableFilesPaths[self.fileName][_DKEY_PRIMARY_EVENT_COLUMN] = currentColumnSelected
+            self.updatePrimaryEventList()  # update Primary Event widget
+
+    def actionButtonRemPrimaryEvent(self):
+        # If some file is selected and some columns are selected
+        if self.widgetTabInputOutput.listWidget_PrimaryEvent.isActiveWindow() and \
+                self.widgetTabInputOutput.listWidget_PrimaryEvent.currentItem() is not None:
+            # get selected item
+            selectedItems = self.widgetTabInputOutput.listWidget_PrimaryEvent.selectedItems()
+            for item in selectedItems:  # for each item
+                tmp_str = item.text()  # get text
+                fileName = tmp_str.split(' -> ')[0]  # get fileName
+                self.resetPrimEventColumn(fileName)  # remove PRIMARY_EVENT from the list
+            self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
+
 
 class WidgetTabInputOutput(QWidget):
     def __init__(self):
@@ -432,6 +624,17 @@ class WidgetTabInputOutput(QWidget):
         self.buttonRemOutputColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
         self.buttonRemOutputColumn.setToolTip('Remove selected column from Output List.')  # Add Description
 
+        self.buttonPrimaryEvent = QPushButton("Primary Event")
+        self.buttonPrimaryEvent.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonPrimaryEvent.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonPrimaryEvent.setShortcut("P")  # Set Shortcut
+        self.buttonPrimaryEvent.setToolTip('Set selected column as Primary Event.')  # Add Description
+
+        self.buttonRemPrimaryEvent = QPushButton("Remove")
+        self.buttonRemPrimaryEvent.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemPrimaryEvent.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemPrimaryEvent.setToolTip('Remove selected column from Primary Event.')  # Add Description
+
         # -------------------------------- #
         # ----- Set QListWidgetItems ----- #
         # -------------------------------- #
@@ -439,6 +642,8 @@ class WidgetTabInputOutput(QWidget):
         self.listWidget_InputColumns.setSelectionMode(QListWidget.ExtendedSelection)
         self.listWidget_OutputColumns = QListWidget()
         self.listWidget_OutputColumns.setSelectionMode(QListWidget.ExtendedSelection)
+        self.listWidget_PrimaryEvent = QListWidget()
+        self.listWidget_PrimaryEvent.setSelectionMode(QListWidget.ExtendedSelection)
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -453,7 +658,11 @@ class WidgetTabInputOutput(QWidget):
         hbox_listOutputButtons.addWidget(self.buttonOutputColumn)  # Add buttonTime
         hbox_listOutputButtons.addWidget(self.buttonRemOutputColumn)  # Add buttonRemove
 
-        # Set Time vbox
+        hbox_listPrimaryButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_listPrimaryButtons.addWidget(self.buttonPrimaryEvent)  # Add buttonTime
+        hbox_listPrimaryButtons.addWidget(self.buttonRemPrimaryEvent)  # Add buttonRemove
+
+        # Set Input hbox
         labelInputList = QLabel("Input Columns:\n" +
                                 "(the columns that will be used as training/test/validation " +
                                 "input\nfor the machine learning)")
@@ -462,7 +671,7 @@ class WidgetTabInputOutput(QWidget):
         vbox_listInputColumns.addWidget(self.listWidget_InputColumns)  # Add Column List
         vbox_listInputColumns.addLayout(hbox_listInputButtons)  # Add Layout
 
-        # Set Date vbox
+        # Set Output hbox
         labelOutputList = QLabel("Output Columns:\n" +
                                  "(the columns that will be used as training/test/validation " +
                                  "output\nfor the machine learning)")
@@ -471,12 +680,24 @@ class WidgetTabInputOutput(QWidget):
         vbox_listOutputColumns.addWidget(self.listWidget_OutputColumns)  # Add Column List
         vbox_listOutputColumns.addLayout(hbox_listOutputButtons)  # Add Layout
 
+        # Set Primary Event hbox
+        labelPrimaryEventList = QLabel("Primary/Common Event Column (Optional):")
+        vbox_listPrimaryEvent = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listPrimaryEvent.addWidget(labelPrimaryEventList)  # Add Label
+        vbox_listPrimaryEvent.addWidget(self.listWidget_PrimaryEvent)  # Add Column List
+        vbox_listPrimaryEvent.addLayout(hbox_listPrimaryButtons)  # Add Layout
+
         # Set ListWidget in hbox
         hbox_listWidget = QHBoxLayout()  # Create Horizontal Layout
         hbox_listWidget.addLayout(vbox_listInputColumns)  # Add vbox_Combine_1 layout
         hbox_listWidget.addLayout(vbox_listOutputColumns)  # Add vbox_Combine_2 layout
 
-        self.vbox_main_layout.addLayout(hbox_listWidget)
+        # Set a vbox
+        vbox_finalListWidget = QVBoxLayout()
+        vbox_finalListWidget.addLayout(hbox_listWidget)
+        vbox_finalListWidget.addLayout(vbox_listPrimaryEvent)
+
+        self.vbox_main_layout.addLayout(vbox_finalListWidget)
 
 
 # ******************************************************* #
