@@ -1,6 +1,8 @@
 import sys
 import os
 import pandas as pd
+import numpy as np
+import datetime as dt
 import tkinter as tk
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
@@ -37,6 +39,7 @@ _DKEY_PRIMARY_EVENT_COLUMN = 'primary-event'
 _DKEY_MLP_SEQUENCE_STEP_INDEX = 'sequence-index'
 _DKEY_MLP_TEST_PERCENTAGE = 'test-percentage'
 _DKEY_MLP_VALIDATION_PERCENTAGE = 'validation-percentage'
+_DKEY_MLP_EXPORT_FOLDER = 'export-folder'
 
 
 def setStyle_():
@@ -157,7 +160,8 @@ class WidgetMachineLearningSequential(QWidget):
 
         self.dict_machineLearningParameters = {_DKEY_MLP_SEQUENCE_STEP_INDEX: 7,
                                                _DKEY_MLP_TEST_PERCENTAGE: 0.25,
-                                               _DKEY_MLP_VALIDATION_PERCENTAGE: 0.20}
+                                               _DKEY_MLP_VALIDATION_PERCENTAGE: 0.20,
+                                               _DKEY_MLP_EXPORT_FOLDER: _PROJECT_FOLDER + '/export_folder/'}
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -372,9 +376,14 @@ class WidgetMachineLearningSequential(QWidget):
         DKEY_DATA = 'DATA'
         DKEY_TRAIN = 'TRAIN'
         DKEY_TEST = 'TEST'
-        DKEY_VAL = 'VAL'
         dict_dataset_categorized_by_event = {}
         dict_sequential_dataset = {}
+
+        sequenceTestPercentage = self.dict_machineLearningParameters[_DKEY_MLP_TEST_PERCENTAGE]
+        export_folder_path = self.dict_machineLearningParameters[
+                                 _DKEY_MLP_EXPORT_FOLDER] + '/' + dt.datetime.now().strftime("%d%m%Y_%H%M%S")
+
+        file_manip.checkAndCreateFolder(export_folder_path)
 
         if self.dict_tableFilesPaths.keys().__len__() >= 1:  # if there are at least 2 files (safety if)
             # Error Checking and store information
@@ -392,6 +401,8 @@ class WidgetMachineLearningSequential(QWidget):
                     print("ERROR: <", fileName, "> has no OUTPUT columns specified!")
                     return
 
+                file_manip.checkAndCreateFolders(export_folder_path)
+
                 dict_primary_event_column[fileName] = self.dict_tableFilesPaths[fileName][_DKEY_PRIMARY_EVENT_COLUMN]
                 list_of_primary_events.append(dict_primary_event_column[fileName])
 
@@ -403,10 +414,12 @@ class WidgetMachineLearningSequential(QWidget):
                 dict_max_values_for_output_columns[fileName] = {}
 
                 for inp_column in dict_list_input_columns[fileName]:
-                    dict_max_values_for_input_columns[fileName][inp_column] = dict_data_storing[fileName][inp_column].max()
+                    dict_max_values_for_input_columns[fileName][inp_column] = dict_data_storing[fileName][
+                        inp_column].max()
 
                 for out_column in dict_list_output_columns[fileName]:
-                    dict_max_values_for_output_columns[fileName][out_column] = dict_data_storing[fileName][out_column].max()
+                    dict_max_values_for_output_columns[fileName][out_column] = dict_data_storing[fileName][
+                        out_column].max()
 
             # print(dict_list_input_columns)
             # print(dict_list_output_columns)
@@ -425,7 +438,7 @@ class WidgetMachineLearningSequential(QWidget):
             # Check if the user has set a Primary Event or not and follow the specified path
             if list_of_primary_events.count(None) != len(list_of_primary_events):
                 if list_of_primary_events.count(None) != 0:
-                    print("ERROR: All files must have common primary event")
+                    print("ERROR: All files must have selected primary event")
                     return
                 unique_list_of_common_primary_events = []
                 for fileName in self.dict_tableFilesPaths.keys():
@@ -435,8 +448,13 @@ class WidgetMachineLearningSequential(QWidget):
                 # print(unique_list_of_common_primary_events)
                 print("Found ", unique_list_of_common_primary_events.__len__(), " unique events!")
 
+                # Create folders for storing the output data
+                for fileName in self.dict_tableFilesPaths.keys():
+                    tmp_fName = fileName.split('.')[0]
+                    file_manip.checkAndCreateFolders(export_folder_path + '/' + tmp_fName)
+
                 # Categorized the data by event
-                print("Categorize data by selected Primary Event...")
+                print("Categorize data by selected Primary Event for each dataset...")
                 for fileName in self.dict_tableFilesPaths.keys():
                     dict_dataset_categorized_by_event[fileName] = {}
                     dict_dataset_categorized_by_event[fileName][DKEY_DATA] = {}
@@ -445,25 +463,31 @@ class WidgetMachineLearningSequential(QWidget):
                         tmp_final_arr_input = []
                         tmp_final_arr_output = []
                         for key_index in dict_data_storing[fileName][dict_primary_event_column[fileName]].keys():
-                            if dict_data_storing[fileName][dict_primary_event_column[fileName]][key_index] == uniq_event:
+                            if dict_data_storing[fileName][dict_primary_event_column[fileName]][key_index] \
+                                    == uniq_event:
                                 tmp_arr_input = []
                                 tmp_arr_output = []
                                 for input_column in dict_list_input_columns[fileName]:
-                                    value = dict_data_storing[fileName][input_column][key_index] / dict_max_values_for_input_columns[fileName][input_column]
+                                    value = dict_data_storing[fileName][input_column][key_index] / \
+                                            dict_max_values_for_input_columns[fileName][input_column]
                                     tmp_arr_input.append(value)
 
                                 for output_column in dict_list_output_columns[fileName]:
-                                    value = dict_data_storing[fileName][output_column][key_index] / dict_max_values_for_output_columns[fileName][output_column]
+                                    value = dict_data_storing[fileName][output_column][key_index] / \
+                                            dict_max_values_for_output_columns[fileName][output_column]
                                     tmp_arr_output.append(value)
                                 tmp_final_arr_input.append(tmp_arr_input)
                                 tmp_final_arr_output.append(tmp_arr_output)
 
-                        dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_INPUT] = tmp_final_arr_input
-                        dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT] = tmp_final_arr_output
+                        dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][
+                            DKEY_INPUT] = tmp_final_arr_input
+                        dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][
+                            DKEY_OUTPUT] = tmp_final_arr_output
                 # print(dict_dataset_categorized_by_event)
 
                 # Create the sequential data
-                print("Create sequential dataset for each Primary Event... (sequence step = ", sequenceStepIndex, " )")
+                print("Create sequential dataset for each Primary Event for each dataset" +
+                      "... (sequence step = ", sequenceStepIndex, " )")
                 for fileName in self.dict_tableFilesPaths.keys():
                     dict_sequential_dataset[fileName] = {}
                     dict_sequential_dataset[fileName][DKEY_DATA] = {}
@@ -471,7 +495,8 @@ class WidgetMachineLearningSequential(QWidget):
                         dict_sequential_dataset[fileName][DKEY_DATA][uniq_event] = {}
                         dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT] = []
                         dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT] = []
-                        input_size = dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_INPUT].__len__()
+                        input_size = dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][
+                            DKEY_INPUT].__len__()
                         for uniq_index in range(0, input_size - (2 * sequenceStepIndex + 1)):
                             tmp_arr_input = []
                             tmp_arr_output = []
@@ -480,9 +505,60 @@ class WidgetMachineLearningSequential(QWidget):
                                 tmp_arr_input.extend(
                                     dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_INPUT][i])
                                 tmp_arr_output.extend(
-                                    dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT][i+sequenceStepIndex])
+                                    dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT][
+                                        i + sequenceStepIndex])
                             dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT].append(tmp_arr_input)
                             dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT].append(tmp_arr_output)
+                # print(dict_sequential_dataset)
+
+                print("Create TRAIN/TEST for each Primary Event (of each dataset) and merge the them to one " +
+                      "array (for each dataset)...")
+                for fileName in self.dict_tableFilesPaths.keys():
+                    dict_sequential_dataset[fileName][DKEY_INPUT] = {}
+                    dict_sequential_dataset[fileName][DKEY_OUTPUT] = {}
+                    dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN] = []
+                    dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST] = []
+                    dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN] = []
+                    dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST] = []
+
+                    for uniq_event in unique_list_of_common_primary_events:
+                        size_of_list = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT].__len__()
+                        trte_slice_ = int(size_of_list * sequenceTestPercentage)
+
+                        train_data_input = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT][
+                                           :-trte_slice_]
+                        test_data_input = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT][
+                                          -trte_slice_:]
+
+                        train_data_output = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT][
+                                            :-trte_slice_]
+                        test_data_output = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT][
+                                           -trte_slice_:]
+
+                        for index in range(0, train_data_input.__len__()):
+                            dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN].append(train_data_input[index])
+                            dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN].append(train_data_output[index])
+
+                        for index in range(0, test_data_input.__len__()):
+                            dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST].append(test_data_input[index])
+                            dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST].append(test_data_output[index])
+
+                    dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN] = np.array(
+                        dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN])
+
+                    dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST] = np.array(
+                        dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST])
+
+                    dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN] = np.array(
+                        dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN])
+
+                    dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST] = np.array(
+                        dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST])
+
+                    print(dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN].shape)
+                    print(dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST].shape)
+                    print(dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN].shape)
+                    print(dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST].shape)
 
                 # print(dict_sequential_dataset)
 
