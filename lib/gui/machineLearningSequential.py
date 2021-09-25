@@ -6,7 +6,7 @@ import datetime as dt
 import tkinter as tk
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use("Qt5agg")
+matplotlib.use("Agg")
 
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
@@ -790,7 +790,7 @@ class WidgetMachineLearningSequential(QWidget):
                                             plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
                                             plt.ylabel('Humans per Million' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.savefig(o_dir_MLP + dataset + '.png', dpi=_PLOT_SIZE_DPI)
+                                            plt.savefig(o_dir_MLP + '/' + dataset + '.png', dpi=_PLOT_SIZE_DPI)
                                             # time.sleep(0.5)
                                             # plt.clf()
                                             plt.close()
@@ -807,7 +807,7 @@ class WidgetMachineLearningSequential(QWidget):
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
                                             plt.ylabel('Humans per Million (normalized)' + str(),
                                                        fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.savefig(o_dir_MLP + dataset + '_normalized.png', dpi=_PLOT_SIZE_DPI)
+                                            plt.savefig(o_dir_MLP + '/' + dataset + '_normalized.png', dpi=_PLOT_SIZE_DPI)
                                             # time.sleep(0.5)
                                             # plt.clf()
                                             plt.close()
