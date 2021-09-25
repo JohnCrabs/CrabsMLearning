@@ -56,6 +56,7 @@ _PLOT_SIZE_WIDTH = 12.40
 _PLOT_SIZE_HEIGHT = 12.40
 _PLOT_SIZE_DPI = 100
 
+
 def setStyle_():
     """
     A function to store the style format of specific Qt Structure/Class component, such us
@@ -414,11 +415,11 @@ class WidgetMachineLearningSequential(QWidget):
         def export_dict_with_denormalized_values(key_fileName):
             tmp_export_file_input = [['COLUMN_NAME', 'DENORMALIZED_VALUE']]
             tmp_export_file_output = [['COLUMN_NAME', 'DENORMALIZED_VALUE']]
-            for key in dict_max_values_for_input_columns[key_fileName]:
-                tmp_export_file_input.append([key, dict_max_values_for_input_columns[key_fileName][key]])
+            for in_key in dict_max_values_for_input_columns[key_fileName]:
+                tmp_export_file_input.append([in_key, dict_max_values_for_input_columns[key_fileName][in_key]])
 
-            for key in dict_max_values_for_output_columns[key_fileName]:
-                tmp_export_file_output.append([key, dict_max_values_for_output_columns[key_fileName][key]])
+            for in_key in dict_max_values_for_output_columns[key_fileName]:
+                tmp_export_file_output.append([in_key, dict_max_values_for_output_columns[key_fileName][in_key]])
 
             tmp_dir_folder_dataFile = export_folder_path + '/' + dict_store_folderFileNames[key_fileName] + '/Data'
             file_manip.checkAndCreateFolder(tmp_dir_folder_dataFile)
@@ -606,6 +607,10 @@ class WidgetMachineLearningSequential(QWidget):
                             dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_ALL].append(all_input[index])
                             dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_ALL].append(all_output[index])
 
+                        dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA] = {}
+                        dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_INPUT] = np.array(all_input)
+                        dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_OUTPUT] = np.array(all_output)
+
                     dir_folder_dataFile = export_folder_path + '/' + dict_store_folderFileNames[fileName] + '/Data'
                     file_manip.checkAndCreateFolders(dir_folder_dataFile)
 
@@ -686,116 +691,126 @@ class WidgetMachineLearningSequential(QWidget):
                                                                                batch_size=100,
                                                                                min_lr=0.001, dropout_percentage=0.1)
 
-                        df_x = dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_ALL]
-                        df_y = dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_ALL]
+                        for uniq_event in unique_list_of_common_primary_events:
+                            df_x = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_INPUT]
+                            df_y = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_OUTPUT]
 
-                        inputData = dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_ALL].copy()
-                        outputData = dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_ALL].copy()
+                            inputData = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][
+                                DKEY_INPUT].copy()
+                            outputData = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][
+                                DKEY_OUTPUT].copy()
 
-                        inputSeqData = inputData.reshape(inputData.shape[0], 7, int(inputData.shape[1] / 7))
-                        outputSeqData = outputData.reshape(outputData.shape[0], 7, int(outputData.shape[1] / 7))
+                            inputSeqData = inputData.reshape(inputData.shape[0], 7, int(inputData.shape[1] / 7))
+                            outputSeqData = outputData.reshape(outputData.shape[0], 7, int(outputData.shape[1] / 7))
 
-                        dict_models = {}
-                        for m_path in list_models:
-                            print(m_path)
-                            if m_path.__contains__(mor.FLAG_S2S_LSTM):
-                                model = mor.loadModel(m_path)
-                                df_y_pred = mor.predModel(model, inputSeqData)
-                                o_shape = outputSeqData.shape
-                                dict_models[m_path] = [outputSeqData.reshape(o_shape[0], o_shape[1] * o_shape[2]),
-                                                       df_y_pred.reshape(o_shape[0], o_shape[1] * o_shape[2])]
-                            elif m_path.__contains__(mor.FLAG_LSTM):
-                                model = mor.loadModel(m_path)
-                                df_y_pred = mor.predModel(model, np.expand_dims(df_x, axis=2))
-                                dict_models[m_path] = [df_y, np.squeeze(df_y_pred, axis=2)]
-                            else:
-                                model = mor.loadModel(m_path)
-                                df_y_pred = mor.predModel(model, df_x)
-                                dict_models[m_path] = [df_y, df_y_pred]
+                            inputData = None
+                            outputData = None
 
-                        cor_CSV = [tmp_header_for_cor]
-                        for key in dict_models.keys():
-                            for model_name in mor.LIST_WITH_MODEL_FLAGS:
-                                if key.__contains__(model_name):
-                                    d1 = pd.DataFrame(dict_models[key][0], columns=list_of_output_headers_real)
-                                    d2 = pd.DataFrame(dict_models[key][1], columns=list_of_output_headers_pred)
+                            dict_models = {}
+                            for m_path in list_models:
+                                print(m_path)
+                                if m_path.__contains__(mor.FLAG_S2S_LSTM):
+                                    model = mor.loadModel(m_path)
+                                    df_y_pred = mor.predModel(model, inputSeqData)
+                                    o_shape = outputSeqData.shape
+                                    dict_models[m_path] = [outputSeqData.reshape(o_shape[0], o_shape[1] * o_shape[2]),
+                                                           df_y_pred.reshape(o_shape[0], o_shape[1] * o_shape[2])]
+                                elif m_path.__contains__(mor.FLAG_LSTM):
+                                    model = mor.loadModel(m_path)
+                                    df_y_pred = mor.predModel(model, np.expand_dims(df_x, axis=2))
+                                    dict_models[m_path] = [df_y, np.squeeze(df_y_pred, axis=2)]
+                                else:
+                                    model = mor.loadModel(m_path)
+                                    df_y_pred = mor.predModel(model, df_x)
+                                    dict_models[m_path] = [df_y, df_y_pred]
 
-                                    o_dir = os.path.normpath(dir_path) + '/../' + dir_plot_export + '/' + model_name + '/'
-                                    file_manip.checkAndCreateFolders(o_dir)
+                            cor_CSV = [tmp_header_for_cor]
+                            for key in dict_models.keys():
+                                for model_name in mor.LIST_WITH_MODEL_FLAGS:
+                                    if key.__contains__(model_name):
+                                        d1 = pd.DataFrame(dict_models[key][0], columns=list_of_output_headers_real)
+                                        d2 = pd.DataFrame(dict_models[key][1], columns=list_of_output_headers_pred)
 
-                                    tmp_cor_csv = [model_name]
+                                        o_dir = os.path.normpath(dir_path) + '/../' + dir_plot_export + '/' + \
+                                                model_name + '/' + uniq_event + '/'
+                                        file_manip.checkAndCreateFolders(o_dir)
 
-                                    for index in range(0, list_of_output_headers_real.__len__()):
-                                        mul_ind = 1.0
-                                        dataset_real = list_of_output_headers_real[index]
-                                        dataset_pred = list_of_output_headers_pred[index]
-                                        dataset = dataset_real
-                                        dataset.replace('_REAL', '')
+                                        tmp_cor_csv = [model_name]
 
-                                        for out_column in dict_list_output_columns[fileName]:
-                                            if dataset_real.__contains__(out_column):
-                                                mul_ind = dict_max_values_for_output_columns[fileName][out_column]
-                                        tmp_d1 = d1[dataset_real] * mul_ind
-                                        tmp_d2 = d2[dataset_pred] * mul_ind
+                                        for index in range(0, list_of_output_headers_real.__len__()):
+                                            mul_ind = 1.0
+                                            dataset_real = list_of_output_headers_real[index]
+                                            dataset_pred = list_of_output_headers_pred[index]
+                                            dataset = dataset_real
+                                            dataset.replace('_REAL', '')
 
-                                        d_cor = pd.DataFrame(np.array([tmp_d1.values, tmp_d2.values]).T,
-                                                             columns=[dataset_real, dataset_pred])
-                                        (d_cor_r, d_cor_R2, d_cor_p,
-                                         d_cor_overall_pearson_r, d_cor_overall_pearson_R2, d_cor_rolling_r_min,
-                                         d_cor_rolling_r_max, d_cor_offset,
-                                         d_cor_alignment_distance) = \
-                                            signcomp.RunAllCorrelationMethods(dataArr=d_cor,
-                                                                              baseIndex=dataset_real,
-                                                                              corrIndex=dataset_pred,
-                                                                              baseIndex_Label='Real - Pearson r',
-                                                                              corrIndex_Label='Predicted - Pearson r',
-                                                                              r_window_size=r_window_size,
-                                                                              time_step=time_step,
-                                                                              fps=fps,
-                                                                              no_splits=no_splits,
-                                                                              bool_plt_show=False,
-                                                                              bool_plt_save=True,
-                                                                              str_plt_save_dir_path=o_dir,
-                                                                              str_plt_save_name=model_name + '_' + dataset + '_PRED_Corr')
+                                            for out_column in dict_list_output_columns[fileName]:
+                                                if dataset_real.__contains__(out_column):
+                                                    mul_ind = dict_max_values_for_output_columns[fileName][out_column]
+                                            tmp_d1 = d1[dataset_real] * mul_ind
+                                            tmp_d2 = d2[dataset_pred] * mul_ind
 
-                                        tmp_cor_csv.append(d_cor_R2)
-                                        tmp_d1.plot()
-                                        tmp_d2.plot()
-                                        plt.gcf().set_size_inches(_PLOT_SIZE_WIDTH, _PLOT_SIZE_HEIGHT)
-                                        plt.gcf().subplots_adjust(bottom=0.25)
-                                        # plt.xticks(rotation=45, fontsize=_PLOT_FONTSIZE_TICKS)
-                                        plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
-                                        plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
-                                        plt.ylim(0, mul_ind)
-                                        plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
-                                        # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
-                                        plt.ylabel('Humans per Million' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
-                                        plt.savefig(o_dir + dataset + '.png', dpi=_PLOT_SIZE_DPI)
-                                        # time.sleep(0.5)
-                                        # plt.clf()
-                                        plt.close()
+                                            d_cor = pd.DataFrame(np.array([tmp_d1.values, tmp_d2.values]).T,
+                                                                 columns=[dataset_real, dataset_pred])
+                                            (d_cor_r, d_cor_R2, d_cor_p,
+                                             d_cor_overall_pearson_r, d_cor_overall_pearson_R2, d_cor_rolling_r_min,
+                                             d_cor_rolling_r_max, d_cor_offset,
+                                             d_cor_alignment_distance) = \
+                                                signcomp.RunAllCorrelationMethods(dataArr=d_cor,
+                                                                                  baseIndex=dataset_real,
+                                                                                  corrIndex=dataset_pred,
+                                                                                  baseIndex_Label='Real - Pearson r',
+                                                                                  corrIndex_Label='Predicted - Pearson r',
+                                                                                  r_window_size=r_window_size,
+                                                                                  time_step=time_step,
+                                                                                  fps=fps,
+                                                                                  no_splits=no_splits,
+                                                                                  bool_plt_show=False,
+                                                                                  bool_plt_save=True,
+                                                                                  str_plt_save_dir_path=o_dir,
+                                                                                  str_plt_save_name=model_name + '_' + dataset + '_PRED_Corr')
 
-                                        d1[dataset_real].plot()
-                                        d2[dataset_pred].plot()
-                                        plt.gcf().set_size_inches(_PLOT_SIZE_WIDTH, _PLOT_SIZE_HEIGHT)
-                                        plt.gcf().subplots_adjust(bottom=0.25)
-                                        # plt.xticks(rotation=45, fontsize=_PLOT_FONTSIZE_TICKS)
-                                        plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
-                                        plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
-                                        plt.ylim(0, 1.0)
-                                        plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
-                                        # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
-                                        plt.ylabel('Humans per Million (normalized)' + str(),
-                                                   fontsize=_PLOT_FONTSIZE_LABEL)
-                                        plt.savefig(o_dir + dataset + '_normalized.png', dpi=_PLOT_SIZE_DPI)
-                                        # time.sleep(0.5)
-                                        # plt.clf()
-                                        plt.close()
+                                            y_max_norm = max(d1[dataset_real].max(), d2[dataset_pred].max())
+                                            y_max_denorm = max(tmp_d1.max(), tmp_d1.max())
 
-                                    cor_CSV.append(tmp_cor_csv)
+                                            tmp_cor_csv.append(d_cor_R2)
+                                            tmp_d1.plot()
+                                            tmp_d2.plot()
+                                            plt.gcf().set_size_inches(_PLOT_SIZE_WIDTH, _PLOT_SIZE_HEIGHT)
+                                            plt.gcf().subplots_adjust(bottom=0.25)
+                                            # plt.xticks(rotation=45, fontsize=_PLOT_FONTSIZE_TICKS)
+                                            plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
+                                            plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
+                                            plt.ylim(0, y_max_denorm)
+                                            plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
+                                            # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
+                                            plt.ylabel('Humans per Million' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
+                                            plt.savefig(o_dir + dataset + '.png', dpi=_PLOT_SIZE_DPI)
+                                            # time.sleep(0.5)
+                                            # plt.clf()
+                                            plt.close()
 
-                        o_file = os.path.normpath(dir_path + "/../") + '/Correlation_R2.csv'
-                        my_cal_v2.write_csv(o_file, cor_CSV)
+                                            d1[dataset_real].plot()
+                                            d2[dataset_pred].plot()
+                                            plt.gcf().set_size_inches(_PLOT_SIZE_WIDTH, _PLOT_SIZE_HEIGHT)
+                                            plt.gcf().subplots_adjust(bottom=0.25)
+                                            # plt.xticks(rotation=45, fontsize=_PLOT_FONTSIZE_TICKS)
+                                            plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
+                                            plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
+                                            plt.ylim(0, y_max_norm)
+                                            plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
+                                            # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
+                                            plt.ylabel('Humans per Million (normalized)' + str(),
+                                                       fontsize=_PLOT_FONTSIZE_LABEL)
+                                            plt.savefig(o_dir + dataset + '_normalized.png', dpi=_PLOT_SIZE_DPI)
+                                            # time.sleep(0.5)
+                                            # plt.clf()
+                                            plt.close()
+
+                                        cor_CSV.append(tmp_cor_csv)
+
+                            o_file = os.path.normpath(dir_path + "/../") + '/Correlation_R2.csv'
+                            my_cal_v2.write_csv(o_file, cor_CSV)
 
             else:
                 pass

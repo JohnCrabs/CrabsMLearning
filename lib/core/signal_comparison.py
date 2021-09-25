@@ -13,7 +13,7 @@ import seaborn as sns
 import scipy.stats as stats
 import dtw
 
-plt.ioff()
+# plt.ioff()
 
 
 def crosscorr(datax, datay, lag=0, wrap=False):

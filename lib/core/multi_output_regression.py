@@ -356,6 +356,10 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
     exportFileName_path = name + '_PerfRes.xlsx'  # Export the Performance Scores of all methods
     str_list_model_paths = []  # Create a list to store the paths of the models and return it later
     dir_path = path + '/' + current_datetime + '/' + 'TrainedModels' + '/'
+    dir_path = os.path.normpath(dir_path) + '/'
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+    workbook_path = dir_path + "../" + exportFileName_path
 
     # convert from dict to array
     inputDataToUse_train_val = input_data_train_val
@@ -486,7 +490,7 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
                           validation_data=(np.expand_dims(tmpInputs_train_val[valIdxs, :], axis=2),
                                            np.expand_dims(tmpOutputs_train_val[valIdxs, :], axis=2)))
             print(' ... training completed.')
-            # calulate models outputs for all entries
+            # calculate models outputs for all entries
             trainSetEstimatorPredictions = np.squeeze(
                 estimator.predict(np.expand_dims(tmpInputs_train_val[trainIdxs, :], axis=2)), axis=2)
             testSetEstimatorPredictions = np.squeeze(estimator.predict(np.expand_dims(tmpInputs_test[:, :], axis=2)),
@@ -581,11 +585,8 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
 
         # Confirm file exists.
         # If not, create it, add headers, then append new data
-        dir_path = os.path.normpath(dir_path) + '/'
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
         try:
-            wb = op.load_workbook(dir_path + exportFileName_path)
+            wb = op.load_workbook(workbook_path)
             ws = wb.worksheets[0]  # select first worksheet
         except FileNotFoundError:
             headers_row = ['Technique']
@@ -605,6 +606,7 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
             wb = op.Workbook()
             ws = wb.active
             ws.append(headers_row)
+            wb.save(workbook_path)
 
         joblib_sav = '.h5'
         h5_sav = '.h5'
@@ -640,7 +642,7 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
         str_list_model_paths.append(dir_path + FLAG_MOP_ADAB + '_' + current_datetime + joblib_sav)
 
         ws.append(new_row)
-        wb.save(dir_path + "../" + exportFileName_path)
+        wb.save(workbook_path)
         time.sleep(1)
 
     str_list_model_paths = list(dict.fromkeys(str_list_model_paths))  # remove duplicates
