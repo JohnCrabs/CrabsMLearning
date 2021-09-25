@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import tkinter as tk
+import matplotlib.pyplot as plt
+
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
     QListWidget, QListWidgetItem, QFileDialog, QLabel, QTabWidget
@@ -11,6 +13,8 @@ from PySide2.QtGui import QIcon, QPixmap
 
 import lib.core.file_manipulation as file_manip
 import lib.core.my_calendar_v2 as my_cal_v2
+import lib.core.multi_output_regression as mor
+import lib.core.signal_comparison as signcomp
 
 _NEW_PROJECT_DEFAULT_FOLDER = file_manip.PATH_HOME
 _PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
@@ -40,7 +44,17 @@ _DKEY_MLP_SEQUENCE_STEP_INDEX = 'sequence-index'
 _DKEY_MLP_TEST_PERCENTAGE = 'test-percentage'
 _DKEY_MLP_VALIDATION_PERCENTAGE = 'validation-percentage'
 _DKEY_MLP_EXPORT_FOLDER = 'export-folder'
+_DKEY_MLP_HOLDOUT_SIZE = 'holdout-size'
+_DKEY_MLP_EXPER_NUMBER = 'experiment-number'
 
+# --- PLOT INFO --- #
+_PLOT_FONTSIZE_TITLE = 25
+_PLOT_FONTSIZE_TICKS = 20
+_PLOT_FONTSIZE_LABEL = 22.5
+_PLOT_FONTSIZE_LEGEND = 18
+_PLOT_SIZE_WIDTH = 12.40
+_PLOT_SIZE_HEIGHT = 12.40
+_PLOT_SIZE_DPI = 100
 
 def setStyle_():
     """
@@ -161,7 +175,9 @@ class WidgetMachineLearningSequential(QWidget):
         self.dict_machineLearningParameters = {_DKEY_MLP_SEQUENCE_STEP_INDEX: 7,
                                                _DKEY_MLP_TEST_PERCENTAGE: 0.25,
                                                _DKEY_MLP_VALIDATION_PERCENTAGE: 0.20,
-                                               _DKEY_MLP_EXPORT_FOLDER: _PROJECT_FOLDER + '/export_folder/'}
+                                               _DKEY_MLP_EXPORT_FOLDER: _PROJECT_FOLDER + '/export_folder/',
+                                               _DKEY_MLP_HOLDOUT_SIZE: 0.20,
+                                               _DKEY_MLP_EXPER_NUMBER: 5}
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -365,9 +381,11 @@ class WidgetMachineLearningSequential(QWidget):
         dict_data_storing = {}
         dict_max_values_for_input_columns = {}
         dict_max_values_for_output_columns = {}
+        dict_store_folderFileNames = {}
 
         sequenceStepIndex = self.dict_machineLearningParameters[_DKEY_MLP_SEQUENCE_STEP_INDEX]
         list_of_input_headers = []
+        list_of_output_headers = []
         list_of_output_headers_real = []
         list_of_output_headers_pred = []
 
@@ -376,14 +394,46 @@ class WidgetMachineLearningSequential(QWidget):
         DKEY_DATA = 'DATA'
         DKEY_TRAIN = 'TRAIN'
         DKEY_TEST = 'TEST'
+        DKEY_ALL = 'ALL_DATA'
         dict_dataset_categorized_by_event = {}
         dict_sequential_dataset = {}
 
         sequenceTestPercentage = self.dict_machineLearningParameters[_DKEY_MLP_TEST_PERCENTAGE]
         export_folder_path = self.dict_machineLearningParameters[
                                  _DKEY_MLP_EXPORT_FOLDER] + '/' + dt.datetime.now().strftime("%d%m%Y_%H%M%S")
-
         file_manip.checkAndCreateFolder(export_folder_path)
+        holdout_size = self.dict_machineLearningParameters[_DKEY_MLP_HOLDOUT_SIZE]
+        number_of_experiments = self.dict_machineLearningParameters[_DKEY_MLP_EXPER_NUMBER]
+
+        r_window_size = 15
+        time_step = 2  # seconds
+        fps = 30
+        no_splits = 5
+        dir_plot_export = 'ExportPlots'
+
+        def export_dict_with_denormalized_values(key_fileName):
+            tmp_export_file_input = [['COLUMN_NAME', 'DENORMALIZED_VALUE']]
+            tmp_export_file_output = [['COLUMN_NAME', 'DENORMALIZED_VALUE']]
+            for key in dict_max_values_for_input_columns[key_fileName]:
+                tmp_export_file_input.append([key, dict_max_values_for_input_columns[key_fileName][key]])
+
+            for key in dict_max_values_for_output_columns[key_fileName]:
+                tmp_export_file_output.append([key, dict_max_values_for_output_columns[key_fileName][key]])
+
+            tmp_dir_folder_dataFile = export_folder_path + '/' + dict_store_folderFileNames[key_fileName] + '/Data'
+            file_manip.checkAndCreateFolder(tmp_dir_folder_dataFile)
+            my_cal_v2.write_csv(tmp_dir_folder_dataFile + '/Denormalize_Input_Values.csv',
+                                tmp_export_file_input, my_cal_v2.del_comma)
+            my_cal_v2.write_csv(tmp_dir_folder_dataFile + '/Denormalize_Output_Values.csv',
+                                tmp_export_file_output, my_cal_v2.del_comma)
+
+        def export_train_test_files(dataFileList, export_path, header_list=None):
+            tmp_export_file = []
+            if header_list is not None:
+                tmp_export_file.append(header_list)
+            for row in dataFileList:
+                tmp_export_file.append(row)
+            my_cal_v2.write_csv(export_path, tmp_export_file, my_cal_v2.del_comma)
 
         if self.dict_tableFilesPaths.keys().__len__() >= 1:  # if there are at least 2 files (safety if)
             # Error Checking and store information
@@ -432,6 +482,7 @@ class WidgetMachineLearningSequential(QWidget):
                     for inp_column in dict_list_input_columns[fileName]:
                         list_of_input_headers.append(inp_column + "_SEQ_" + str(index))
                     for out_column in dict_list_output_columns[fileName]:
+                        list_of_output_headers.append(out_column + "_SEQ_" + str(index))
                         list_of_output_headers_real.append(out_column + "_SEQ_" + str(index) + "_REAL")
                         list_of_output_headers_pred.append(out_column + "_SEQ_" + str(index) + "_PRED")
 
@@ -452,6 +503,7 @@ class WidgetMachineLearningSequential(QWidget):
                 for fileName in self.dict_tableFilesPaths.keys():
                     tmp_fName = fileName.split('.')[0]
                     file_manip.checkAndCreateFolders(export_folder_path + '/' + tmp_fName)
+                    dict_store_folderFileNames[fileName] = tmp_fName
 
                 # Categorized the data by event
                 print("Categorize data by selected Primary Event for each dataset...")
@@ -483,6 +535,8 @@ class WidgetMachineLearningSequential(QWidget):
                             DKEY_INPUT] = tmp_final_arr_input
                         dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][
                             DKEY_OUTPUT] = tmp_final_arr_output
+
+                    export_dict_with_denormalized_values(fileName)
                 # print(dict_dataset_categorized_by_event)
 
                 # Create the sequential data
@@ -518,8 +572,10 @@ class WidgetMachineLearningSequential(QWidget):
                     dict_sequential_dataset[fileName][DKEY_OUTPUT] = {}
                     dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN] = []
                     dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST] = []
+                    dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_ALL] = []
                     dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN] = []
                     dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST] = []
+                    dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_ALL] = []
 
                     for uniq_event in unique_list_of_common_primary_events:
                         size_of_list = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT].__len__()
@@ -535,6 +591,9 @@ class WidgetMachineLearningSequential(QWidget):
                         test_data_output = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT][
                                            -trte_slice_:]
 
+                        all_input = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT]
+                        all_output = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT]
+
                         for index in range(0, train_data_input.__len__()):
                             dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN].append(train_data_input[index])
                             dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN].append(train_data_output[index])
@@ -543,24 +602,200 @@ class WidgetMachineLearningSequential(QWidget):
                             dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST].append(test_data_input[index])
                             dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST].append(test_data_output[index])
 
+                        for index in range(0, all_input.__len__()):
+                            dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_ALL].append(all_input[index])
+                            dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_ALL].append(all_output[index])
+
+                    dir_folder_dataFile = export_folder_path + '/' + dict_store_folderFileNames[fileName] + '/Data'
+                    file_manip.checkAndCreateFolders(dir_folder_dataFile)
+
+                    export_train_test_files(dataFileList=dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN],
+                                            header_list=list_of_input_headers,
+                                            export_path=dir_folder_dataFile + '/InputTrain.csv')
+
                     dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN] = np.array(
                         dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN])
+
+                    export_train_test_files(dataFileList=dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST],
+                                            header_list=list_of_input_headers,
+                                            export_path=dir_folder_dataFile + '/InputTest.csv')
 
                     dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST] = np.array(
                         dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST])
 
+                    export_train_test_files(dataFileList=dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN],
+                                            header_list=list_of_output_headers,
+                                            export_path=dir_folder_dataFile + '/OutputTrain.csv')
+
                     dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN] = np.array(
-                        dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN])
+                        dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN])
+
+                    export_train_test_files(dataFileList=dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST],
+                                            header_list=list_of_output_headers,
+                                            export_path=dir_folder_dataFile + '/OutputTest.csv')
 
                     dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST] = np.array(
-                        dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST])
+                        dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST])
 
-                    print(dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN].shape)
-                    print(dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST].shape)
-                    print(dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN].shape)
-                    print(dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST].shape)
+                    dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_ALL] = np.array(
+                        dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_ALL])
+                    dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_ALL] = np.array(
+                        dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_ALL])
 
+                    print("TRAIN__INPUT_SHAPE = ", dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN].shape)
+                    print("TEST__OUTPUT_SHAPE = ", dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST].shape)
+                    print("TRAIN_OUTPUT_SHAPE = ", dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN].shape)
+                    print("TEST__OUTPUT_SHAPE = ", dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST].shape)
                 # print(dict_sequential_dataset)
+
+                # Perform the Experiments (MACHINE LEARNING TRAIN/TESTS)
+
+                tmp_header_for_cor = ['Method']
+                for column_name in list_of_output_headers:
+                    tmp_header_for_cor.append(column_name)
+
+                print("MACHINE LEARNING EXEC")
+                for fileName in self.dict_tableFilesPaths.keys():
+                    for exp_index_ in range(0, number_of_experiments):
+                        print("RUN FOR ", fileName, " -> EXPERIMENT_" + str(exp_index_))
+                        train_size = dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN].shape[0]
+                        trainIdx = np.random.permutation(train_size)
+                        trainIdx = trainIdx[:int((1.0 - holdout_size) * train_size)]
+
+                        df_x_train_val = dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TRAIN]
+                        df_y_train_val = dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TRAIN]
+
+                        df_x_test = dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_TEST]
+                        df_y_test = dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_TEST]
+
+                        dir_folder_dataFile = export_folder_path + '/' + dict_store_folderFileNames[fileName]
+
+                        list_models, dir_path = mor.MachineLearning_Sequential(df_x_train_val[trainIdx],
+                                                                               df_y_train_val[trainIdx],
+                                                                               df_x_test, df_y_test,
+                                                                               name='MachineLearning',
+                                                                               path=dir_folder_dataFile,
+                                                                               dnn_LactFunc='sigmoid',
+                                                                               dnn_OactFunc='tanh', dnn_loss='mse',
+                                                                               lstm_LactFunc='relu',
+                                                                               lstm_DactFunc='tanh',
+                                                                               css_LactFunc='elu',
+                                                                               lstm_loss='mean_squared_error',
+                                                                               lstm_optimizer='adam', seq_div=7,
+                                                                               epochs=100,
+                                                                               batch_size=100,
+                                                                               min_lr=0.001, dropout_percentage=0.1)
+
+                        df_x = dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_ALL]
+                        df_y = dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_ALL]
+
+                        inputData = dict_sequential_dataset[fileName][DKEY_INPUT][DKEY_ALL].copy()
+                        outputData = dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_ALL].copy()
+
+                        inputSeqData = inputData.reshape(inputData.shape[0], 7, int(inputData.shape[1] / 7))
+                        outputSeqData = outputData.reshape(outputData.shape[0], 7, int(outputData.shape[1] / 7))
+
+                        dict_models = {}
+                        for m_path in list_models:
+                            print(m_path)
+                            if m_path.__contains__(mor.FLAG_S2S_LSTM):
+                                model = mor.loadModel(m_path)
+                                df_y_pred = mor.predModel(model, inputSeqData)
+                                o_shape = outputSeqData.shape
+                                dict_models[m_path] = [outputSeqData.reshape(o_shape[0], o_shape[1] * o_shape[2]),
+                                                       df_y_pred.reshape(o_shape[0], o_shape[1] * o_shape[2])]
+                            elif m_path.__contains__(mor.FLAG_LSTM):
+                                model = mor.loadModel(m_path)
+                                df_y_pred = mor.predModel(model, np.expand_dims(df_x, axis=2))
+                                dict_models[m_path] = [df_y, np.squeeze(df_y_pred, axis=2)]
+                            else:
+                                model = mor.loadModel(m_path)
+                                df_y_pred = mor.predModel(model, df_x)
+                                dict_models[m_path] = [df_y, df_y_pred]
+
+                        cor_CSV = [tmp_header_for_cor]
+                        for key in dict_models.keys():
+                            for model_name in mor.LIST_WITH_MODEL_FLAGS:
+                                if key.__contains__(model_name):
+                                    d1 = pd.DataFrame(dict_models[key][0], columns=list_of_output_headers_real)
+                                    d2 = pd.DataFrame(dict_models[key][1], columns=list_of_output_headers_pred)
+
+                                    o_dir = os.path.normpath(dir_path) + '/../' + dir_plot_export + '/' + model_name + '/'
+                                    file_manip.checkAndCreateFolders(o_dir)
+
+                                    tmp_cor_csv = [model_name]
+
+                                    for index in range(0, list_of_output_headers_real.__len__()):
+                                        mul_ind = 1.0
+                                        dataset_real = list_of_output_headers_real[index]
+                                        dataset_pred = list_of_output_headers_pred[index]
+                                        dataset = dataset_real
+                                        dataset.replace('_REAL', '')
+
+                                        for out_column in dict_list_output_columns[fileName]:
+                                            if dataset_real.__contains__(out_column):
+                                                mul_ind = dict_max_values_for_output_columns[fileName][out_column]
+                                        tmp_d1 = d1[dataset_real] * mul_ind
+                                        tmp_d2 = d2[dataset_pred] * mul_ind
+
+                                        d_cor = pd.DataFrame(np.array([tmp_d1.values, tmp_d2.values]).T,
+                                                             columns=[dataset_real, dataset_pred])
+                                        (d_cor_r, d_cor_R2, d_cor_p,
+                                         d_cor_overall_pearson_r, d_cor_overall_pearson_R2, d_cor_rolling_r_min,
+                                         d_cor_rolling_r_max, d_cor_offset,
+                                         d_cor_alignment_distance) = \
+                                            signcomp.RunAllCorrelationMethods(dataArr=d_cor,
+                                                                              baseIndex=dataset_real,
+                                                                              corrIndex=dataset_pred,
+                                                                              baseIndex_Label='Real - Pearson r',
+                                                                              corrIndex_Label='Predicted - Pearson r',
+                                                                              r_window_size=r_window_size,
+                                                                              time_step=time_step,
+                                                                              fps=fps,
+                                                                              no_splits=no_splits,
+                                                                              bool_plt_show=False,
+                                                                              bool_plt_save=True,
+                                                                              str_plt_save_dir_path=o_dir,
+                                                                              str_plt_save_name=model_name + '_' + dataset + '_PRED_Corr')
+
+                                        tmp_cor_csv.append(d_cor_R2)
+                                        tmp_d1.plot()
+                                        tmp_d2.plot()
+                                        plt.gcf().set_size_inches(_PLOT_SIZE_WIDTH, _PLOT_SIZE_HEIGHT)
+                                        plt.gcf().subplots_adjust(bottom=0.25)
+                                        # plt.xticks(rotation=45, fontsize=_PLOT_FONTSIZE_TICKS)
+                                        plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
+                                        plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
+                                        plt.ylim(0, mul_ind)
+                                        plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
+                                        # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
+                                        plt.ylabel('Humans per Million' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
+                                        plt.savefig(o_dir + dataset + '.png', dpi=_PLOT_SIZE_DPI)
+                                        # time.sleep(0.5)
+                                        # plt.clf()
+                                        plt.close()
+
+                                        d1[dataset_real].plot()
+                                        d2[dataset_pred].plot()
+                                        plt.gcf().set_size_inches(_PLOT_SIZE_WIDTH, _PLOT_SIZE_HEIGHT)
+                                        plt.gcf().subplots_adjust(bottom=0.25)
+                                        # plt.xticks(rotation=45, fontsize=_PLOT_FONTSIZE_TICKS)
+                                        plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
+                                        plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
+                                        plt.ylim(0, 1.0)
+                                        plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
+                                        # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
+                                        plt.ylabel('Humans per Million (normalized)' + str(),
+                                                   fontsize=_PLOT_FONTSIZE_LABEL)
+                                        plt.savefig(o_dir + dataset + '_normalized.png', dpi=_PLOT_SIZE_DPI)
+                                        # time.sleep(0.5)
+                                        # plt.clf()
+                                        plt.close()
+
+                                    cor_CSV.append(tmp_cor_csv)
+
+                        o_file = os.path.normpath(dir_path + "/../") + '/Correlation_R2.csv'
+                        my_cal_v2.write_csv(o_file, cor_CSV)
 
             else:
                 pass

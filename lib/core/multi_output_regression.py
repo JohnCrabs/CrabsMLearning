@@ -185,12 +185,11 @@ def MachineLearning(input_data, output_data, name='', dnn_LactFunc='selu', dnn_O
                           validation_data=(np.expand_dims(tmpInputs[valIdxs, :], axis=2),
                                            np.expand_dims(tmpOutputs[valIdxs, :], axis=2)))
             print(' ... training completed.')
-            # calulate models outputs for all entries
+            # calculate models outputs for all entries
             trainSetEstimatorPredictions = np.squeeze(
                 estimator.predict(np.expand_dims(tmpInputs[trainIdxs, :], axis=2)), axis=2)
             testSetEstimatorPredictions = np.squeeze(estimator.predict(np.expand_dims(tmpInputs[testIdxs, :], axis=2)),
                                                      axis=2)
-
 
         elif modelName is FLAG_DNN:
             estimator.fit(tmpInputs[trainIdxs, :], tmpOutputs[trainIdxs, :],
@@ -198,7 +197,7 @@ def MachineLearning(input_data, output_data, name='', dnn_LactFunc='selu', dnn_O
                           callbacks=callbacksOptions,
                           validation_data=(tmpInputs[valIdxs, :], tmpOutputs[valIdxs, :]))
             print(' ... training completed.')
-            # calulate models outputs for all entries
+            # calculate models outputs for all entries
             trainSetEstimatorPredictions = estimator.predict(tmpInputs[trainIdxs, :])
             testSetEstimatorPredictions = estimator.predict(tmpInputs[testIdxs, :])
 
@@ -224,8 +223,7 @@ def MachineLearning(input_data, output_data, name='', dnn_LactFunc='selu', dnn_O
             # calculate models outputs for all entries
             trainSetEstimatorPredictions = estimator.predict(tmpInputs[trainIdxs, :])
             testSetEstimatorPredictions = estimator.predict(tmpInputs[testIdxs, :])
-            if (modelName == FLAG_LASSO or modelName == FLAG_RFR or
-                modelName == FLAG_DTR) and tmpOutputs.shape[1] == 1:
+            if (modelName == FLAG_LASSO or modelName == FLAG_RFR or modelName == FLAG_DTR) and tmpOutputs.shape[1] == 1:
                 trainSetEstimatorPredictions = np.expand_dims(trainSetEstimatorPredictions, axis=1)
                 testSetEstimatorPredictions = np.expand_dims(testSetEstimatorPredictions, axis=1)
 
@@ -345,7 +343,7 @@ def MachineLearning(input_data, output_data, name='', dnn_LactFunc='selu', dnn_O
 
 
 def MachineLearning_Sequential(input_data_train_val, output_data_train_val, input_data_test, output_data_test,
-                               name='', dnn_LactFunc='selu', dnn_OactFunc='sigmoid', dnn_loss='mse',
+                               name='', path='', dnn_LactFunc='selu', dnn_OactFunc='sigmoid', dnn_loss='mse',
                                lstm_LactFunc='tanh', lstm_DactFunc='sigmoid', css_LactFunc='sigmoid',
                                lstm_loss='mean_squared_error', lstm_optimizer='adam', seq_div=1, epochs=100,
                                batch_size=100, min_lr=0.001, dropout_percentage=0.1, kernel_size=3):
@@ -357,7 +355,7 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
     current_datetime = dt.datetime.now().strftime("%d%m%Y_%H%M%S")  # take the current datetime (for folder creation)
     exportFileName_path = name + '_PerfRes.xlsx'  # Export the Performance Scores of all methods
     str_list_model_paths = []  # Create a list to store the paths of the models and return it later
-    dir_path = 'export_models/' + current_datetime + '/' + name + '/'
+    dir_path = path + '/' + current_datetime + '/' + 'TrainedModels' + '/'
 
     # convert from dict to array
     inputDataToUse_train_val = input_data_train_val
@@ -418,7 +416,7 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
                                                             int(output_shape_train_val[1] / seq_div))
 
     inputSeqData_test = input_data_test.reshape(input_shape_test[0], seq_div, int(input_shape_test[1] / seq_div))
-    outputSeqData_test = output_data_test.reshape(output_shape_test[0], seq_div, int(output_shape_test[1] / seq_div))
+    # outputSeqData_test = output_data_test.reshape(output_shape_test[0], seq_div, int(output_shape_test[1] / seq_div))
 
     input_seq_shape = inputSeqData_train_val.shape
     output_seq_shape = outputSeqData_train_val.shape
@@ -494,14 +492,13 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
             testSetEstimatorPredictions = np.squeeze(estimator.predict(np.expand_dims(tmpInputs_test[:, :], axis=2)),
                                                      axis=2)
 
-
         elif modelName is FLAG_DNN:
             estimator.fit(tmpInputs_train_val[trainIdxs, :], tmpOutputs_train_val[trainIdxs, :],
                           batch_size=batch_size, shuffle=True, epochs=deepModelsTrainingEpochs, verbose=1,
                           callbacks=callbacksOptions,
                           validation_data=(tmpInputs_train_val[valIdxs, :], tmpOutputs_train_val[valIdxs, :]))
             print(' ... training completed.')
-            # calulate models outputs for all entries
+            # calculate models outputs for all entries
             trainSetEstimatorPredictions = estimator.predict(tmpInputs_train_val[trainIdxs, :])
             testSetEstimatorPredictions = estimator.predict(tmpInputs_test[:, :])
 
@@ -529,7 +526,7 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
             trainSetEstimatorPredictions = estimator.predict(tmpInputs_train_val[trainIdxs, :])
             testSetEstimatorPredictions = estimator.predict(tmpInputs_test[:, :])
             if (modelName == FLAG_LASSO or modelName == FLAG_RFR or
-                modelName == FLAG_DTR) and tmpOutputs_train_val.shape[1] == 1\
+                modelName == FLAG_DTR) and tmpOutputs_train_val.shape[1] == 1 \
                     and tmpOutputs_test.shape[1] == 1:
                 trainSetEstimatorPredictions = np.expand_dims(trainSetEstimatorPredictions, axis=1)
                 testSetEstimatorPredictions = np.expand_dims(testSetEstimatorPredictions, axis=1)
@@ -643,7 +640,7 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
         str_list_model_paths.append(dir_path + FLAG_MOP_ADAB + '_' + current_datetime + joblib_sav)
 
         ws.append(new_row)
-        wb.save(dir_path + exportFileName_path)
+        wb.save(dir_path + "../" + exportFileName_path)
         time.sleep(1)
 
     str_list_model_paths = list(dict.fromkeys(str_list_model_paths))  # remove duplicates
