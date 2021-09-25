@@ -5,6 +5,8 @@ import numpy as np
 import datetime as dt
 import tkinter as tk
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("Qt5agg")
 
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
@@ -703,9 +705,6 @@ class WidgetMachineLearningSequential(QWidget):
                             inputSeqData = inputData.reshape(inputData.shape[0], 7, int(inputData.shape[1] / 7))
                             outputSeqData = outputData.reshape(outputData.shape[0], 7, int(outputData.shape[1] / 7))
 
-                            inputData = None
-                            outputData = None
-
                             dict_models = {}
                             for m_path in list_models:
                                 print(m_path)
@@ -734,6 +733,12 @@ class WidgetMachineLearningSequential(QWidget):
                                         o_dir = os.path.normpath(dir_path) + '/../' + dir_plot_export + '/' + \
                                                 model_name + '/' + uniq_event + '/'
                                         file_manip.checkAndCreateFolders(o_dir)
+
+                                        o_dir_Corr = o_dir + 'SignalCompare'
+                                        file_manip.checkAndCreateFolders(o_dir_Corr)
+
+                                        o_dir_MLP = o_dir + 'RealPredictPlots'
+                                        file_manip.checkAndCreateFolders(o_dir_MLP)
 
                                         tmp_cor_csv = [model_name]
 
@@ -767,7 +772,7 @@ class WidgetMachineLearningSequential(QWidget):
                                                                                   no_splits=no_splits,
                                                                                   bool_plt_show=False,
                                                                                   bool_plt_save=True,
-                                                                                  str_plt_save_dir_path=o_dir,
+                                                                                  str_plt_save_dir_path=o_dir_Corr,
                                                                                   str_plt_save_name=model_name + '_' + dataset + '_PRED_Corr')
 
                                             y_max_norm = max(d1[dataset_real].max(), d2[dataset_pred].max())
@@ -785,7 +790,7 @@ class WidgetMachineLearningSequential(QWidget):
                                             plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
                                             plt.ylabel('Humans per Million' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.savefig(o_dir + dataset + '.png', dpi=_PLOT_SIZE_DPI)
+                                            plt.savefig(o_dir_MLP + dataset + '.png', dpi=_PLOT_SIZE_DPI)
                                             # time.sleep(0.5)
                                             # plt.clf()
                                             plt.close()
@@ -802,7 +807,7 @@ class WidgetMachineLearningSequential(QWidget):
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
                                             plt.ylabel('Humans per Million (normalized)' + str(),
                                                        fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.savefig(o_dir + dataset + '_normalized.png', dpi=_PLOT_SIZE_DPI)
+                                            plt.savefig(o_dir_MLP + dataset + '_normalized.png', dpi=_PLOT_SIZE_DPI)
                                             # time.sleep(0.5)
                                             # plt.clf()
                                             plt.close()
