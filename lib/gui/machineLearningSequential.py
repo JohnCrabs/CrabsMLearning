@@ -372,7 +372,6 @@ class WidgetMachineLearningSequential(QWidget):
             self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())  # Delete item from widget
             self.actionFileListRowChanged_event()  # run the row changed event
             self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
-            self.updateEventsList()  # update EVENT widget
 
             if self.dict_tableFilesPaths.keys().__len__() < 1:
                 self.buttonGenerate.setEnabled(False)
@@ -688,7 +687,8 @@ class WidgetMachineLearningSequential(QWidget):
                                                                                lstm_DactFunc='tanh',
                                                                                css_LactFunc='elu',
                                                                                lstm_loss='mean_squared_error',
-                                                                               lstm_optimizer='adam', seq_div=7,
+                                                                               lstm_optimizer='adam',
+                                                                               seq_div=sequenceStepIndex,
                                                                                epochs=100,
                                                                                batch_size=100,
                                                                                min_lr=0.001, dropout_percentage=0.1)
@@ -702,8 +702,8 @@ class WidgetMachineLearningSequential(QWidget):
                             outputData = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][
                                 DKEY_OUTPUT].copy()
 
-                            inputSeqData = inputData.reshape(inputData.shape[0], 7, int(inputData.shape[1] / 7))
-                            outputSeqData = outputData.reshape(outputData.shape[0], 7, int(outputData.shape[1] / 7))
+                            inputSeqData = inputData.reshape(inputData.shape[0], sequenceStepIndex, int(inputData.shape[1] / sequenceStepIndex))
+                            outputSeqData = outputData.reshape(outputData.shape[0], sequenceStepIndex, int(outputData.shape[1] / sequenceStepIndex))
 
                             dict_models = {}
                             for m_path in list_models:
@@ -776,7 +776,9 @@ class WidgetMachineLearningSequential(QWidget):
                                                                                   str_plt_save_name=model_name + '_' + dataset + '_PRED_Corr')
 
                                             y_max_norm = max(d1[dataset_real].max(), d2[dataset_pred].max())
+                                            y_max_norm += 0.1 * y_max_norm
                                             y_max_denorm = max(tmp_d1.max(), tmp_d1.max())
+                                            y_max_denorm += 0.1 * y_max_denorm
 
                                             tmp_cor_csv.append(d_cor_R2)
                                             tmp_d1.plot()
@@ -789,8 +791,9 @@ class WidgetMachineLearningSequential(QWidget):
                                             plt.ylim(0, y_max_denorm)
                                             plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.ylabel('Humans per Million' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.savefig(o_dir_MLP + '/' + dataset + '.png', dpi=_PLOT_SIZE_DPI)
+                                            plt.ylabel('Humans' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
+                                            plt.savefig(o_dir_MLP + '/' + dataset + '.png',
+                                                        dpi=_PLOT_SIZE_DPI, bbox_inches='tight')
                                             # time.sleep(0.5)
                                             # plt.clf()
                                             plt.close()
@@ -805,9 +808,10 @@ class WidgetMachineLearningSequential(QWidget):
                                             plt.ylim(0, y_max_norm)
                                             plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.ylabel('Humans per Million (normalized)' + str(),
+                                            plt.ylabel('Humans (normalized)' + str(),
                                                        fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.savefig(o_dir_MLP + '/' + dataset + '_normalized.png', dpi=_PLOT_SIZE_DPI)
+                                            plt.savefig(o_dir_MLP + '/' + dataset + '_normalized.png',
+                                                        dpi=_PLOT_SIZE_DPI, bbox_inches='tight')
                                             # time.sleep(0.5)
                                             # plt.clf()
                                             plt.close()

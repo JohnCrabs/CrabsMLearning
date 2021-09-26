@@ -372,7 +372,6 @@ class WidgetMachineLearningMean(QWidget):
             self.listWidget_FileList.takeItem(self.listWidget_FileList.currentRow())  # Delete item from widget
             self.actionFileListRowChanged_event()  # run the row changed event
             self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
-            self.updateEventsList()  # update EVENT widget
 
             if self.dict_tableFilesPaths.keys().__len__() < 1:
                 self.buttonGenerate.setEnabled(False)
@@ -386,7 +385,7 @@ class WidgetMachineLearningMean(QWidget):
         dict_max_values_for_output_columns = {}
         dict_store_folderFileNames = {}
 
-        sequenceStepIndex = self.dict_machineLearningParameters[_DKEY_MLP_SEQUENCE_STEP_INDEX]
+        meanIndex = self.dict_machineLearningParameters[_DKEY_MLP_SEQUENCE_STEP_INDEX]
         list_of_input_headers = []
         list_of_output_headers = []
         list_of_output_headers_real = []
@@ -480,14 +479,13 @@ class WidgetMachineLearningMean(QWidget):
             print(dict_max_values_for_output_columns)
 
             # Set the output headers
-            for index in range(0, sequenceStepIndex):
-                for fileName in self.dict_tableFilesPaths.keys():
-                    for inp_column in dict_list_input_columns[fileName]:
-                        list_of_input_headers.append(inp_column + "_SEQ_" + str(index))
-                    for out_column in dict_list_output_columns[fileName]:
-                        list_of_output_headers.append(out_column + "_SEQ_" + str(index))
-                        list_of_output_headers_real.append(out_column + "_SEQ_" + str(index) + "_REAL")
-                        list_of_output_headers_pred.append(out_column + "_SEQ_" + str(index) + "_PRED")
+            for fileName in self.dict_tableFilesPaths.keys():
+                for inp_column in dict_list_input_columns[fileName]:
+                    list_of_input_headers.append(inp_column)
+                for out_column in dict_list_output_columns[fileName]:
+                    list_of_output_headers.append(out_column)
+                    list_of_output_headers_real.append(out_column + "_REAL")
+                    list_of_output_headers_pred.append(out_column + "_PRED")
 
             # Check if the user has set a Primary Event or not and follow the specified path
             if list_of_primary_events.count(None) != len(list_of_primary_events):
@@ -543,8 +541,8 @@ class WidgetMachineLearningMean(QWidget):
                 # print(dict_dataset_categorized_by_event)
 
                 # Create the sequential data
-                print("Create sequential dataset for each Primary Event for each dataset" +
-                      "... (sequence step = ", sequenceStepIndex, " )")
+                print("Create dataset for each Primary Event for each dataset" +
+                      "... (mean index = ", meanIndex, " )")
                 for fileName in self.dict_tableFilesPaths.keys():
                     dict_sequential_dataset[fileName] = {}
                     dict_sequential_dataset[fileName][DKEY_DATA] = {}
@@ -554,18 +552,19 @@ class WidgetMachineLearningMean(QWidget):
                         dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT] = []
                         input_size = dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][
                             DKEY_INPUT].__len__()
-                        for uniq_index in range(0, input_size - (2 * sequenceStepIndex + 1)):
-                            tmp_arr_input = []
-                            tmp_arr_output = []
+                        for uniq_index in range(0, input_size - (meanIndex + 1)):
+                            tmp_arr_input = np.zeros(np.array(dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_INPUT][uniq_index]).shape)
+                            tmp_arr_output = np.zeros(np.array(dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT][uniq_index]).shape)
 
-                            for i in range(uniq_index, uniq_index + sequenceStepIndex):
-                                tmp_arr_input.extend(
-                                    dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_INPUT][i])
-                                tmp_arr_output.extend(
-                                    dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT][
-                                        i + sequenceStepIndex])
-                            dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT].append(tmp_arr_input)
-                            dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT].append(tmp_arr_output)
+                            for i in range(uniq_index, uniq_index + meanIndex):
+                                tmp_arr_input += np.array(dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_INPUT][i])
+                                tmp_arr_output += np.array(dict_dataset_categorized_by_event[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT][i])
+
+                            tmp_arr_input /= meanIndex
+                            tmp_arr_output /= meanIndex
+
+                            dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_INPUT].append(tmp_arr_input.tolist())
+                            dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_OUTPUT].append(tmp_arr_output.tolist())
                 # print(dict_sequential_dataset)
 
                 print("Create TRAIN/TEST for each Primary Event (of each dataset) and merge the them to one " +
@@ -677,6 +676,21 @@ class WidgetMachineLearningMean(QWidget):
 
                         dir_folder_dataFile = export_folder_path + '/' + dict_store_folderFileNames[fileName]
 
+                        # list_models, dir_path = mor.MachineLearning(df_x_train_val[trainIdx],
+                        #                                                        df_y_train_val[trainIdx],
+                        #                                                        df_x_test, df_y_test,
+                        #                                                        name='MachineLearning',
+                        #                                                        path=dir_folder_dataFile,
+                        #                                                        dnn_LactFunc='sigmoid',
+                        #                                                        dnn_OactFunc='tanh', dnn_loss='mse',
+                        #                                                        lstm_LactFunc='relu',
+                        #                                                        lstm_DactFunc='tanh',
+                        #                                                        lstm_loss='mean_squared_error',
+                        #                                                        lstm_optimizer='adam',
+                        #                                                        epochs=100,
+                        #                                                        batch_size=100,
+                        #                                                        min_lr=0.001)
+
                         list_models, dir_path = mor.MachineLearning_Sequential(df_x_train_val[trainIdx],
                                                                                df_y_train_val[trainIdx],
                                                                                df_x_test, df_y_test,
@@ -688,10 +702,12 @@ class WidgetMachineLearningMean(QWidget):
                                                                                lstm_DactFunc='tanh',
                                                                                css_LactFunc='elu',
                                                                                lstm_loss='mean_squared_error',
-                                                                               lstm_optimizer='adam', seq_div=7,
+                                                                               lstm_optimizer='adam',
+                                                                               seq_div=1,
                                                                                epochs=100,
                                                                                batch_size=100,
-                                                                               min_lr=0.001, dropout_percentage=0.1)
+                                                                               min_lr=0.001, dropout_percentage=0.1,
+                                                                               kernel_size=1)
 
                         for uniq_event in unique_list_of_common_primary_events:
                             df_x = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_INPUT]
@@ -702,8 +718,8 @@ class WidgetMachineLearningMean(QWidget):
                             outputData = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][
                                 DKEY_OUTPUT].copy()
 
-                            inputSeqData = inputData.reshape(inputData.shape[0], 7, int(inputData.shape[1] / 7))
-                            outputSeqData = outputData.reshape(outputData.shape[0], 7, int(outputData.shape[1] / 7))
+                            inputSeqData = inputData.reshape(inputData.shape[0], 1, int(inputData.shape[1] / 1))
+                            outputSeqData = outputData.reshape(outputData.shape[0], 1, int(outputData.shape[1] / 1))
 
                             dict_models = {}
                             for m_path in list_models:
@@ -776,7 +792,9 @@ class WidgetMachineLearningMean(QWidget):
                                                                                   str_plt_save_name=model_name + '_' + dataset + '_PRED_Corr')
 
                                             y_max_norm = max(d1[dataset_real].max(), d2[dataset_pred].max())
+                                            y_max_norm += 0.1 * y_max_norm
                                             y_max_denorm = max(tmp_d1.max(), tmp_d1.max())
+                                            y_max_denorm += 0.1 * y_max_denorm
 
                                             tmp_cor_csv.append(d_cor_R2)
                                             tmp_d1.plot()
@@ -789,8 +807,9 @@ class WidgetMachineLearningMean(QWidget):
                                             plt.ylim(0, y_max_denorm)
                                             plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.ylabel('Humans per Million' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.savefig(o_dir_MLP + '/' + dataset + '.png', dpi=_PLOT_SIZE_DPI)
+                                            plt.ylabel('Humans' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
+                                            plt.savefig(o_dir_MLP + '/' + dataset + '.png',
+                                                        dpi=_PLOT_SIZE_DPI, bbox_inches='tight')
                                             # time.sleep(0.5)
                                             # plt.clf()
                                             plt.close()
@@ -805,9 +824,10 @@ class WidgetMachineLearningMean(QWidget):
                                             plt.ylim(0, y_max_norm)
                                             plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.ylabel('Humans per Million (normalized)' + str(),
+                                            plt.ylabel('Humans (normalized)' + str(),
                                                        fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.savefig(o_dir_MLP + '/' + dataset + '_normalized.png', dpi=_PLOT_SIZE_DPI)
+                                            plt.savefig(o_dir_MLP + '/' + dataset + '_normalized.png',
+                                                        dpi=_PLOT_SIZE_DPI, bbox_inches='tight')
                                             # time.sleep(0.5)
                                             # plt.clf()
                                             plt.close()
