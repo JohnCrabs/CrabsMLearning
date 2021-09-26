@@ -333,6 +333,7 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
     dir_path = os.path.normpath(dir_path) + '/'
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
+    workbook_dir_path = dir_path + "../"
     workbook_path = dir_path + "../" + exportFileName_path
 
     # convert from dict to array
@@ -620,7 +621,7 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
         time.sleep(1)
 
     str_list_model_paths = list(dict.fromkeys(str_list_model_paths))  # remove duplicates
-    return str_list_model_paths, dir_path
+    return str_list_model_paths, dir_path, workbook_dir_path
 
 
 def loadModel(m_path: str):

@@ -6,7 +6,12 @@ import datetime as dt
 import tkinter as tk
 import matplotlib.pyplot as plt
 import matplotlib
+
 matplotlib.use("Agg")
+
+import sklearn
+import openpyxl as op
+import time
 
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem, \
@@ -609,8 +614,10 @@ class WidgetMachineLearningSequential(QWidget):
                             dict_sequential_dataset[fileName][DKEY_OUTPUT][DKEY_ALL].append(all_output[index])
 
                         dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA] = {}
-                        dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_INPUT] = np.array(all_input)
-                        dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_OUTPUT] = np.array(all_output)
+                        dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_INPUT] = np.array(
+                            all_input)
+                        dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_OUTPUT] = np.array(
+                            all_output)
 
                     dir_folder_dataFile = export_folder_path + '/' + dict_store_folderFileNames[fileName] + '/Data'
                     file_manip.checkAndCreateFolders(dir_folder_dataFile)
@@ -676,24 +683,48 @@ class WidgetMachineLearningSequential(QWidget):
 
                         dir_folder_dataFile = export_folder_path + '/' + dict_store_folderFileNames[fileName]
 
-                        list_models, dir_path = mor.MachineLearning_Sequential(df_x_train_val[trainIdx],
-                                                                               df_y_train_val[trainIdx],
-                                                                               df_x_test, df_y_test,
-                                                                               name='MachineLearning',
-                                                                               path=dir_folder_dataFile,
-                                                                               dnn_LactFunc='sigmoid',
-                                                                               dnn_OactFunc='tanh', dnn_loss='mse',
-                                                                               lstm_LactFunc='relu',
-                                                                               lstm_DactFunc='tanh',
-                                                                               css_LactFunc='elu',
-                                                                               lstm_loss='mean_squared_error',
-                                                                               lstm_optimizer='adam',
-                                                                               seq_div=sequenceStepIndex,
-                                                                               epochs=100,
-                                                                               batch_size=100,
-                                                                               min_lr=0.001, dropout_percentage=0.1)
+                        list_models, dir_path, workbook_dirpath = mor.MachineLearning_Sequential(
+                            df_x_train_val[trainIdx],
+                            df_y_train_val[trainIdx],
+                            df_x_test, df_y_test,
+                            name='MachineLearning',
+                            path=dir_folder_dataFile,
+                            dnn_LactFunc='sigmoid',
+                            dnn_OactFunc='tanh', dnn_loss='mse',
+                            lstm_LactFunc='relu',
+                            lstm_DactFunc='tanh',
+                            css_LactFunc='elu',
+                            lstm_loss='mean_squared_error',
+                            lstm_optimizer='adam',
+                            seq_div=sequenceStepIndex,
+                            epochs=100,
+                            batch_size=100,
+                            min_lr=0.001, dropout_percentage=0.1)
 
+                        workbook_path = workbook_dirpath + '/' + dict_store_folderFileNames[fileName] + '_Errors.xlsx'
                         for uniq_event in unique_list_of_common_primary_events:
+                            try:
+                                wb = op.load_workbook(workbook_path)
+                                ws = wb.worksheets[0]  # select first worksheet
+                            except FileNotFoundError:
+                                headers_row = ['Event', 'Technique']
+                                for column_name in dict_list_output_columns[fileName]:
+                                    headers_row.append(column_name + '_MAX_NORM')
+                                    headers_row.append(column_name + '_MAX_DENORM')
+                                    headers_row.append(column_name + '_MIN_NORM')
+                                    headers_row.append(column_name + '_MIN_DENORM')
+                                    headers_row.append(column_name + '_MSE_NORM')
+                                    headers_row.append(column_name + '_MSE_DENORM')
+                                    headers_row.append(column_name + '_RMSE_NORM')
+                                    headers_row.append(column_name + '_RMSE_DENORM')
+                                    headers_row.append(column_name + '_MAE_NORM')
+                                    headers_row.append(column_name + '_MAE_DENORM')
+
+                                wb = op.Workbook()
+                                ws = wb.active
+                                ws.append(headers_row)
+                                wb.save(workbook_path)
+
                             df_x = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_INPUT]
                             df_y = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][DKEY_OUTPUT]
 
@@ -702,8 +733,10 @@ class WidgetMachineLearningSequential(QWidget):
                             outputData = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][DKEY_DATA][
                                 DKEY_OUTPUT].copy()
 
-                            inputSeqData = inputData.reshape(inputData.shape[0], sequenceStepIndex, int(inputData.shape[1] / sequenceStepIndex))
-                            outputSeqData = outputData.reshape(outputData.shape[0], sequenceStepIndex, int(outputData.shape[1] / sequenceStepIndex))
+                            inputSeqData = inputData.reshape(inputData.shape[0], sequenceStepIndex,
+                                                             int(inputData.shape[1] / sequenceStepIndex))
+                            outputSeqData = outputData.reshape(outputData.shape[0], sequenceStepIndex,
+                                                               int(outputData.shape[1] / sequenceStepIndex))
 
                             dict_models = {}
                             for m_path in list_models:
@@ -727,6 +760,7 @@ class WidgetMachineLearningSequential(QWidget):
                             for key in dict_models.keys():
                                 for model_name in mor.LIST_WITH_MODEL_FLAGS:
                                     if key.__contains__(model_name):
+                                        tmp_append_row = [uniq_event, model_name]
                                         d1 = pd.DataFrame(dict_models[key][0], columns=list_of_output_headers_real)
                                         d2 = pd.DataFrame(dict_models[key][1], columns=list_of_output_headers_pred)
 
@@ -816,7 +850,44 @@ class WidgetMachineLearningSequential(QWidget):
                                             # plt.clf()
                                             plt.close()
 
+                                            norm_real = d1[dataset_real].values
+                                            norm_pred = d2[dataset_real].values
+
+                                            denorm_real = tmp_d1.values
+                                            denorm_pred = tmp_d2.values
+
+                                            norm_err_max = np.abs(norm_real - norm_pred).max()
+                                            denorm_err_max = np.abs(denorm_real - denorm_pred).max()
+
+                                            norm_err_min = np.abs(norm_real - norm_pred).min()
+                                            denorm_err_min = np.abs(denorm_real - denorm_pred).min()
+
+                                            norm_err_mse = sklearn.metrics.mean_squared_error(norm_real, norm_pred)
+                                            denorm_err_mse = sklearn.metrics.mean_squared_error(denorm_real,
+                                                                                                denorm_pred)
+
+                                            norm_err_rmse = np.sqrt(norm_err_mse)
+                                            denorm_err_rmse = np.sqrt(denorm_err_mse)
+
+                                            norm_err_mae = sklearn.metrics.mean_absolute_error(norm_real, norm_pred)
+                                            denorm_err_mae = sklearn.metrics.mean_absolute_error(denorm_real,
+                                                                                                 denorm_pred)
+
+                                            tmp_append_row.append(norm_err_max)
+                                            tmp_append_row.append(denorm_err_max)
+                                            tmp_append_row.append(norm_err_min)
+                                            tmp_append_row.append(denorm_err_min)
+                                            tmp_append_row.append(norm_err_mse)
+                                            tmp_append_row.append(denorm_err_mse)
+                                            tmp_append_row.append(norm_err_rmse)
+                                            tmp_append_row.append(denorm_err_rmse)
+                                            tmp_append_row.append(norm_err_mae)
+                                            tmp_append_row.append(denorm_err_mae)
+
                                         cor_CSV.append(tmp_cor_csv)
+                                        ws.append(tmp_append_row)
+                                        wb.save(workbook_path)
+                                        time.sleep(1)
 
                             o_file = os.path.normpath(dir_path + "/../") + '/Correlation_R2.csv'
                             my_cal_v2.write_csv(o_file, cor_CSV)

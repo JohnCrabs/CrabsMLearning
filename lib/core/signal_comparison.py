@@ -332,19 +332,19 @@ def RunAllCorrelationMethods(dataArr, baseIndex, corrIndex, baseIndex_Label=None
     # # ------------------------------------------------------------ #
     # # 4) Time Lagged Cross Correlation — assessing signal dynamics #
     # # ------------------------------------------------------------ #
-    M_TimeLaggedCrossCorrelationNoSplits(dataArr=dataArr, baseIndex=baseIndex, corrIndex=corrIndex, no_splits=no_splits,
-                                         time_step=time_step, fps=fps, bool_plt_show=bool_plt_show,
-                                         bool_plt_save=bool_plt_save, str_plt_save_dir_path=str_plt_save_dir_path,
-                                         str_plt_save_name=str_plt_save_name)
+    # M_TimeLaggedCrossCorrelationNoSplits(dataArr=dataArr, baseIndex=baseIndex, corrIndex=corrIndex, no_splits=no_splits,
+    #                                      time_step=time_step, fps=fps, bool_plt_show=bool_plt_show,
+    #                                      bool_plt_save=bool_plt_save, str_plt_save_dir_path=str_plt_save_dir_path,
+    #                                      str_plt_save_name=str_plt_save_name)
 
     # # ----------------------------------------------- #
     # # 5) Rolling window time lagged cross correlation #
     # # ----------------------------------------------- #
-    M_RollingWindowTimeLaggedCrossCorrelation(dataArr=dataArr, baseIndex=baseIndex, corrIndex=corrIndex,
-                                              time_step=time_step, fps=fps,
-                                              bool_plt_show=bool_plt_show, bool_plt_save=bool_plt_save,
-                                              str_plt_save_dir_path=str_plt_save_dir_path,
-                                              str_plt_save_name=str_plt_save_name)
+    # M_RollingWindowTimeLaggedCrossCorrelation(dataArr=dataArr, baseIndex=baseIndex, corrIndex=corrIndex,
+    #                                           time_step=time_step, fps=fps,
+    #                                           bool_plt_show=bool_plt_show, bool_plt_save=bool_plt_save,
+    #                                           str_plt_save_dir_path=str_plt_save_dir_path,
+    #                                           str_plt_save_name=str_plt_save_name)
 
     # # ------------------------------------------------------------------ #
     # # 6) Dynamic Time Wrapping — synchrony of signals varying in lengths #
