@@ -349,10 +349,12 @@ def RunAllCorrelationMethods(dataArr, baseIndex, corrIndex, baseIndex_Label=None
     # # ------------------------------------------------------------------ #
     # # 6) Dynamic Time Wrapping — synchrony of signals varying in lengths #
     # # ------------------------------------------------------------------ #
-    alignment_distance = M_DynamicTimeWrapping(dataArr=dataArr, baseIndex=baseIndex, corrIndex=corrIndex,
-                                               bool_plt_show=bool_plt_show, bool_plt_save=bool_plt_save,
-                                               str_plt_save_dir_path=str_plt_save_dir_path,
-                                               str_plt_save_name=str_plt_save_name)
+    # alignment_distance = M_DynamicTimeWrapping(dataArr=dataArr, baseIndex=baseIndex, corrIndex=corrIndex,
+    #                                            bool_plt_show=bool_plt_show, bool_plt_save=bool_plt_save,
+    #                                            str_plt_save_dir_path=str_plt_save_dir_path,
+    #                                            str_plt_save_name=str_plt_save_name)
+
+    alignment_distance = 'nan'
 
     return r, R2, p, overall_pearson_r, overall_pearson_R2, rolling_r_min, rolling_r_max, offset, alignment_distance
 
