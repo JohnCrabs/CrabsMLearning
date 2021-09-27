@@ -702,6 +702,10 @@ class WidgetMachineLearningSequential(QWidget):
 
                         workbook_path = workbook_dirpath + '/' + dict_store_folderFileNames[fileName] + '_Errors.xlsx'
                         for uniq_event in unique_list_of_common_primary_events:
+                            size_of_list = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][
+                                DKEY_INPUT].__len__()
+                            trte_slice_ = int(size_of_list * sequenceTestPercentage)
+                            vxLine = size_of_list - trte_slice_
                             try:
                                 wb = op.load_workbook(workbook_path)
                                 ws = wb.worksheets[0]  # select first worksheet
@@ -823,6 +827,7 @@ class WidgetMachineLearningSequential(QWidget):
                                             plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
                                             plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
                                             plt.ylim(0, y_max_denorm)
+                                            plt.vlines(vxLine, 0, y_max_denorm, colors='r', linestyles='dashed')
                                             plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
                                             plt.ylabel('Humans' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
@@ -840,6 +845,7 @@ class WidgetMachineLearningSequential(QWidget):
                                             plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
                                             plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
                                             plt.ylim(0, y_max_norm)
+                                            plt.vlines(vxLine, 0, y_max_norm, colors='r', linestyles='dashed')
                                             plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
                                             plt.ylabel('Humans (normalized)' + str(),
