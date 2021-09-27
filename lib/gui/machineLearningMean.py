@@ -63,6 +63,8 @@ _PLOT_SIZE_HEIGHT = 12.40
 _PLOT_SIZE_DPI = 100
 
 _TRAIN_TEST_SEPARATOR = 'Train/Test Split'
+_REAL_STYLE = ['bs-']
+_PRED_STYLE = ['go-']
 
 
 def setStyle_():
@@ -844,8 +846,8 @@ class WidgetMachineLearningMean(QWidget):
                                             y_max_denorm += 0.1 * y_max_denorm
 
                                             tmp_cor_csv.append(d_cor_R2)
-                                            tmp_d1.plot()
-                                            tmp_d2.plot()
+                                            tmp_d1.plot(style=_REAL_STYLE)
+                                            tmp_d2.plot(style=_PRED_STYLE)
                                             plt.gcf().set_size_inches(_PLOT_SIZE_WIDTH, _PLOT_SIZE_HEIGHT)
                                             plt.gcf().subplots_adjust(bottom=0.25)
                                             # plt.xticks(rotation=45, fontsize=_PLOT_FONTSIZE_TICKS)
@@ -863,8 +865,8 @@ class WidgetMachineLearningMean(QWidget):
                                             # plt.clf()
                                             plt.close()
 
-                                            d1[dataset_real].plot()
-                                            d2[dataset_pred].plot()
+                                            d1[dataset_real].plot(style=_REAL_STYLE)
+                                            d2[dataset_pred].plot(style=_PRED_STYLE)
                                             plt.gcf().set_size_inches(_PLOT_SIZE_WIDTH, _PLOT_SIZE_HEIGHT)
                                             plt.gcf().subplots_adjust(bottom=0.25)
                                             # plt.xticks(rotation=45, fontsize=_PLOT_FONTSIZE_TICKS)
