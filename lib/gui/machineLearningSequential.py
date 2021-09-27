@@ -707,17 +707,18 @@ class WidgetMachineLearningSequential(QWidget):
                                 ws = wb.worksheets[0]  # select first worksheet
                             except FileNotFoundError:
                                 headers_row = ['Event', 'Technique']
-                                for column_name in dict_list_output_columns[fileName]:
-                                    headers_row.append(column_name + '_MAX_NORM')
-                                    headers_row.append(column_name + '_MAX_DENORM')
-                                    headers_row.append(column_name + '_MIN_NORM')
-                                    headers_row.append(column_name + '_MIN_DENORM')
-                                    headers_row.append(column_name + '_MSE_NORM')
-                                    headers_row.append(column_name + '_MSE_DENORM')
-                                    headers_row.append(column_name + '_RMSE_NORM')
-                                    headers_row.append(column_name + '_RMSE_DENORM')
-                                    headers_row.append(column_name + '_MAE_NORM')
-                                    headers_row.append(column_name + '_MAE_DENORM')
+                                for count_index in range(0, sequenceStepIndex):
+                                    for column_name in dict_list_output_columns[fileName]:
+                                        headers_row.append(column_name + '_MAX_NORM_SEQ_' + str(count_index))
+                                        headers_row.append(column_name + '_MAX_DENORM_SEQ_' + str(count_index))
+                                        headers_row.append(column_name + '_MIN_NORM_SEQ_' + str(count_index))
+                                        headers_row.append(column_name + '_MIN_DENORM_SEQ_' + str(count_index))
+                                        headers_row.append(column_name + '_MSE_NORM_SEQ_' + str(count_index))
+                                        headers_row.append(column_name + '_MSE_DENORM_SEQ_' + str(count_index))
+                                        headers_row.append(column_name + '_RMSE_NORM_SEQ_' + str(count_index))
+                                        headers_row.append(column_name + '_RMSE_DENORM_SEQ_' + str(count_index))
+                                        headers_row.append(column_name + '_MAE_NORM_SEQ_' + str(count_index))
+                                        headers_row.append(column_name + '_MAE_DENORM_SEQ_' + str(count_index))
 
                                 wb = op.Workbook()
                                 ws = wb.active
