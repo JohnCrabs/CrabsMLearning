@@ -62,6 +62,7 @@ _PLOT_SIZE_WIDTH = 12.40
 _PLOT_SIZE_HEIGHT = 12.40
 _PLOT_SIZE_DPI = 100
 
+_TRAIN_TEST_SEPARATOR = 'Train/Test Split'
 
 def setStyle_():
     """
@@ -827,7 +828,8 @@ class WidgetMachineLearningSequential(QWidget):
                                             plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
                                             plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
                                             plt.ylim(0, y_max_denorm)
-                                            plt.vlines(vxLine, 0, y_max_denorm, colors='r', linestyles='dashed')
+                                            plt.vlines(vxLine, 0, y_max_denorm, colors='r', linestyles='dashed',
+                                                       label=_TRAIN_TEST_SEPARATOR)
                                             plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
                                             plt.ylabel('Humans' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
@@ -845,7 +847,8 @@ class WidgetMachineLearningSequential(QWidget):
                                             plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
                                             plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
                                             plt.ylim(0, y_max_norm)
-                                            plt.vlines(vxLine, 0, y_max_norm, colors='r', linestyles='dashed')
+                                            plt.vlines(vxLine, 0, y_max_norm, colors='r', linestyles='dashed',
+                                                       label=_TRAIN_TEST_SEPARATOR)
                                             plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
                                             plt.ylabel('Humans (normalized)' + str(),
