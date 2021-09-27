@@ -850,7 +850,7 @@ class WidgetMachineLearningSequential(QWidget):
                                             plt.close()
 
                                             norm_real = d1[dataset_real].values
-                                            norm_pred = d2[dataset_real].values
+                                            norm_pred = d2[dataset_pred].values
 
                                             denorm_real = tmp_d1.values
                                             denorm_pred = tmp_d2.values
