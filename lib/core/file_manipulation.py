@@ -3,6 +3,7 @@ from shutil import copyfile
 
 PATH_NORM_SLASH = os.path.normpath('/')
 PATH_HOME = os.path.expanduser('~')
+PATH_DOCUMENTS = os.path.expanduser('~/Documents')
 
 SIZE_BYTE = 'byte'
 SIZE_KB = 'kb'

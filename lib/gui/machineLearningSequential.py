@@ -23,6 +23,8 @@ import lib.core.signal_comparison as signcomp
 matplotlib.use("Agg")
 
 _NEW_PROJECT_DEFAULT_FOLDER = file_manip.PATH_HOME
+_DOCUMENTS_FOLDER = file_manip.PATH_DOCUMENTS
+_DOC_PROJECT_FOLDER = _DOCUMENTS_FOLDER + '/CrabsMLearning'
 _PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
 _INT_SCREEN_WIDTH = tk.Tk().winfo_screenwidth()  # get the screen width
@@ -186,7 +188,7 @@ class WidgetMachineLearningSequential(QWidget):
         self.dict_machineLearningParameters = {_DKEY_MLP_SEQUENCE_STEP_INDEX: 7,
                                                _DKEY_MLP_TEST_PERCENTAGE: 0.25,
                                                _DKEY_MLP_VALIDATION_PERCENTAGE: 0.20,
-                                               _DKEY_MLP_EXPORT_FOLDER: _PROJECT_FOLDER + '/export_folder/',
+                                               _DKEY_MLP_EXPORT_FOLDER: _DOC_PROJECT_FOLDER + '/export_folder/',
                                                _DKEY_MLP_HOLDOUT_SIZE: 0.20,
                                                _DKEY_MLP_EXPER_NUMBER: 5}
 
