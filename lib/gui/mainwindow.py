@@ -42,28 +42,28 @@ class MainWindowCrabsMLearning(QMainWindow):
         # ***************************** #
         # Tools -> ....                 #
         self.widgetMergeTableFilesSimple = WidgetMergeTableFilesSimple(w=512, h=512,
-                                                                       minW=840, minH=512,
+                                                                       minW=512, minH=256,
                                                                        maxW=840, maxH=512,
                                                                        winTitle='Merge Table Files',
                                                                        iconPath=_ICON_PATH_LOGO_32x32)
         self.widgetMergeTableFilesSimple.setWidget()
 
         self.widgetMergeTableFilesCalendar = WidgetMergeTableFilesCalendar(w=1024, h=512,
-                                                                           minW=1280, minH=840,
+                                                                           minW=512, minH=256,
                                                                            maxW=1280, maxH=840,
                                                                            winTitle='Merge Table Files',
                                                                            iconPath=_ICON_PATH_LOGO_32x32)
         self.widgetMergeTableFilesCalendar.setWidget()
 
         self.widgetMachineLearningSequential = WidgetMachineLearningSequential(w=1024, h=512,
-                                                                               minW=1280, minH=840,
+                                                                               minW=512, minH=256,
                                                                                maxW=1280, maxH=840,
                                                                                winTitle='Machine Learning Sequential',
                                                                                iconPath=_ICON_PATH_LOGO_32x32)
         self.widgetMachineLearningSequential.setWidget()
 
         self.widgetMachineLearningMean = WidgetMachineLearningMean(w=1024, h=512,
-                                                                   minW=1280, minH=840,
+                                                                   minW=512, minH=256,
                                                                    maxW=1280, maxH=840,
                                                                    winTitle='Machine Learning Mean',
                                                                    iconPath=_ICON_PATH_LOGO_32x32)
@@ -115,7 +115,7 @@ class MainWindowCrabsMLearning(QMainWindow):
 
         # Action MachineLearningMean
         self.actionMachineLearningMean = QAction('Machine Learning Mean' +
-                                                       self.setSpaces(_INT_SPACES))  # MergeTableFiles
+                                                 self.setSpaces(_INT_SPACES))  # MergeTableFiles
         # self.actionMachineLearningMean.setShortcut()
         self.actionMachineLearningMean.setToolTip('Create a model from mean values using a variety of machine' +
                                                   'learning tools')

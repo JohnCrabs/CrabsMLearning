@@ -6,9 +6,6 @@ import datetime as dt
 import tkinter as tk
 import matplotlib.pyplot as plt
 import matplotlib
-
-matplotlib.use("Agg")
-
 import sklearn
 import openpyxl as op
 import time
@@ -22,6 +19,8 @@ import lib.core.file_manipulation as file_manip
 import lib.core.my_calendar_v2 as my_cal_v2
 import lib.core.multi_output_regression as mor
 import lib.core.signal_comparison as signcomp
+
+matplotlib.use("Agg")
 
 _NEW_PROJECT_DEFAULT_FOLDER = file_manip.PATH_HOME
 _PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
@@ -40,7 +39,7 @@ _ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128.png"
 # _ICON_ADD = _PROJECT_FOLDER + "/icon/add_cross_128x128_filled.png"
 # _ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128_filled.png"
 
-_DKEY_FILE_NAME = 'name'
+_DKEY_FILE_NAME: str = 'name'
 _DKEY_FULLPATH = 'full-path'
 _DKEY_COLUMNS = 'columns'
 _DKEY_INPUT_LIST = 'input-list'
@@ -408,7 +407,7 @@ class WidgetMachineLearningSequential(QWidget):
         sequenceTestPercentage = self.dict_machineLearningParameters[_DKEY_MLP_TEST_PERCENTAGE]
         export_folder_path = self.dict_machineLearningParameters[
                                  _DKEY_MLP_EXPORT_FOLDER] + '/' + dt.datetime.now().strftime("%d%m%Y_%H%M%S")
-        file_manip.checkAndCreateFolder(export_folder_path)
+        file_manip.checkAndCreateFolders(export_folder_path)
         holdout_size = self.dict_machineLearningParameters[_DKEY_MLP_HOLDOUT_SIZE]
         number_of_experiments = self.dict_machineLearningParameters[_DKEY_MLP_EXPER_NUMBER]
 
