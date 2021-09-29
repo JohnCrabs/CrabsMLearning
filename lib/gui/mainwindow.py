@@ -11,6 +11,8 @@ from lib.gui.mergeTableFiles_calendar import WidgetMergeTableFilesCalendar
 from lib.gui.machineLearningSequential import WidgetMachineLearningSequential
 from lib.gui.machineLearningMean import WidgetMachineLearningMean
 
+from lib.gui.machineLearningSequential2 import WidgetMachineLearningSequential2
+
 _STR_PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
 _INT_SCREEN_WIDTH = tk.Tk().winfo_screenwidth()  # get the screen width
@@ -61,6 +63,14 @@ class MainWindowCrabsMLearning(QMainWindow):
                                                                                winTitle='Machine Learning Sequential',
                                                                                iconPath=_ICON_PATH_LOGO_32x32)
         self.widgetMachineLearningSequential.setWidget()
+
+        self.widgetMachineLearningSequential2 = WidgetMachineLearningSequential2(w=1024, h=512,
+                                                                                 minW=512, minH=256,
+                                                                                 maxW=None,
+                                                                                 maxH=None,
+                                                                                 winTitle='Machine Learning Sequential',
+                                                                                 iconPath=_ICON_PATH_LOGO_32x32)
+        self.widgetMachineLearningSequential2.setWidget()
 
         self.widgetMachineLearningMean = WidgetMachineLearningMean(w=1024, h=512,
                                                                    minW=512, minH=256,
@@ -119,6 +129,9 @@ class MainWindowCrabsMLearning(QMainWindow):
         # self.actionMachineLearningMean.setShortcut()
         self.actionMachineLearningMean.setToolTip('Create a model from mean values using a variety of machine' +
                                                   'learning tools')
+
+        self.actionMachineLearningSeq2 = QAction('Machine Learning Seq2' +
+                                                 self.setSpaces(_INT_SPACES))  # MergeTableFiles
 
         # ******************* #
 
@@ -219,6 +232,8 @@ class MainWindowCrabsMLearning(QMainWindow):
         menuMachineLearning.addAction(self.actionMachineLearningSequential)
         menuMachineLearning.addAction(self.actionMachineLearningMean)
 
+        menuMachineLearning.addAction(self.actionMachineLearningSeq2)
+
     # ------------------ #
     # ----- Events ----- #
     # ------------------ #
@@ -246,6 +261,8 @@ class MainWindowCrabsMLearning(QMainWindow):
         # actionMachineLearningMean
         self.actionMachineLearningMean.triggered.connect(self.actionMachineLearningMean_func_)
 
+        self.actionMachineLearningSeq2.triggered.connect(self.actionMachineLearningSeq2_func_)
+
     # ************ #
     # *** File *** #
     # ************ #
@@ -268,6 +285,8 @@ class MainWindowCrabsMLearning(QMainWindow):
     def actionMachineLearningMean_func_(self):
         self.widgetMachineLearningMean.show()
 
+    def actionMachineLearningSeq2_func_(self):
+        self.widgetMachineLearningSequential2.show()
 
 # ******************************************************* #
 # ********************   EXECUTION   ******************** #
