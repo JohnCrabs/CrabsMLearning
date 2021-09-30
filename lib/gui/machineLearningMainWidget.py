@@ -13,6 +13,8 @@ from PySide2.QtGui import QIcon, QPixmap
 import lib.core.file_manipulation as file_manip
 import lib.core.my_calendar_v2 as my_cal_v2
 
+from lib.gui.guiStyle import setStyle_
+
 matplotlib.use("Agg")
 
 _NEW_PROJECT_DEFAULT_FOLDER = file_manip.PATH_HOME
@@ -46,51 +48,6 @@ _PLOT_SIZE_DPI = 100
 _TRAIN_TEST_SEPARATOR = 'Train/Test Split'
 _REAL_STYLE = ['bs-']
 _PRED_STYLE = ['go-']
-
-
-def setStyle_():
-    """
-    A function to store the style format of specific Qt Structure/Class component, such us
-    QListWidget, QPushButton, etc.
-    :return: The style
-    """
-    style = """
-            QListWidget {
-                background-color: white;
-            }
-
-            QListWidget::item {
-                color: black;
-            }
-
-            QListWidget::item:hover {
-                color: grey;
-                background-color: lightyellow;
-            }
-
-            QListWidget::item:selected {
-                color: red;
-                background-color: lightblue;
-            }
-
-            QPushButton {
-                color: black;
-                background-color: lightblue;
-            }
-
-            QPushButton:hover {
-                background-color: lightgrey;
-            }
-
-            QPushButton:pressed {
-                background-color: lightyellow;
-            }
-            
-            QPushButton:disabled {
-                background-color: grey;
-            }
-            """
-    return style
 
 
 class WidgetMachineLearningMainWidget(QWidget):
@@ -354,8 +311,9 @@ class WidgetMachineLearningMainWidget(QWidget):
             self.actionFileListRowChanged_event()  # run the row changed event
             self.updateButtonRemove()
 
+            # if there are not enough files loaded
             if self.dict_tableFilesPaths.keys().__len__() < 1:
-                self.buttonExecute.setEnabled(False)
+                self.buttonExecute.setEnabled(False)  # disable the Execute Button
 
     def actionButtonExecute(self):
         pass
@@ -379,14 +337,25 @@ class WidgetMachineLearningMainWidget(QWidget):
 
     @staticmethod
     def consoleMessage(textMessageInfo):
-        warnings.warn(textMessageInfo)
+        """
+        Show a warning message on the console
+        :param textMessageInfo: the message to be shown
+        :return: Nothing
+        """
+        warnings.warn(textMessageInfo)  # show a warning message to console
 
-    def errorMessage(self, errorType, textMessageInfo):
-        self.msg.setIcon(QMessageBox.Critical)
-        self.msg.setWindowTitle("Hey, I have an Error Message for you!")
-        self.msg.setText(errorType)
-        self.msg.setInformativeText(textMessageInfo)
-        self.msg.exec_()
+    def errorMessageDialog(self, errorType, textMessageInfo):
+        """
+        A function for opening an error message dialog and printing a specified error type/message.
+        :param errorType: The type of the error (e.g. Error 404)
+        :param textMessageInfo: The message of the error (e.g. File not found!)
+        :return: nothing
+        """
+        self.msg.setIcon(QMessageBox.Critical)   # Set the icon of the dialog window
+        self.msg.setWindowTitle("Hey, I have an Error Message for you!")  # Set the title of dialog window
+        self.msg.setText(errorType)  # Set the errorType
+        self.msg.setInformativeText(textMessageInfo)  # set the errorMessage
+        self.msg.exec_()  # execute the dialog (show the message)
 
 
 class WidgetTabMachineLearningSettings(QWidget):
@@ -403,51 +372,51 @@ class WidgetTabMachineLearningSettings(QWidget):
         # ------------------- #
         # ----- Set Tab ----- #
         # ------------------- #
-        self.mainTabWidget = QTabWidget()
+        self.mainTabWidget = QTabWidget()  # Create a main widget tab
 
-        self.tabGeneral = WidgetTabMachineLearningSettingsGeneral()
-        self.tabLinearRegression = WidgetTabMachineLearningSettingsLinearRegression()
-        self.tabRidge = WidgetTabMachineLearningSettingsRidge()
-        self.tabLasso = WidgetTabMachineLearningSettingsLasso()
-        self.tabDecisionTreeRegressor = WidgetTabMachineLearningSettingsDecisionTreeRegressor()
-        self.tabRandomForestRegressor = WidgetTabMachineLearningSettingsRandomForestRegressor()
-        self.tabGradientBoostingRegressor = WidgetTabMachineLearningSettingsGradientBoostingRegressor()
-        self.tabAdaBoostRegressor = WidgetTabMachineLearningSettingsAdaBoostRegressor()
-        self.tabKNeighborsRegressor = WidgetTabMachineLearningSettingsKNeighborsRegressor()
+        self.tabGeneral = WidgetTabMachineLearningSettingsGeneral()  # create a tab for General (info)
+        self.tabLinearRegression = WidgetTabMachineLearningSettingsLinearRegression()  # create a tab for LinearRegression
+        self.tabRidge = WidgetTabMachineLearningSettingsRidge()  # create a tab for Ridge
+        self.tabLasso = WidgetTabMachineLearningSettingsLasso()  # create a tab for Lasso
+        self.tabDecisionTreeRegressor = WidgetTabMachineLearningSettingsDecisionTreeRegressor()  # create a tab for DecisionTreeRegressor
+        self.tabRandomForestRegressor = WidgetTabMachineLearningSettingsRandomForestRegressor()  # create a tab for RandomForestRegressor
+        self.tabGradientBoostingRegressor = WidgetTabMachineLearningSettingsGradientBoostingRegressor()  # create a tab for GradientBoostingRegressor
+        self.tabAdaBoostRegressor = WidgetTabMachineLearningSettingsAdaBoostRegressor()  # create a tab for AdaBoostRegressor
+        self.tabKNeighborsRegressor = WidgetTabMachineLearningSettingsKNeighborsRegressor()  # create a tab for KNeighborsRegressor
 
     def setWidget(self):
         """
             A function to create the widget components into the main QWidget
             :return: Nothing
         """
-        self.tabGeneral.setWidget()
-        self.tabLinearRegression.setWidget()
-        self.tabRidge.setWidget()
-        self.tabLasso.setWidget()
-        self.tabDecisionTreeRegressor.setWidget()
-        self.tabRandomForestRegressor.setWidget()
-        self.tabGradientBoostingRegressor.setWidget()
-        self.tabAdaBoostRegressor.setWidget()
-        self.tabKNeighborsRegressor.setWidget()
+        self.tabGeneral.setWidget()  # set tab General (info)
+        self.tabLinearRegression.setWidget()  # set tab LinearRegression
+        self.tabRidge.setWidget()  # set tab Ridge
+        self.tabLasso.setWidget()  # set tab Lasso
+        self.tabDecisionTreeRegressor.setWidget()  # set tab DecisionTreeRegressor
+        self.tabRandomForestRegressor.setWidget()  # set tab RandomForestRegressor
+        self.tabGradientBoostingRegressor.setWidget()  # set tab GradientBoostingRegressor
+        self.tabAdaBoostRegressor.setWidget()  # set tab AdaBoostRegressor
+        self.tabKNeighborsRegressor.setWidget()  # set tab KNeighborsRegressor
 
-        self.mainTabWidget.addTab(self.tabGeneral, "General")
-        self.mainTabWidget.addTab(self.tabLinearRegression, "Linear Regression")
-        self.mainTabWidget.addTab(self.tabRidge, "Ridge")
-        self.mainTabWidget.addTab(self.tabLasso, "Lasso")
-        self.mainTabWidget.addTab(self.tabDecisionTreeRegressor, "Decision Tree Regressor")
-        self.mainTabWidget.addTab(self.tabRandomForestRegressor, "Random Forest Regressor")
-        self.mainTabWidget.addTab(self.tabGradientBoostingRegressor, "Gradient Boosting Regressor")
-        self.mainTabWidget.addTab(self.tabAdaBoostRegressor, "Ada Boost Regressor")
-        self.mainTabWidget.addTab(self.tabKNeighborsRegressor, "K-Neighbors Regressor")
+        self.mainTabWidget.addTab(self.tabGeneral, "General")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabLinearRegression, "Linear Regression")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabRidge, "Ridge")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabLasso, "Lasso")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabDecisionTreeRegressor, "Decision Tree Regressor")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabRandomForestRegressor, "Random Forest Regressor")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabGradientBoostingRegressor, "Gradient Boosting Regressor")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabAdaBoostRegressor, "Ada Boost Regressor")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabKNeighborsRegressor, "K-Neighbors Regressor")  # add tab to mainTabWidget
 
-        self.vbox_main_layout.addWidget(self.mainTabWidget)
+        self.vbox_main_layout.addWidget(self.mainTabWidget)  # add tabWidget to main layout
 
 
 class WidgetTabMachineLearningSettingsGeneral(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setStyleSheet(setStyle_())
+        self.setStyleSheet(setStyle_())  # set the tab style
 
         # ---------------------- #
         # ----- Set Window ----- #

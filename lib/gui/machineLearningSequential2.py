@@ -20,6 +20,8 @@ import lib.core.signal_comparison as signcomp
 
 import lib.gui.machineLearningMainWidget as ML_mainWid
 
+from lib.gui.guiStyle import setStyle_
+
 _NEW_PROJECT_DEFAULT_FOLDER = file_manip.PATH_HOME
 _DOCUMENTS_FOLDER = file_manip.PATH_DOCUMENTS
 _DOC_PROJECT_FOLDER = _DOCUMENTS_FOLDER + '/CrabsMLearning'
@@ -51,51 +53,6 @@ _PLOT_SIZE_DPI = 100
 _TRAIN_TEST_SEPARATOR = 'Train/Test Split'
 _REAL_STYLE = ['bs-']
 _PRED_STYLE = ['go-']
-
-
-def setStyle_():
-    """
-    A function to store the style format of specific Qt Structure/Class component, such us
-    QListWidget, QPushButton, etc.
-    :return: The style
-    """
-    style = """
-            QListWidget {
-                background-color: white;
-            }
-
-            QListWidget::item {
-                color: black;
-            }
-
-            QListWidget::item:hover {
-                color: grey;
-                background-color: lightyellow;
-            }
-
-            QListWidget::item:selected {
-                color: red;
-                background-color: lightblue;
-            }
-
-            QPushButton {
-                color: black;
-                background-color: lightblue;
-            }
-
-            QPushButton:hover {
-                background-color: lightgrey;
-            }
-
-            QPushButton:pressed {
-                background-color: lightyellow;
-            }
-            
-            QPushButton:disabled {
-                background-color: grey;
-            }
-            """
-    return style
 
 
 class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidget):
@@ -137,13 +94,13 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
         if not self.dict_tableFilesPaths[fName][self._DKEY_INPUT_LIST]:  # if True
             msg = "In < " + fName + " > no INPUT columns found!"  # set message
             self.consoleMessage(errorType404 + msg)  # print message to Console as Warning
-            self.errorMessage(errorType=errorType404, textMessageInfo=msg)  # print message to Error Dialog
+            self.errorMessageDialog(errorType=errorType404, textMessageInfo=msg)  # print message to Error Dialog
             return True  # return True
         # Check if Output Columns don't exist for the specified file
         elif not self.dict_tableFilesPaths[fName][self._DKEY_OUTPUT_LIST]:  # if True
             msg = "In < " + fName + " > no OUTPUT columns found!"  # set message
             self.consoleMessage(errorType404 + msg)  # print message to Console as Warning
-            self.errorMessage(errorType=errorType404, textMessageInfo=msg)  # print message to Error Dialog
+            self.errorMessageDialog(errorType=errorType404, textMessageInfo=msg)  # print message to Error Dialog
             return True  # return True
         return False  # return False
 
@@ -832,7 +789,7 @@ class WidgetTabInputOutput(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setStyleSheet(setStyle_())
+        self.setStyleSheet(setStyle_())  # set the tab style
 
         # ---------------------- #
         # ----- Set Window ----- #
