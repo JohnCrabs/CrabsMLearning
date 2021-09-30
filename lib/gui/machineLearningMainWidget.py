@@ -29,6 +29,7 @@ _INT_WIN_HEIGHT = 512  # this variable is only for the if __name__ == "__main__"
 
 _INT_MAX_STRETCH = 100000  # Spacer Max Stretch
 _INT_BUTTON_MIN_WIDTH = 50  # Minimum Button Width
+_INT_BUTTON_MIN_HEIGHT = 50  # Minimum Button Width
 _INT_ADD_REMOVE_BUTTON_SIZE = 48
 
 _ICON_ADD = _PROJECT_FOLDER + "/icon/add_cross_128x128.png"
@@ -423,23 +424,45 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # ---------------------- #
         self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
 
+        # ----------------------- #
+        # ----- QPushButton ----- #
+        # ----------------------- #
+        self.buttonRestoreDefault = QPushButton("Restore Default")
+        self.buttonRestoreDefault.setMinimumWidth(150)  # Set Minimum Width
+        self.buttonRestoreDefault.setMinimumHeight(30)  # Set Minimum Height
+        self.buttonRestoreDefault.setToolTip('Restore the default values.')  # Add Description
+
         # -------------------- #
         # ----- QSpinBox ----- #
         # -------------------- #
+        # create a spinBox for the ExperimentNumber
         self.spinBox_ExperimentNumber = QSpinBox()
+        # set the minimum value to 1 (at least an experiments must be performed)
         self.spinBox_ExperimentNumber.setMinimum(1)
 
+        # create a doubleSpinBox for the test percentage
         self.doubleSpinBox_TestPercentage = QDoubleSpinBox()
+        # set minimum value
         self.doubleSpinBox_TestPercentage.setMinimum(0.00)
+        # set maximum value
         self.doubleSpinBox_TestPercentage.setMaximum(0.75)
-        self.doubleSpinBox_TestPercentage.setValue(0.25)
+        # set step
         self.doubleSpinBox_TestPercentage.setSingleStep(0.05)
 
         self.doubleSpinBox_HoldOutPercentage = QDoubleSpinBox()
+        # set minimum value
         self.doubleSpinBox_HoldOutPercentage.setMinimum(0.00)
+        # set maximum value
         self.doubleSpinBox_HoldOutPercentage.setMaximum(0.75)
-        self.doubleSpinBox_HoldOutPercentage.setValue(0.25)
+        # set step
         self.doubleSpinBox_HoldOutPercentage.setSingleStep(0.05)
+
+        # ------------------------------ #
+        # ----- Set Default Values ----- #
+        # ------------------------------ #
+        self._experimentNumberDefaultValue = 1
+        self._testPercentageDefaultValue = 0.25
+        self._holdoutPercentageDefaultValue = 0.25
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -449,6 +472,9 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
             A function to create the widget components into the main QWidget
             :return: Nothing
         """
+        self.restoreDefaultValues()
+        self.setEvents_()
+
         # Set Label
         label_ExperimentalNumber = QLabel("Number of Experiments:")
         label_TestPercentage = QLabel("Test Percentage (0.00-0.75):")
@@ -475,8 +501,23 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         vbox_finalSpinBoxes.addLayout(hbox_TestPercentage)
         vbox_finalSpinBoxes.addLayout(hbox_HoldOutPercentage)
 
+        # Button Layout
+        hbox_buttons = QHBoxLayout()
+        hbox_buttons.addSpacerItem(QSpacerItem(_INT_MAX_STRETCH, 0))
+        hbox_buttons.addWidget(self.buttonRestoreDefault)
+
         self.vbox_main_layout.addLayout(vbox_finalSpinBoxes)
         self.vbox_main_layout.addSpacerItem(QSpacerItem(0, _INT_MAX_STRETCH))
+        self.vbox_main_layout.addLayout(hbox_buttons)
+
+    def restoreDefaultValues(self):
+        # set default value
+        self.spinBox_ExperimentNumber.setValue(self._experimentNumberDefaultValue)
+        self.doubleSpinBox_TestPercentage.setValue(self._testPercentageDefaultValue)
+        self.doubleSpinBox_HoldOutPercentage.setValue(self._holdoutPercentageDefaultValue)
+
+    def setEvents_(self):
+        self.buttonRestoreDefault.clicked.connect(self.restoreDefaultValues)
 
 
 class WidgetTabMachineLearningSettingsLinearRegression(QWidget):
