@@ -19,8 +19,8 @@ import lib.core.multi_output_regression as mor
 import lib.core.signal_comparison as signcomp
 
 import lib.gui.machineLearningMainWidget as ML_mainWid
-
 from lib.gui.guiStyle import setStyle_
+import lib.gui.commonFunctions as coFunc
 
 _NEW_PROJECT_DEFAULT_FOLDER = file_manip.PATH_HOME
 _DOCUMENTS_FOLDER = file_manip.PATH_DOCUMENTS
@@ -59,6 +59,7 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
     def __init__(self, w=512, h=512, minW=256, minH=256, maxW=512, maxH=512, winTitle='My Window', iconPath=''):
         super().__init__(w, h, minW, minH, maxW, maxH, winTitle, iconPath)
         self.widgetTabInputOutput = WidgetTabInputOutput()  # A tab for input output columns
+        self.iconPath = iconPath
 
     # ------------------------------- #
     # ----- Overwrite Functions ----- #
@@ -91,16 +92,22 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
     def BE_errorExist(self, fName):
         errorType404 = "Error 404: "  # set error type
         # Check if Input Columns don't exist for the specified file
-        if not self.dict_tableFilesPaths[fName][self._DKEY_INPUT_LIST]:  # if True
+        if not self.dict_tableFilesPaths[fName][self.DKEY_INPUT_LIST]:  # if True
             msg = "In < " + fName + " > no INPUT columns found!"  # set message
-            self.consoleMessage(errorType404 + msg)  # print message to Console as Warning
-            self.errorMessageDialog(errorType=errorType404, textMessageInfo=msg)  # print message to Error Dialog
+            coFunc.consoleMessage(errorType404 + msg)  # print message to Console as Warning
+            coFunc.errorMessageDialog(classRef=self,
+                                      errorType=errorType404,
+                                      textMessageInfo=msg,
+                                      iconPath=self.iconPath)  # print message to Error Dialog
             return True  # return True
         # Check if Output Columns don't exist for the specified file
-        elif not self.dict_tableFilesPaths[fName][self._DKEY_OUTPUT_LIST]:  # if True
+        elif not self.dict_tableFilesPaths[fName][self.DKEY_OUTPUT_LIST]:  # if True
             msg = "In < " + fName + " > no OUTPUT columns found!"  # set message
-            self.consoleMessage(errorType404 + msg)  # print message to Console as Warning
-            self.errorMessageDialog(errorType=errorType404, textMessageInfo=msg)  # print message to Error Dialog
+            coFunc.consoleMessage(errorType404 + msg)  # print message to Console as Warning
+            coFunc.errorMessageDialog(classRef=self,
+                                      errorType=errorType404,
+                                      textMessageInfo=msg,
+                                      iconPath=self.iconPath)  # print message to Error Dialog
             return True  # return True
         return False  # return False
 
@@ -122,7 +129,7 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
         dict_max_values_for_output_columns = {}
         dict_store_folderFileNames = {}
 
-        sequenceStepIndex = self.dict_machineLearningParameters[self._DKEY_MLP_SEQUENCE_STEP_INDEX]
+        sequenceStepIndex = self.dict_machineLearningParameters[self.DKEY_MLP_SEQUENCE_STEP_INDEX]
         list_of_input_headers = []
         list_of_output_headers = []
         list_of_output_headers_real = []
@@ -137,12 +144,12 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
         dict_dataset_categorized_by_event = {}
         dict_sequential_dataset = {}
 
-        sequenceTestPercentage = self.dict_machineLearningParameters[self._DKEY_MLP_TEST_PERCENTAGE]
+        sequenceTestPercentage = self.dict_machineLearningParameters[self.DKEY_MLP_TEST_PERCENTAGE]
         export_folder_path = self.dict_machineLearningParameters[
-                                 self._DKEY_MLP_EXPORT_FOLDER] + '/' + dt.datetime.now().strftime("%d%m%Y_%H%M%S")
+                                 self.DKEY_MLP_EXPORT_FOLDER] + '/' + dt.datetime.now().strftime("%d%m%Y_%H%M%S")
         file_manip.checkAndCreateFolders(export_folder_path)
-        holdout_size = self.dict_machineLearningParameters[self._DKEY_MLP_HOLDOUT_SIZE]
-        number_of_experiments = self.dict_machineLearningParameters[self._DKEY_MLP_EXPER_NUMBER]
+        holdout_size = self.dict_machineLearningParameters[self.DKEY_MLP_HOLDOUT_SIZE]
+        number_of_experiments = self.dict_machineLearningParameters[self.DKEY_MLP_EXPER_NUMBER]
 
         r_window_size = 15
         time_step = 2  # seconds
@@ -649,21 +656,21 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
     def updateInputList(self):
         self.widgetTabInputOutput.listWidget_InputColumns.clear()  # Clear Event Widget
         for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
-            if self.dict_tableFilesPaths[key][self._DKEY_INPUT_LIST] is not []:  # if event key is not []
-                for event in self.dict_tableFilesPaths[key][self._DKEY_INPUT_LIST]:  # for each EVENT
+            if self.dict_tableFilesPaths[key][self.DKEY_INPUT_LIST] is not []:  # if event key is not []
+                for event in self.dict_tableFilesPaths[key][self.DKEY_INPUT_LIST]:  # for each EVENT
                     # Add ITEM to INPUT widget
                     self.widgetTabInputOutput.listWidget_InputColumns.addItem(
                         QListWidgetItem(key + " -> " + event))
 
     def removeFromInputColumn(self, fileName, column):
         # Remove the specified COLUMN from INPUT_COLUMN_LIST for the specified FILE
-        if column in self.dict_tableFilesPaths[fileName][self._DKEY_INPUT_LIST]:
-            self.dict_tableFilesPaths[fileName][self._DKEY_INPUT_LIST].remove(column)
+        if column in self.dict_tableFilesPaths[fileName][self.DKEY_INPUT_LIST]:
+            self.dict_tableFilesPaths[fileName][self.DKEY_INPUT_LIST].remove(column)
 
     def updateOutputList(self):
         self.widgetTabInputOutput.listWidget_OutputColumns.clear()  # Clear Event Widget
         for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
-            if self.dict_tableFilesPaths[key][self._DKEY_OUTPUT_LIST] is not []:  # if event key is not []
+            if self.dict_tableFilesPaths[key][self.DKEY_OUTPUT_LIST] is not []:  # if event key is not []
                 for event in self.dict_tableFilesPaths[key][self._DKEY_OUTPUT_LIST]:  # for each EVENT
                     # Add ITEM to OUTPUT widget
                     self.widgetTabInputOutput.listWidget_OutputColumns.addItem(
@@ -671,8 +678,8 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
 
     def removeFromOutputColumn(self, fileName, column):
         # Remove the specified COLUMN from OUTPUT_COLUMN_LIST for the specified FILE
-        if column in self.dict_tableFilesPaths[fileName][self._DKEY_OUTPUT_LIST]:
-            self.dict_tableFilesPaths[fileName][self._DKEY_OUTPUT_LIST].remove(column)
+        if column in self.dict_tableFilesPaths[fileName][self.DKEY_OUTPUT_LIST]:
+            self.dict_tableFilesPaths[fileName][self.DKEY_OUTPUT_LIST].remove(column)
 
     def updatePrimaryEventList(self):
         self.widgetTabInputOutput.listWidget_PrimaryEvent.clear()  # Clear Primary Event Widget
@@ -707,9 +714,9 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
             currentSelectedItems = self.listWidget_ColumnList.selectedItems()
             for currentColumnSelected in currentSelectedItems:  # for each item selected
                 # if this column is not in the INPUT List
-                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self._DKEY_INPUT_LIST]:
+                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self.DKEY_INPUT_LIST]:
                     # Add it to list
-                    self.dict_tableFilesPaths[self.fileName][self._DKEY_INPUT_LIST].append(currentColumnSelected.text())
+                    self.dict_tableFilesPaths[self.fileName][self.DKEY_INPUT_LIST].append(currentColumnSelected.text())
                 # print(currentFileName, " -> ", currentColumnSelected.text())
             self.updateInputList()  # update Event widget
 
@@ -733,9 +740,9 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
             currentSelectedItems = self.listWidget_ColumnList.selectedItems()
             for currentColumnSelected in currentSelectedItems:  # for each item selected
                 # if this column is not in the INPUT List
-                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self._DKEY_OUTPUT_LIST]:
+                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self.DKEY_OUTPUT_LIST]:
                     # Add it to list
-                    self.dict_tableFilesPaths[self.fileName][self._DKEY_OUTPUT_LIST].append(currentColumnSelected.text())
+                    self.dict_tableFilesPaths[self.fileName][self.DKEY_OUTPUT_LIST].append(currentColumnSelected.text())
                 # print(currentFileName, " -> ", currentColumnSelected.text())
             self.updateOutputList()  # update Event widget
 
@@ -758,11 +765,11 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
             # get current column name
             currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
             # If this column exist in the input list
-            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self._DKEY_INPUT_LIST]:
+            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self.DKEY_INPUT_LIST]:
                 self.removeFromInputColumn(self.fileName, currentColumnSelected)  # remove it from the list
                 self.updateInputList()  # update Input widget
             # If this column exist in the output list
-            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self._DKEY_OUTPUT_LIST]:
+            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self.DKEY_OUTPUT_LIST]:
                 self.removeFromOutputColumn(self.fileName, currentColumnSelected)  # remove it from the list
                 self.updateOutputList()  # update Input widget
 
