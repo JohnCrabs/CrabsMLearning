@@ -40,6 +40,28 @@ def openFileDialog(classRef, dialogName='Pick a File', dialogOpenAt=file_manip.P
         return False, None
 
 
+def openDirectoryDialog(classRef, dialogName='Pick a Directory', dialogOpenAt=file_manip.PATH_HOME,
+                        dialogMultipleSelection: bool = False):
+    """
+    A function to open a dialog for opening files.
+    :param classRef: The class which will use the dialog
+    :param dialogName: The dialog's name.
+    :param dialogOpenAt: The path the dialog will be opened
+    :param dialogMultipleSelection: A boolean to tell to dialog if multiple selection is supported
+    :return: True/False, dialog/None
+    """
+    dialog = QFileDialog(classRef, dialogName)  # Open a Browse Dialog
+    if dialogMultipleSelection:  # if True
+        dialog.setFileMode(QFileDialog.ExistingFiles)  # Set multiple selection
+    dialog.setDirectory(dialogOpenAt)  # Set default directory to the default project
+    dialog.setSidebarUrls([QUrl.fromLocalFile(dialogOpenAt)])  # Open to default path
+    dirPath = dialog.getExistingDirectory()
+    if dirPath:  # if path Accepted
+        return True, str(dirPath)
+    else:
+        return False, None
+
+
 def consoleMessage(textMessageInfo):
     """
     Show a warning message on the console

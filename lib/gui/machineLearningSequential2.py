@@ -13,46 +13,15 @@ from PySide2.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, Q
     QListWidget, QListWidgetItem, QLabel
 # from PySide2.QtGui import QIcon, QPixmap
 
-import lib.core.file_manipulation as file_manip
+# import lib.core.file_manipulation as file_manip
 import lib.core.my_calendar_v2 as my_cal_v2
 import lib.core.multi_output_regression as mor
 import lib.core.signal_comparison as signcomp
+from lib.core.project_flags import *
 
 import lib.gui.machineLearningMainWidget as ML_mainWid
 from lib.gui.guiStyle import setStyle_
 import lib.gui.commonFunctions as coFunc
-
-_NEW_PROJECT_DEFAULT_FOLDER = file_manip.PATH_HOME
-_DOCUMENTS_FOLDER = file_manip.PATH_DOCUMENTS
-_DOC_PROJECT_FOLDER = _DOCUMENTS_FOLDER + '/CrabsMLearning'
-_PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
-#
-# _INT_SCREEN_WIDTH = tk.Tk().winfo_screenwidth()  # get the screen width
-# _INT_SCREEN_HEIGHT = tk.Tk().winfo_screenheight()  # get the screen height
-# _INT_WIN_WIDTH = 1024  # this variable is only for the if __name__ == "__main__"
-# _INT_WIN_HEIGHT = 512  # this variable is only for the if __name__ == "__main__"
-#
-_INT_MAX_STRETCH = 100000  # Spacer Max Stretch
-_INT_BUTTON_MIN_WIDTH = 50  # Minimum Button Width
-_INT_ADD_REMOVE_BUTTON_SIZE = 48
-
-_ICON_ADD = _PROJECT_FOLDER + "/icon/add_cross_128x128.png"
-_ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128.png"
-# _ICON_ADD = _PROJECT_FOLDER + "/icon/add_cross_128x128_filled.png"
-# _ICON_REMOVE = _PROJECT_FOLDER + "/icon/remove_line_128x128_filled.png"
-
-# --- PLOT INFO --- #
-_PLOT_FONTSIZE_TITLE = 25
-_PLOT_FONTSIZE_TICKS = 20
-_PLOT_FONTSIZE_LABEL = 22.5
-_PLOT_FONTSIZE_LEGEND = 18
-_PLOT_SIZE_WIDTH = 12.40
-_PLOT_SIZE_HEIGHT = 12.40
-_PLOT_SIZE_DPI = 100
-
-_TRAIN_TEST_SEPARATOR = 'Train/Test Split'
-_REAL_STYLE = ['bs-']
-_PRED_STYLE = ['go-']
 
 
 class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidget):
@@ -92,7 +61,7 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
     def BE_errorExist(self, fName):
         errorType404 = "Error 404: "  # set error type
         # Check if Input Columns don't exist for the specified file
-        if not self.dict_tableFilesPaths[fName][self.DKEY_INPUT_LIST]:  # if True
+        if not self.dict_tableFilesPaths[fName][self.dkeyInputList()]:  # if True
             msg = "In < " + fName + " > no INPUT columns found!"  # set message
             coFunc.consoleMessage(errorType404 + msg)  # print message to Console as Warning
             coFunc.errorMessageDialog(classRef=self,
@@ -101,7 +70,7 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
                                       iconPath=self.iconPath)  # print message to Error Dialog
             return True  # return True
         # Check if Output Columns don't exist for the specified file
-        elif not self.dict_tableFilesPaths[fName][self.DKEY_OUTPUT_LIST]:  # if True
+        elif not self.dict_tableFilesPaths[fName][self.dkeyOutputList()]:  # if True
             msg = "In < " + fName + " > no OUTPUT columns found!"  # set message
             coFunc.consoleMessage(errorType404 + msg)  # print message to Console as Warning
             coFunc.errorMessageDialog(classRef=self,
@@ -129,7 +98,7 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
         dict_max_values_for_output_columns = {}
         dict_store_folderFileNames = {}
 
-        sequenceStepIndex = self.dict_machineLearningParameters[self.DKEY_MLP_SEQUENCE_STEP_INDEX]
+        sequenceStepIndex = self.dict_machineLearningParameters[self.dkey_mlpSequenceStepIndex()]
         list_of_input_headers = []
         list_of_output_headers = []
         list_of_output_headers_real = []
@@ -144,12 +113,12 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
         dict_dataset_categorized_by_event = {}
         dict_sequential_dataset = {}
 
-        sequenceTestPercentage = self.dict_machineLearningParameters[self.DKEY_MLP_TEST_PERCENTAGE]
+        sequenceTestPercentage = self.dict_machineLearningParameters[self.dkey_mlpTestPercentage()]
         export_folder_path = self.dict_machineLearningParameters[
-                                 self.DKEY_MLP_EXPORT_FOLDER] + '/' + dt.datetime.now().strftime("%d%m%Y_%H%M%S")
+                                 self.dkey_mlpExportFolder()] + '/' + dt.datetime.now().strftime("%d%m%Y_%H%M%S")
         file_manip.checkAndCreateFolders(export_folder_path)
-        holdout_size = self.dict_machineLearningParameters[self.DKEY_MLP_HOLDOUT_SIZE]
-        number_of_experiments = self.dict_machineLearningParameters[self.DKEY_MLP_EXPER_NUMBER]
+        holdout_size = self.dict_machineLearningParameters[self.dkey_mlpHoldoutPercentage()]
+        number_of_experiments = self.dict_machineLearningParameters[self.dkey_mlpExperimentNumber()]
 
         r_window_size = 15
         time_step = 2  # seconds
@@ -197,15 +166,15 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
                 self.BE_parallelExecution()
 
                 list_of_primary_events = []
-                dict_list_input_columns[fileName] = self.dict_tableFilesPaths[fileName][self._DKEY_INPUT_LIST]
-                dict_list_output_columns[fileName] = self.dict_tableFilesPaths[fileName][self._DKEY_OUTPUT_LIST]
+                dict_list_input_columns[fileName] = self.dict_tableFilesPaths[fileName][self._dkeyInputList()]
+                dict_list_output_columns[fileName] = self.dict_tableFilesPaths[fileName][self._dkeyOutputList()]
 
                 file_manip.checkAndCreateFolders(export_folder_path)
 
-                dict_primary_event_column[fileName] = self.dict_tableFilesPaths[fileName][self._DKEY_PRIMARY_EVENT_COLUMN]
+                dict_primary_event_column[fileName] = self.dict_tableFilesPaths[fileName][self.dkeyPrimaryEventColumn()]
                 list_of_primary_events.append(dict_primary_event_column[fileName])
 
-                dict_data_storing[fileName] = pd.read_csv(self.dict_tableFilesPaths[fileName][self._DKEY_FULLPATH])
+                dict_data_storing[fileName] = pd.read_csv(self.dict_tableFilesPaths[fileName][self.dkeyFullPath()])
                 dict_data_storing[fileName].fillna(method='ffill', inplace=True)
                 dict_data_storing[fileName].fillna(method='bfill', inplace=True)
 
@@ -564,41 +533,41 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
                                             y_max_denorm += 0.1 * y_max_denorm
 
                                             tmp_cor_csv.append(d_cor_R2)
-                                            tmp_d1.plot(style=_REAL_STYLE)
-                                            tmp_d2.plot(style=_PRED_STYLE)
-                                            plt.gcf().set_size_inches(_PLOT_SIZE_WIDTH, _PLOT_SIZE_HEIGHT)
+                                            tmp_d1.plot(style=REAL_STYLE)
+                                            tmp_d2.plot(style=PRED_STYLE)
+                                            plt.gcf().set_size_inches(PLOT_SIZE_WIDTH, PLOT_SIZE_HEIGHT)
                                             plt.gcf().subplots_adjust(bottom=0.25)
                                             # plt.xticks(rotation=45, fontsize=_PLOT_FONTSIZE_TICKS)
-                                            plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
-                                            plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
+                                            plt.yticks(fontsize=PLOT_FONTSIZE_TICKS)
+                                            plt.legend(fontsize=PLOT_FONTSIZE_LEGEND, loc='best')
                                             plt.ylim(0, y_max_denorm)
                                             plt.vlines(vxLine, 0, y_max_denorm, colors='r', linestyles='dashed',
-                                                       label=_TRAIN_TEST_SEPARATOR)
-                                            plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
+                                                       label=TRAIN_TEST_SEPARATOR)
+                                            plt.title(model_name + ' ' + dataset, fontsize=PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
-                                            plt.ylabel('Humans' + str(), fontsize=_PLOT_FONTSIZE_LABEL)
+                                            plt.ylabel('Humans' + str(), fontsize=PLOT_FONTSIZE_LABEL)
                                             plt.savefig(o_dir_MLP + '/' + dataset + '.png',
-                                                        dpi=_PLOT_SIZE_DPI, bbox_inches='tight')
+                                                        dpi=PLOT_SIZE_DPI, bbox_inches='tight')
                                             # time.sleep(0.5)
                                             # plt.clf()
                                             plt.close()
 
-                                            d1[dataset_real].plot(style=_REAL_STYLE)
-                                            d2[dataset_pred].plot(style=_PRED_STYLE)
-                                            plt.gcf().set_size_inches(_PLOT_SIZE_WIDTH, _PLOT_SIZE_HEIGHT)
+                                            d1[dataset_real].plot(style=REAL_STYLE)
+                                            d2[dataset_pred].plot(style=PRED_STYLE)
+                                            plt.gcf().set_size_inches(PLOT_SIZE_WIDTH, PLOT_SIZE_HEIGHT)
                                             plt.gcf().subplots_adjust(bottom=0.25)
                                             # plt.xticks(rotation=45, fontsize=_PLOT_FONTSIZE_TICKS)
-                                            plt.yticks(fontsize=_PLOT_FONTSIZE_TICKS)
-                                            plt.legend(fontsize=_PLOT_FONTSIZE_LEGEND, loc='best')
+                                            plt.yticks(fontsize=PLOT_FONTSIZE_TICKS)
+                                            plt.legend(fontsize=PLOT_FONTSIZE_LEGEND, loc='best')
                                             plt.ylim(0, y_max_norm)
                                             plt.vlines(vxLine, 0, y_max_norm, colors='r', linestyles='dashed',
-                                                       label=_TRAIN_TEST_SEPARATOR)
-                                            plt.title(model_name + ' ' + dataset, fontsize=_PLOT_FONTSIZE_TITLE)
+                                                       label=TRAIN_TEST_SEPARATOR)
+                                            plt.title(model_name + ' ' + dataset, fontsize=PLOT_FONTSIZE_TITLE)
                                             # plt.xlabel('Date Range', fontsize=_PLOT_FONTSIZE_LABEL)
                                             plt.ylabel('Humans (normalized)' + str(),
-                                                       fontsize=_PLOT_FONTSIZE_LABEL)
+                                                       fontsize=PLOT_FONTSIZE_LABEL)
                                             plt.savefig(o_dir_MLP + '/' + dataset + '_normalized.png',
-                                                        dpi=_PLOT_SIZE_DPI, bbox_inches='tight')
+                                                        dpi=PLOT_SIZE_DPI, bbox_inches='tight')
                                             # time.sleep(0.5)
                                             # plt.clf()
                                             plt.close()
@@ -656,43 +625,43 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
     def updateInputList(self):
         self.widgetTabInputOutput.listWidget_InputColumns.clear()  # Clear Event Widget
         for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
-            if self.dict_tableFilesPaths[key][self.DKEY_INPUT_LIST] is not []:  # if event key is not []
-                for event in self.dict_tableFilesPaths[key][self.DKEY_INPUT_LIST]:  # for each EVENT
+            if self.dict_tableFilesPaths[key][self.dkeyInputList()] is not []:  # if event key is not []
+                for event in self.dict_tableFilesPaths[key][self.dkeyInputList()]:  # for each EVENT
                     # Add ITEM to INPUT widget
                     self.widgetTabInputOutput.listWidget_InputColumns.addItem(
                         QListWidgetItem(key + " -> " + event))
 
     def removeFromInputColumn(self, fileName, column):
         # Remove the specified COLUMN from INPUT_COLUMN_LIST for the specified FILE
-        if column in self.dict_tableFilesPaths[fileName][self.DKEY_INPUT_LIST]:
-            self.dict_tableFilesPaths[fileName][self.DKEY_INPUT_LIST].remove(column)
+        if column in self.dict_tableFilesPaths[fileName][self.dkeyInputList()]:
+            self.dict_tableFilesPaths[fileName][self.dkeyInputList()].remove(column)
 
     def updateOutputList(self):
         self.widgetTabInputOutput.listWidget_OutputColumns.clear()  # Clear Event Widget
         for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
-            if self.dict_tableFilesPaths[key][self.DKEY_OUTPUT_LIST] is not []:  # if event key is not []
-                for event in self.dict_tableFilesPaths[key][self._DKEY_OUTPUT_LIST]:  # for each EVENT
+            if self.dict_tableFilesPaths[key][self.dkeyOutputList()] is not []:  # if event key is not []
+                for event in self.dict_tableFilesPaths[key][self.dkeyOutputList()]:  # for each EVENT
                     # Add ITEM to OUTPUT widget
                     self.widgetTabInputOutput.listWidget_OutputColumns.addItem(
                         QListWidgetItem(key + " -> " + event))
 
     def removeFromOutputColumn(self, fileName, column):
         # Remove the specified COLUMN from OUTPUT_COLUMN_LIST for the specified FILE
-        if column in self.dict_tableFilesPaths[fileName][self.DKEY_OUTPUT_LIST]:
-            self.dict_tableFilesPaths[fileName][self.DKEY_OUTPUT_LIST].remove(column)
+        if column in self.dict_tableFilesPaths[fileName][self.dkeyOutputList()]:
+            self.dict_tableFilesPaths[fileName][self.dkeyOutputList()].remove(column)
 
     def updatePrimaryEventList(self):
         self.widgetTabInputOutput.listWidget_PrimaryEvent.clear()  # Clear Primary Event Widget
         for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
             # if primary event key is not None
-            if self.dict_tableFilesPaths[key][self._DKEY_PRIMARY_EVENT_COLUMN] is not None:
+            if self.dict_tableFilesPaths[key][self.dkeyPrimaryEventColumn()] is not None:
                 # Add ITEM to PRIMARY_EVENT widget
                 self.widgetTabInputOutput.listWidget_PrimaryEvent.addItem(
-                    QListWidgetItem(key + " -> " + self.dict_tableFilesPaths[key][self._DKEY_PRIMARY_EVENT_COLUMN]))
+                    QListWidgetItem(key + " -> " + self.dict_tableFilesPaths[key][self.dkeyPrimaryEventColumn()]))
 
     def resetPrimEventColumn(self, fileName):
         # Set PRIMARY_COLUMN for the specified FILE to None
-        self.dict_tableFilesPaths[fileName][self._DKEY_PRIMARY_EVENT_COLUMN] = None
+        self.dict_tableFilesPaths[fileName][self.dkeyPrimaryEventColumn()] = None
 
     # *                                                         * #
     # *********************************************************** #
@@ -714,9 +683,13 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
             currentSelectedItems = self.listWidget_ColumnList.selectedItems()
             for currentColumnSelected in currentSelectedItems:  # for each item selected
                 # if this column is not in the INPUT List
-                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self.DKEY_INPUT_LIST]:
+                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self.dkeyInputList()]:
                     # Add it to list
-                    self.dict_tableFilesPaths[self.fileName][self.DKEY_INPUT_LIST].append(currentColumnSelected.text())
+                    self.dict_tableFilesPaths[self.fileName][self.dkeyInputList()].append(currentColumnSelected.text())
+                    # If this column exist in the private event list
+                    if currentColumnSelected.text() == self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()]:
+                        self.resetPrimEventColumn(self.fileName)  # remove it from the list
+                        self.updatePrimaryEventList()  # update Input widget
                 # print(currentFileName, " -> ", currentColumnSelected.text())
             self.updateInputList()  # update Event widget
 
@@ -740,9 +713,13 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
             currentSelectedItems = self.listWidget_ColumnList.selectedItems()
             for currentColumnSelected in currentSelectedItems:  # for each item selected
                 # if this column is not in the INPUT List
-                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self.DKEY_OUTPUT_LIST]:
+                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self.dkeyOutputList()]:
                     # Add it to list
-                    self.dict_tableFilesPaths[self.fileName][self.DKEY_OUTPUT_LIST].append(currentColumnSelected.text())
+                    self.dict_tableFilesPaths[self.fileName][self.dkeyOutputList()].append(currentColumnSelected.text())
+                    # If this column exist in the private event list
+                    if currentColumnSelected.text() == self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()]:
+                        self.resetPrimEventColumn(self.fileName)  # remove it from the list
+                        self.updatePrimaryEventList()  # update Input widget
                 # print(currentFileName, " -> ", currentColumnSelected.text())
             self.updateOutputList()  # update Event widget
 
@@ -765,18 +742,18 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
             # get current column name
             currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
             # If this column exist in the input list
-            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self.DKEY_INPUT_LIST]:
+            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self.dkeyInputList()]:
                 self.removeFromInputColumn(self.fileName, currentColumnSelected)  # remove it from the list
                 self.updateInputList()  # update Input widget
             # If this column exist in the output list
-            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self.DKEY_OUTPUT_LIST]:
+            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self.dkeyOutputList()]:
                 self.removeFromOutputColumn(self.fileName, currentColumnSelected)  # remove it from the list
                 self.updateOutputList()  # update Input widget
 
             # print(currentFileName, " -> ", currentColumnSelected)
 
             # Add it to the PRIMARY_EVENT
-            self.dict_tableFilesPaths[self.fileName][self._DKEY_PRIMARY_EVENT_COLUMN] = currentColumnSelected
+            self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()] = currentColumnSelected
             self.updatePrimaryEventList()  # update Primary Event widget
 
     def actionButtonRemPrimaryEvent(self):
@@ -807,36 +784,36 @@ class WidgetTabInputOutput(QWidget):
         # ----- Set PushButton ----- #
         # -------------------------- #
         self.buttonInputColumn = QPushButton("Add Input Column (X)")
-        self.buttonInputColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
-        self.buttonInputColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonInputColumn.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonInputColumn.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
         self.buttonInputColumn.setShortcut("I")  # Set Shortcut
         self.buttonInputColumn.setToolTip('Set selected column as Input Column.')  # Add Description
 
         self.buttonRemInputColumn = QPushButton("Remove")
-        self.buttonRemInputColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
-        self.buttonRemInputColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemInputColumn.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemInputColumn.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
         self.buttonRemInputColumn.setToolTip('Remove selected column from Input List.')  # Add Description
 
         self.buttonOutputColumn = QPushButton("Add Output Column (Y)")
-        self.buttonOutputColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
-        self.buttonOutputColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonOutputColumn.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonOutputColumn.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
         self.buttonOutputColumn.setShortcut("O")  # Set Shortcut
         self.buttonOutputColumn.setToolTip('Set selected column as Output Column.')  # Add Description
 
         self.buttonRemOutputColumn = QPushButton("Remove")
-        self.buttonRemOutputColumn.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
-        self.buttonRemOutputColumn.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemOutputColumn.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemOutputColumn.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
         self.buttonRemOutputColumn.setToolTip('Remove selected column from Output List.')  # Add Description
 
         self.buttonPrimaryEvent = QPushButton("Primary Event")
-        self.buttonPrimaryEvent.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
-        self.buttonPrimaryEvent.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonPrimaryEvent.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonPrimaryEvent.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
         self.buttonPrimaryEvent.setShortcut("P")  # Set Shortcut
         self.buttonPrimaryEvent.setToolTip('Set selected column as Primary Event.')  # Add Description
 
         self.buttonRemPrimaryEvent = QPushButton("Remove")
-        self.buttonRemPrimaryEvent.setMinimumWidth(_INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
-        self.buttonRemPrimaryEvent.setMinimumHeight(_INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemPrimaryEvent.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemPrimaryEvent.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
         self.buttonRemPrimaryEvent.setToolTip('Remove selected column from Primary Event.')  # Add Description
 
         # -------------------------------- #
@@ -920,4 +897,4 @@ def exec_app(w=512, h=512, minW=256, minH=256, maxW=512, maxH=512, winTitle='My 
 
 if __name__ == "__main__":
     exec_app(w=1024, h=512, minW=512, minH=256, maxW=512, maxH=512,
-             winTitle='WidgetTemplate', iconPath=_PROJECT_FOLDER + '/icon/crabsMLearning_32x32.png')
+             winTitle='WidgetTemplate', iconPath=PROJECT_FOLDER + '/icon/crabsMLearning_32x32.png')

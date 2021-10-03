@@ -1,3 +1,4 @@
+import os.path
 import sys
 import matplotlib
 
@@ -50,20 +51,20 @@ class WidgetMachineLearningMainWidget(QWidget):
         # -------------------------------- #
 
         # DICTIONARY FILE PARAMETERS
-        self.DKEY_FILE_NAME: str = 'name'
-        self.DKEY_FULLPATH: str = 'full-path'
-        self.DKEY_COLUMNS: str = 'columns'
-        self.DKEY_INPUT_LIST: str = 'input-list'
-        self.DKEY_OUTPUT_LIST: str = 'output-list'
-        self.DKEY_PRIMARY_EVENT_COLUMN: str = 'primary-event'
+        self._DKEY_FILE_NAME: str = 'name'
+        self._DKEY_FULLPATH: str = 'full-path'
+        self._DKEY_COLUMNS: str = 'columns'
+        self._DKEY_INPUT_LIST: str = 'input-list'
+        self._DKEY_OUTPUT_LIST: str = 'output-list'
+        self._DKEY_PRIMARY_EVENT_COLUMN: str = 'primary-event'
 
         # DICTIONARY MACHINE LEARNING PARAMETERS
-        self.DKEY_MLP_TEST_PERCENTAGE: str = 'test-percentage'
-        self.DKEY_MLP_VALIDATION_PERCENTAGE: str = 'validation-percentage'
-        self.DKEY_MLP_EXPORT_FOLDER: str = 'export-folder'
-        self.DKEY_MLP_HOLDOUT_SIZE: str = 'holdout-size'
-        self.DKEY_MLP_EXPER_NUMBER: str = 'experiment-number'
-        self.DKEY_MLP_SEQUENCE_STEP_INDEX: str = 'sequence-step-index'
+        self._DKEY_MLP_TEST_PERCENTAGE: str = 'test-percentage'
+        self._DKEY_MLP_VALIDATION_PERCENTAGE: str = 'validation-percentage'
+        self._DKEY_MLP_EXPORT_FOLDER: str = 'export-folder'
+        self._DKEY_MLP_HOLDOUT_SIZE: str = 'holdout-size'
+        self._DKEY_MLP_EXPER_NUMBER: str = 'experiment-number'
+        self._DKEY_MLP_SEQUENCE_STEP_INDEX: str = 'sequence-step-index'
 
         # -------------------------------- #
         # ----- Set QTabWidget ----------- #
@@ -130,12 +131,50 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.dict_tableFilesPaths = {}  # a dictionary to store the table files
 
         self.dict_machineLearningParameters = {
-            self.DKEY_MLP_EXPER_NUMBER: 5,
-            self.DKEY_MLP_TEST_PERCENTAGE: 0.25,
-            self.DKEY_MLP_HOLDOUT_SIZE: 0.20,
-            self.DKEY_MLP_EXPORT_FOLDER: DOC_PROJECT_FOLDER + '/export_folder/',
-            self.DKEY_MLP_SEQUENCE_STEP_INDEX: 7
+            self.dkey_mlpExperimentNumber(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultExperimentNumber(),
+            self.dkey_mlpTestPercentage(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultTestPercentage(),
+            self.dkey_mlpHoldoutPercentage(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultHoldoutPercentage(),
+            self.dkey_mlpExportFolder(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultExportPath(),
+            self.dkey_mlpSequenceStepIndex(): 7
         }
+
+    # DICTIONARY FILE PARAMETERS
+    def dkeyFileName(self):
+        return self._DKEY_FILE_NAME
+
+    def dkeyFullPath(self):
+        return self._DKEY_FULLPATH
+
+    def dkeyColumnsList(self):
+        return self._DKEY_COLUMNS
+
+    def dkeyInputList(self):
+        return self._DKEY_INPUT_LIST
+
+    def dkeyOutputList(self):
+        return self._DKEY_OUTPUT_LIST
+
+    def dkeyPrimaryEventColumn(self):
+        return self._DKEY_PRIMARY_EVENT_COLUMN
+
+    # DICTIONARY MACHINE LEARNING PARAMETERS
+    def dkey_mlpTestPercentage(self):
+        return self._DKEY_MLP_TEST_PERCENTAGE
+
+    def dkey_mlpValidationPercentage(self):
+        return self._DKEY_MLP_VALIDATION_PERCENTAGE
+
+    def dkey_mlpExportFolder(self):
+        return self._DKEY_MLP_EXPORT_FOLDER
+
+    def dkey_mlpHoldoutPercentage(self):
+        return self._DKEY_MLP_HOLDOUT_SIZE
+
+    def dkey_mlpExperimentNumber(self):
+        return self._DKEY_MLP_EXPER_NUMBER
+
+    def dkey_mlpSequenceStepIndex(self):
+        return self._DKEY_MLP_SEQUENCE_STEP_INDEX
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -196,13 +235,13 @@ class WidgetMachineLearningMainWidget(QWidget):
     def addItemsToList(self, fullPath, splitter=my_cal_v2.del_comma):
         fileName = fullPath.split('/')[-1:][0]  # find the name of the file
         # Create the dictionary
-        self.dict_tableFilesPaths[fileName] = {self.DKEY_FILE_NAME: fileName,
-                                               self.DKEY_FULLPATH: fullPath,
-                                               self.DKEY_COLUMNS: file_manip.getColumnNames(fullPath,
-                                                                                             splitter=splitter),
-                                               self.DKEY_INPUT_LIST: [],
-                                               self.DKEY_OUTPUT_LIST: [],
-                                               self.DKEY_PRIMARY_EVENT_COLUMN: None
+        self.dict_tableFilesPaths[fileName] = {self.dkeyFileName(): fileName,
+                                               self.dkeyFullPath(): fullPath,
+                                               self.dkeyColumnsList(): file_manip.getColumnNames(fullPath,
+                                                                                                 splitter=splitter),
+                                               self.dkeyInputList(): [],
+                                               self.dkeyOutputList(): [],
+                                               self.dkeyPrimaryEventColumn(): None
                                                }
         self.listWidget_FileList.addItem(QListWidgetItem(fileName))  # Add Item to List
 
@@ -223,7 +262,52 @@ class WidgetMachineLearningMainWidget(QWidget):
     # ------------------ #
     # ----- Events ----- #
     # ------------------ #
+    # ***** SET EVENTS FUNCTIONS *** #
     def setEvents_(self):
+        pass
+
+    def setTabSettingsGeneralEvents_(self):
+        # Spin Boxes Events
+        self.widgetTabMachineLearningSettings.tabGeneral.spinBox_ExperimentNumber.valueChanged.connect(
+            self.actionExperimentResultChange)
+
+        # Double Spin Boxes  Events
+        self.widgetTabMachineLearningSettings.tabGeneral.doubleSpinBox_TestPercentage.valueChanged.connect(
+            self.actionTestPercentageChange)
+
+        self.widgetTabMachineLearningSettings.tabGeneral.doubleSpinBox_HoldoutPercentage.valueChanged.connect(
+            self.actionHoldoutPercentageChange)
+
+        # Line Edit Events
+        self.widgetTabMachineLearningSettings.tabGeneral.lineEdit_SetOutPath.textChanged.connect(
+            self.actionLineEditChange)
+
+        # Button Events
+        self.widgetTabMachineLearningSettings.tabGeneral.buttonSetOutPath.clicked.connect(
+            self.actionButtonSetOutPathClicked)
+
+    def setTabSettingsLinearRegressionEvents_(self):
+        pass
+
+    def setTabSettingsRidgeEvents_(self):
+        pass
+
+    def setTabSettingsLassoEvents_(self):
+        pass
+
+    def setTabSettingsDecisionTreeRegressorEvents_(self):
+        pass
+
+    def setTabSettingsRandomForestRegressorEvents_(self):
+        pass
+
+    def setTabSettingsGradientBoostingRegressorEvents_(self):
+        pass
+
+    def setTabSettingsAdaBoostRegressorEvents_(self):
+        pass
+
+    def setTabSettingsKNeighborsRegressorEvents_(self):
         pass
 
     def setMainEvents_(self):
@@ -234,8 +318,21 @@ class WidgetMachineLearningMainWidget(QWidget):
         # ListWidget Events
         self.listWidget_FileList.currentRowChanged.connect(self.actionFileListRowChanged_event)
 
-        self.setEvents_()
+        self.setEvents_()  # set the user specified event (inherited)
+        self.setTabSettingsGeneralEvents_()  # set the tab settings GENERAL events
+        self.setTabSettingsLinearRegressionEvents_()  # set the tab settings LINEAR REGRESSION events
+        self.setTabSettingsRidgeEvents_()  # set the tab settings RIDGE events
+        self.setTabSettingsLassoEvents_()  # set the tab settings LASSO events
+        self.setTabSettingsDecisionTreeRegressorEvents_()  # set the tab settings DECISION TREE REGRESSOR events
+        self.setTabSettingsRandomForestRegressorEvents_()  # set the tab settings RANDOM FOREST REGRESSOR events
+        self.setTabSettingsGradientBoostingRegressorEvents_()  # set the tab settings GRADIENT BOOSTING REGRESSOR events
+        self.setTabSettingsAdaBoostRegressorEvents_()  # set the tab settings ADA BOOST REGRESSOR events
+        self.setTabSettingsKNeighborsRegressorEvents_()  # set the tab settings K NEIGHBORS REGRESSOR events
 
+    # -------------------------- #
+    # ----- Events Actions ----- #
+    # -------------------------- #
+    # ***** SET MAIN EVENTS ACTIONS *** #
     def actionButtonAdd(self):
         # Open a dialog for CSV files
         success, dialog = coFunc.openFileDialog(
@@ -282,7 +379,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.listWidget_ColumnList.clear()  # Clear Column Widget
         if self.listWidget_FileList.currentItem() is not None:  # If current item is not None
             self.fileName = self.listWidget_FileList.currentItem().text()  # get current item name
-            for column in self.dict_tableFilesPaths[self.fileName][self.DKEY_COLUMNS]:  # for each column
+            for column in self.dict_tableFilesPaths[self.fileName][self.dkeyColumnsList()]:  # for each column
                 # Add columns as ITEMS to widget
                 self.listWidget_ColumnList.addItem(QListWidgetItem(column))
 
@@ -290,6 +387,51 @@ class WidgetMachineLearningMainWidget(QWidget):
                 self.listWidget_ColumnList.setCurrentRow(0)  # Set first row selected
         else:
             self.fileName = None
+
+    # ***** SET SETTINGS GENERAL EVENTS ACTIONS *** #
+    def actionExperimentResultChange(self):
+        self.dict_machineLearningParameters[self.dkey_mlpExperimentNumber()] = \
+            self.widgetTabMachineLearningSettings.tabGeneral.spinBox_ExperimentNumber.value()
+        # print(self.dict_machineLearningParameters[self.dkey_mlpExperimentNumber()])
+
+    def actionTestPercentageChange(self):
+        self.dict_machineLearningParameters[self.dkey_mlpTestPercentage()] = \
+            self.widgetTabMachineLearningSettings.tabGeneral.doubleSpinBox_TestPercentage.value()
+        # print(self.dict_machineLearningParameters[self.dkey_mlpTestPercentage()])
+
+    def actionHoldoutPercentageChange(self):
+        self.dict_machineLearningParameters[self.dkey_mlpHoldoutPercentage()] = \
+            self.widgetTabMachineLearningSettings.tabGeneral.doubleSpinBox_HoldoutPercentage.value()
+        # print(self.dict_machineLearningParameters[self.dkey_mlpHoldoutPercentage()])
+
+    def actionLineEditChange(self):
+        self.dict_machineLearningParameters[self.dkey_mlpExportFolder()] = \
+            self.widgetTabMachineLearningSettings.tabGeneral.lineEdit_SetOutPath.text()
+        # print(self.dict_machineLearningParameters[self.dkey_mlpExportFolder()])
+
+    def actionButtonSetOutPathClicked(self):
+        success, dialog = coFunc.openDirectoryDialog(
+            classRef=self,
+            dialogName='Choose a Directory',
+            dialogOpenAt=self.str_pathToTheProject,
+            dialogMultipleSelection=False)
+
+        if success:
+            self.widgetTabMachineLearningSettings.tabGeneral.lineEdit_SetOutPath.setText(dialog)
+
+    # ***** SET SETTINGS LINEAR REGRESSION EVENTS ACTIONS *** #
+
+    # ***** SET SETTINGS RIDGE EVENTS ACTIONS *** #
+
+    # ***** SET SETTINGS LASSO EVENTS ACTIONS *** #
+
+    # ***** SET SETTINGS DECISION TREE REGRESSOR EVENTS ACTIONS *** #
+
+    # ***** SET SETTINGS GRADIENT BOOSTING REGRESSOR EVENTS ACTIONS *** #
+
+    # ***** SET SETTINGS ADA BOOST REGRESSOR EVENTS ACTIONS *** #
+
+    # ***** SET SETTINGS K-NEIGHBORS REGRESSOR EVENTS ACTIONS *** #
 
     # ------------------------- #
     # ----- Message Boxes ----- #
@@ -387,32 +529,34 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # create a doubleSpinBox for the test percentage
         self.doubleSpinBox_TestPercentage = QDoubleSpinBox()
         # set minimum value
-        self.doubleSpinBox_TestPercentage.setMinimum(0.00)
+        self.doubleSpinBox_TestPercentage.setMinimum(MLF_TEST_PERCENTAGE_MIN)
         # set maximum value
-        self.doubleSpinBox_TestPercentage.setMaximum(0.75)
+        self.doubleSpinBox_TestPercentage.setMaximum(MLF_TEST_PERCENTAGE_MAX)
         # set step
-        self.doubleSpinBox_TestPercentage.setSingleStep(0.05)
+        self.doubleSpinBox_TestPercentage.setSingleStep(MLF_TEST_STEP_WIDGET)
 
-        self.doubleSpinBox_HoldOutPercentage = QDoubleSpinBox()
+        self.doubleSpinBox_HoldoutPercentage = QDoubleSpinBox()
         # set minimum value
-        self.doubleSpinBox_HoldOutPercentage.setMinimum(0.00)
+        self.doubleSpinBox_HoldoutPercentage.setMinimum(MLF_HOLDOUT_PERCENTAGE_MIN)
         # set maximum value
-        self.doubleSpinBox_HoldOutPercentage.setMaximum(0.75)
+        self.doubleSpinBox_HoldoutPercentage.setMaximum(MLF_HOLDOUT_PERCENTAGE_MAX)
         # set step
-        self.doubleSpinBox_HoldOutPercentage.setSingleStep(0.05)
+        self.doubleSpinBox_HoldoutPercentage.setSingleStep(MLF_HOLDOUT_STEP_WIDGET)
 
         # --------------------- #
         # ----- QLineEdit ----- #
         # --------------------- #
 
         self.lineEdit_SetOutPath = QLineEdit()
+        self.lineEdit_SetOutPath.setEnabled(False)
 
         # ------------------------------ #
         # ----- Set Default Values ----- #
         # ------------------------------ #
-        self._experimentNumberDefaultValue = 1
-        self._testPercentageDefaultValue = 0.25
-        self._holdoutPercentageDefaultValue = 0.25
+        self._experimentNumberDefaultValue = MLF_DEFAULT_EXPERIMENT_VALUE
+        self._testPercentageDefaultValue = MLF_DEFAULT_TEST_PERCENTAGE
+        self._holdoutPercentageDefaultValue = MLF_DEFAULT_HOLDOUT_PERCENTAGE
+        self._exportPathDefaultValue = MLF_DEFAULT_EXPORT_FOLDER_PATH
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -445,7 +589,7 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
 
         hbox_HoldOutPercentage = QHBoxLayout()
         hbox_HoldOutPercentage.addWidget(label_HoldOutPercentage)
-        hbox_HoldOutPercentage.addWidget(self.doubleSpinBox_HoldOutPercentage)
+        hbox_HoldOutPercentage.addWidget(self.doubleSpinBox_HoldoutPercentage)
         hbox_HoldOutPercentage.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
 
         vbox_finalSpinBoxes = QVBoxLayout()
@@ -473,10 +617,26 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # set default value
         self.spinBox_ExperimentNumber.setValue(self._experimentNumberDefaultValue)
         self.doubleSpinBox_TestPercentage.setValue(self._testPercentageDefaultValue)
-        self.doubleSpinBox_HoldOutPercentage.setValue(self._holdoutPercentageDefaultValue)
+        self.doubleSpinBox_HoldoutPercentage.setValue(self._holdoutPercentageDefaultValue)
+        self.lineEdit_SetOutPath.setText(os.path.normpath(self._exportPathDefaultValue))
 
     def setEvents_(self):
         self.buttonRestoreDefault.clicked.connect(self.restoreDefaultValues)
+
+    # ------------------------------ #
+    # ----- GET DEFAULT VALUES ----- #
+    # ------------------------------ #
+    def getDefaultExperimentNumber(self):
+        return self._experimentNumberDefaultValue
+
+    def getDefaultTestPercentage(self):
+        return self._testPercentageDefaultValue
+
+    def getDefaultHoldoutPercentage(self):
+        return self._holdoutPercentageDefaultValue
+
+    def getDefaultExportPath(self):
+        return self._exportPathDefaultValue
 
 
 class WidgetTabMachineLearningSettingsLinearRegression(QWidget):
