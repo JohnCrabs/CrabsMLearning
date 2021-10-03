@@ -71,6 +71,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         # -------------------------------- #
 
         self.mainTabWidget = QTabWidget()  # Create a Tab Widget
+        self.widgetTabInputOutput = WidgetTabInputOutput()  # create a tab for input output columns
         self.widgetTabMachineLearningSettings = WidgetTabMachineLearningSettings()
 
         # ---------------------- #
@@ -180,7 +181,9 @@ class WidgetMachineLearningMainWidget(QWidget):
     # ----- Reuse Functions ----- #
     # --------------------------- #
     def setTab(self):
-        pass
+        # Set main Tab Widget
+        self.widgetTabInputOutput.setWidget()  # Set the Tab File Management Widget
+        self.mainTabWidget.addTab(self.widgetTabInputOutput, "Input/Output Management")  # Add it to mainTanWidget
 
     def setWidget(self):
         """
@@ -264,7 +267,18 @@ class WidgetMachineLearningMainWidget(QWidget):
     # ------------------ #
     # ***** SET EVENTS FUNCTIONS *** #
     def setEvents_(self):
-        pass
+        # buttonInputColumn
+        self.widgetTabInputOutput.buttonInputColumn.clicked.connect(self.actionButtonInput)
+        # buttonRemInputColumn
+        self.widgetTabInputOutput.buttonRemInputColumn.clicked.connect(self.actionButtonRemInput)
+        # buttonOutputColumn
+        self.widgetTabInputOutput.buttonOutputColumn.clicked.connect(self.actionButtonOutput)
+        # buttonRemOutputColumn
+        self.widgetTabInputOutput.buttonRemOutputColumn.clicked.connect(self.actionButtonRemOutput)
+        # buttonPrimaryEvent
+        self.widgetTabInputOutput.buttonPrimaryEvent.clicked.connect(self.actionButtonPrimaryEvent)
+        # buttonRemPrimaryEvent
+        self.widgetTabInputOutput.buttonRemPrimaryEvent.clicked.connect(self.actionButtonRemPrimaryEvent)
 
     def setTabSettingsGeneralEvents_(self):
         # Spin Boxes Events
@@ -359,7 +373,9 @@ class WidgetMachineLearningMainWidget(QWidget):
             # self.prt_dict_tableFilePaths()
 
     def updateButtonRemove(self):
-        pass
+        self.updateInputList()
+        self.updateOutputList()
+        self.updatePrimaryEventList()
 
     def actionButtonRemove(self):
         if self.listWidget_FileList.currentItem() is not None:  # if some item is selected
@@ -371,6 +387,42 @@ class WidgetMachineLearningMainWidget(QWidget):
             # if there are not enough files loaded
             if self.dict_tableFilesPaths.keys().__len__() < 1:
                 self.buttonExecute.setEnabled(False)  # disable the Execute Button
+
+    # *********************************************************** #
+    # *****(***** Helping Functions for ButtonExecute *********** #
+    # *********************************************************** #
+    # *                                                         * #
+
+    def BE_errorExist(self, fName):
+        errorType404 = "Error 404: "  # set error type
+        # Check if Input Columns don't exist for the specified file
+        if not self.dict_tableFilesPaths[fName][self.dkeyInputList()]:  # if True
+            msg = "In < " + fName + " > no INPUT columns found!"  # set message
+            coFunc.consoleMessage(errorType404 + msg)  # print message to Console as Warning
+            coFunc.errorMessageDialog(classRef=self,
+                                      errorType=errorType404,
+                                      textMessageInfo=msg,
+                                      iconPath=self.iconPath)  # print message to Error Dialog
+            return True  # return True
+        # Check if Output Columns don't exist for the specified file
+        elif not self.dict_tableFilesPaths[fName][self.dkeyOutputList()]:  # if True
+            msg = "In < " + fName + " > no OUTPUT columns found!"  # set message
+            coFunc.consoleMessage(errorType404 + msg)  # print message to Console as Warning
+            coFunc.errorMessageDialog(classRef=self,
+                                      errorType=errorType404,
+                                      textMessageInfo=msg,
+                                      iconPath=self.iconPath)  # print message to Error Dialog
+            return True  # return True
+        return False  # return False
+
+    def BE_linearExecution(self):
+        pass
+
+    def BE_parallelExecution(self):
+        pass
+
+    # *                                                         * #
+    # *********************************************************** #
 
     def actionButtonExecute(self):
         pass
@@ -387,6 +439,148 @@ class WidgetMachineLearningMainWidget(QWidget):
                 self.listWidget_ColumnList.setCurrentRow(0)  # Set first row selected
         else:
             self.fileName = None
+
+    # *********************************************************** #
+    # ******************** Helping Functions ******************** #
+    # *********************************************************** #
+    # *                                                         * #
+
+    def updateInputList(self):
+        self.widgetTabInputOutput.listWidget_InputColumns.clear()  # Clear Event Widget
+        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
+            if self.dict_tableFilesPaths[key][self.dkeyInputList()] is not []:  # if event key is not []
+                for event in self.dict_tableFilesPaths[key][self.dkeyInputList()]:  # for each EVENT
+                    # Add ITEM to INPUT widget
+                    self.widgetTabInputOutput.listWidget_InputColumns.addItem(
+                        QListWidgetItem(key + " -> " + event))
+
+    def removeFromInputColumn(self, fileName, column):
+        # Remove the specified COLUMN from INPUT_COLUMN_LIST for the specified FILE
+        if column in self.dict_tableFilesPaths[fileName][self.dkeyInputList()]:
+            self.dict_tableFilesPaths[fileName][self.dkeyInputList()].remove(column)
+
+    def updateOutputList(self):
+        self.widgetTabInputOutput.listWidget_OutputColumns.clear()  # Clear Event Widget
+        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
+            if self.dict_tableFilesPaths[key][self.dkeyOutputList()] is not []:  # if event key is not []
+                for event in self.dict_tableFilesPaths[key][self.dkeyOutputList()]:  # for each EVENT
+                    # Add ITEM to OUTPUT widget
+                    self.widgetTabInputOutput.listWidget_OutputColumns.addItem(
+                        QListWidgetItem(key + " -> " + event))
+
+    def removeFromOutputColumn(self, fileName, column):
+        # Remove the specified COLUMN from OUTPUT_COLUMN_LIST for the specified FILE
+        if column in self.dict_tableFilesPaths[fileName][self.dkeyOutputList()]:
+            self.dict_tableFilesPaths[fileName][self.dkeyOutputList()].remove(column)
+
+    def updatePrimaryEventList(self):
+        self.widgetTabInputOutput.listWidget_PrimaryEvent.clear()  # Clear Primary Event Widget
+        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
+            # if primary event key is not None
+            if self.dict_tableFilesPaths[key][self.dkeyPrimaryEventColumn()] is not None:
+                # Add ITEM to PRIMARY_EVENT widget
+                self.widgetTabInputOutput.listWidget_PrimaryEvent.addItem(
+                    QListWidgetItem(key + " -> " + self.dict_tableFilesPaths[key][self.dkeyPrimaryEventColumn()]))
+
+    def resetPrimEventColumn(self, fileName):
+        # Set PRIMARY_COLUMN for the specified FILE to None
+        self.dict_tableFilesPaths[fileName][self.dkeyPrimaryEventColumn()] = None
+
+    # *                                                         * #
+    # *********************************************************** #
+
+    def actionButtonInput(self):
+        # If some file is selected and some columns are selected
+        if self.listWidget_FileList.currentItem() is not None and \
+                self.listWidget_ColumnList.currentItem() is not None:
+            # get current columns selected
+            currentSelectedItems = self.listWidget_ColumnList.selectedItems()
+            for currentColumnSelected in currentSelectedItems:  # for each item selected
+                # if this column is not in the INPUT List
+                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self.dkeyInputList()]:
+                    # Add it to list
+                    self.dict_tableFilesPaths[self.fileName][self.dkeyInputList()].append(currentColumnSelected.text())
+                    # If this column exist in the private event list
+                    if currentColumnSelected.text() == self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()]:
+                        self.resetPrimEventColumn(self.fileName)  # remove it from the list
+                        self.updatePrimaryEventList()  # update Input widget
+                # print(currentFileName, " -> ", currentColumnSelected.text())
+            self.updateInputList()  # update Event widget
+
+    def actionButtonRemInput(self):
+        # If some file is selected and some columns are selected
+        if self.widgetTabInputOutput.listWidget_InputColumns.currentItem() is not None:
+            # get selected items
+            selectedItems = self.widgetTabInputOutput.listWidget_InputColumns.selectedItems()
+            for item in selectedItems:  # for each item
+                tmp_str = item.text()  # get text
+                fileName = tmp_str.split(' -> ')[0]  # get fileName
+                columnName = tmp_str.split(' -> ')[1]  # get columnName
+                self.removeFromInputColumn(fileName, columnName)  # remove event from the list
+            self.updateInputList()  # update EVENT widget
+
+    def actionButtonOutput(self):
+        # If some file is selected and some columns are selected
+        if self.listWidget_FileList.currentItem() is not None and \
+                self.listWidget_ColumnList.currentItem() is not None:
+            # get current columns selected
+            currentSelectedItems = self.listWidget_ColumnList.selectedItems()
+            for currentColumnSelected in currentSelectedItems:  # for each item selected
+                # if this column is not in the INPUT List
+                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self.dkeyOutputList()]:
+                    # Add it to list
+                    self.dict_tableFilesPaths[self.fileName][self.dkeyOutputList()].append(currentColumnSelected.text())
+                    # If this column exist in the private event list
+                    if currentColumnSelected.text() == self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()]:
+                        self.resetPrimEventColumn(self.fileName)  # remove it from the list
+                        self.updatePrimaryEventList()  # update Input widget
+                # print(currentFileName, " -> ", currentColumnSelected.text())
+            self.updateOutputList()  # update Event widget
+
+    def actionButtonRemOutput(self):
+        # If some file is selected and some columns are selected
+        if self.widgetTabInputOutput.listWidget_OutputColumns.currentItem() is not None:
+            # get selected items
+            selectedItems = self.widgetTabInputOutput.listWidget_OutputColumns.selectedItems()
+            for item in selectedItems:  # for each item
+                tmp_str = item.text()  # get text
+                fileName = tmp_str.split(' -> ')[0]  # get fileName
+                columnName = tmp_str.split(' -> ')[1]  # get columnName
+                self.removeFromOutputColumn(fileName, columnName)  # remove event from the list
+            self.updateOutputList()  # update EVENT widget
+
+    def actionButtonPrimaryEvent(self):
+        # If some file is selected and some column is selected
+        if self.listWidget_FileList.currentItem() is not None and \
+                self.listWidget_ColumnList.currentItem() is not None:
+            # get current column name
+            currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
+            # If this column exist in the input list
+            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self.dkeyInputList()]:
+                self.removeFromInputColumn(self.fileName, currentColumnSelected)  # remove it from the list
+                self.updateInputList()  # update Input widget
+            # If this column exist in the output list
+            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self.dkeyOutputList()]:
+                self.removeFromOutputColumn(self.fileName, currentColumnSelected)  # remove it from the list
+                self.updateOutputList()  # update Input widget
+
+            # print(currentFileName, " -> ", currentColumnSelected)
+
+            # Add it to the PRIMARY_EVENT
+            self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()] = currentColumnSelected
+            self.updatePrimaryEventList()  # update Primary Event widget
+
+    def actionButtonRemPrimaryEvent(self):
+        # If some file is selected and some columns are selected
+        if self.widgetTabInputOutput.listWidget_PrimaryEvent.isActiveWindow() and \
+                self.widgetTabInputOutput.listWidget_PrimaryEvent.currentItem() is not None:
+            # get selected item
+            selectedItems = self.widgetTabInputOutput.listWidget_PrimaryEvent.selectedItems()
+            for item in selectedItems:  # for each item
+                tmp_str = item.text()  # get text
+                fileName = tmp_str.split(' -> ')[0]  # get fileName
+                self.resetPrimEventColumn(fileName)  # remove PRIMARY_EVENT from the list
+            self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
 
     # ***** SET SETTINGS GENERAL EVENTS ACTIONS *** #
     def actionExperimentResultChange(self):
@@ -494,6 +688,118 @@ class WidgetTabMachineLearningSettings(QWidget):
         self.mainTabWidget.addTab(self.tabKNeighborsRegressor, "K-Neighbors Regressor")  # add tab to mainTabWidget
 
         self.vbox_main_layout.addWidget(self.mainTabWidget)  # add tabWidget to main layout
+
+
+class WidgetTabInputOutput(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet(setStyle_())  # set the tab style
+
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+        # -------------------------- #
+        # ----- Set PushButton ----- #
+        # -------------------------- #
+        self.buttonInputColumn = QPushButton("Add Input Column (X)")
+        self.buttonInputColumn.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonInputColumn.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonInputColumn.setShortcut("I")  # Set Shortcut
+        self.buttonInputColumn.setToolTip('Set selected column as Input Column.')  # Add Description
+
+        self.buttonRemInputColumn = QPushButton("Remove")
+        self.buttonRemInputColumn.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemInputColumn.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemInputColumn.setToolTip('Remove selected column from Input List.')  # Add Description
+
+        self.buttonOutputColumn = QPushButton("Add Output Column (Y)")
+        self.buttonOutputColumn.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonOutputColumn.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonOutputColumn.setShortcut("O")  # Set Shortcut
+        self.buttonOutputColumn.setToolTip('Set selected column as Output Column.')  # Add Description
+
+        self.buttonRemOutputColumn = QPushButton("Remove")
+        self.buttonRemOutputColumn.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemOutputColumn.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemOutputColumn.setToolTip('Remove selected column from Output List.')  # Add Description
+
+        self.buttonPrimaryEvent = QPushButton("Primary Event")
+        self.buttonPrimaryEvent.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonPrimaryEvent.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonPrimaryEvent.setShortcut("P")  # Set Shortcut
+        self.buttonPrimaryEvent.setToolTip('Set selected column as Primary Event.')  # Add Description
+
+        self.buttonRemPrimaryEvent = QPushButton("Remove")
+        self.buttonRemPrimaryEvent.setMinimumWidth(INT_BUTTON_MIN_WIDTH)  # Set Minimum Width
+        self.buttonRemPrimaryEvent.setMinimumHeight(INT_BUTTON_MIN_WIDTH / 2)  # Set Minimum Height
+        self.buttonRemPrimaryEvent.setToolTip('Remove selected column from Primary Event.')  # Add Description
+
+        # -------------------------------- #
+        # ----- Set QListWidgetItems ----- #
+        # -------------------------------- #
+        self.listWidget_InputColumns = QListWidget()
+        self.listWidget_InputColumns.setSelectionMode(QListWidget.ExtendedSelection)
+        self.listWidget_OutputColumns = QListWidget()
+        self.listWidget_OutputColumns.setSelectionMode(QListWidget.ExtendedSelection)
+        self.listWidget_PrimaryEvent = QListWidget()
+        self.listWidget_PrimaryEvent.setSelectionMode(QListWidget.ExtendedSelection)
+
+    # --------------------------- #
+    # ----- Reuse Functions ----- #
+    # --------------------------- #
+    def setWidget(self):
+        # Set column/remove buttons in vbox
+        hbox_listInputButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_listInputButtons.addWidget(self.buttonInputColumn)  # Add buttonDate
+        hbox_listInputButtons.addWidget(self.buttonRemInputColumn)  # Add buttonRemove
+
+        hbox_listOutputButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_listOutputButtons.addWidget(self.buttonOutputColumn)  # Add buttonTime
+        hbox_listOutputButtons.addWidget(self.buttonRemOutputColumn)  # Add buttonRemove
+
+        hbox_listPrimaryButtons = QHBoxLayout()  # Create a Horizontal Box Layout
+        hbox_listPrimaryButtons.addWidget(self.buttonPrimaryEvent)  # Add buttonTime
+        hbox_listPrimaryButtons.addWidget(self.buttonRemPrimaryEvent)  # Add buttonRemove
+
+        # Set Input hbox
+        labelInputList = QLabel("Input Columns:\n" +
+                                "(the columns that will be used as training/test/validation " +
+                                "input\nfor the machine learning)")
+        vbox_listInputColumns = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listInputColumns.addWidget(labelInputList)  # Add Label
+        vbox_listInputColumns.addWidget(self.listWidget_InputColumns)  # Add Column List
+        vbox_listInputColumns.addLayout(hbox_listInputButtons)  # Add Layout
+
+        # Set Output hbox
+        labelOutputList = QLabel("Output Columns:\n" +
+                                 "(the columns that will be used as training/test/validation " +
+                                 "output\nfor the machine learning)")
+        vbox_listOutputColumns = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listOutputColumns.addWidget(labelOutputList)  # Add Label
+        vbox_listOutputColumns.addWidget(self.listWidget_OutputColumns)  # Add Column List
+        vbox_listOutputColumns.addLayout(hbox_listOutputButtons)  # Add Layout
+
+        # Set Primary Event hbox
+        labelPrimaryEventList = QLabel("Primary/Common Event Column (Optional):")
+        vbox_listPrimaryEvent = QVBoxLayout()  # Create a Horizontal Box Layout
+        vbox_listPrimaryEvent.addWidget(labelPrimaryEventList)  # Add Label
+        vbox_listPrimaryEvent.addWidget(self.listWidget_PrimaryEvent)  # Add Column List
+        vbox_listPrimaryEvent.addLayout(hbox_listPrimaryButtons)  # Add Layout
+
+        # Set ListWidget in hbox
+        hbox_listWidget = QHBoxLayout()  # Create Horizontal Layout
+        hbox_listWidget.addLayout(vbox_listInputColumns)  # Add vbox_Combine_1 layout
+        hbox_listWidget.addLayout(vbox_listOutputColumns)  # Add vbox_Combine_2 layout
+
+        # Set a vbox
+        vbox_finalListWidget = QVBoxLayout()
+        vbox_finalListWidget.addLayout(hbox_listWidget)
+        vbox_finalListWidget.addLayout(vbox_listPrimaryEvent)
+
+        self.vbox_main_layout.addLayout(vbox_finalListWidget)
 
 
 class WidgetTabMachineLearningSettingsGeneral(QWidget):
