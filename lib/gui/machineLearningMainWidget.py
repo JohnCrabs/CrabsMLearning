@@ -613,6 +613,8 @@ class WidgetMachineLearningMainWidget(QWidget):
         if success:
             self.widgetTabMachineLearningSettings.tabGeneral.lineEdit_SetOutPath.setText(dialog)
 
+    # ***** SET SETTINGS MACHINE LEARNING TYPE ACTIONS *** #
+
     # ***** SET SETTINGS LINEAR REGRESSION EVENTS ACTIONS *** #
 
     # ***** SET SETTINGS RIDGE EVENTS ACTIONS *** #
