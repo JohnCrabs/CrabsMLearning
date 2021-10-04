@@ -21,7 +21,8 @@ from PySide2.QtWidgets import (
     # QMessageBox,
     QSpinBox,
     QDoubleSpinBox,
-    QLineEdit
+    QLineEdit,
+    QComboBox
 )
 
 from PySide2.QtGui import (
@@ -64,7 +65,9 @@ class WidgetMachineLearningMainWidget(QWidget):
         self._DKEY_MLP_EXPORT_FOLDER: str = 'export-folder'
         self._DKEY_MLP_HOLDOUT_SIZE: str = 'holdout-size'
         self._DKEY_MLP_EXPER_NUMBER: str = 'experiment-number'
-        self._DKEY_MLP_SEQUENCE_STEP_INDEX: str = 'sequence-step-index'
+        self._DKEY_MLP_ML_METHOD: str = 'ml-method'
+        self._DKEY_MLP_METHOD_INDEX: str = 'ml-type-index'
+        self._DKEY_MLP_MULTIFILE_TRAINING_PROCESSING: str = 'multifile-training-processing'
 
         # -------------------------------- #
         # ----- Set QTabWidget ----------- #
@@ -136,7 +139,9 @@ class WidgetMachineLearningMainWidget(QWidget):
             self.dkey_mlpTestPercentage(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultTestPercentage(),
             self.dkey_mlpHoldoutPercentage(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultHoldoutPercentage(),
             self.dkey_mlpExportFolder(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultExportPath(),
-            self.dkey_mlpSequenceStepIndex(): 7
+            self.dkey_mlpMethod(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultMethod(),
+            self.dkey_mlpMethodIndex(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultMethodIndex(),
+            self.dkey_multifileTrainingProcessing(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultMultifileTrainingProcessing()
         }
 
     # DICTIONARY FILE PARAMETERS
@@ -174,8 +179,14 @@ class WidgetMachineLearningMainWidget(QWidget):
     def dkey_mlpExperimentNumber(self):
         return self._DKEY_MLP_EXPER_NUMBER
 
-    def dkey_mlpSequenceStepIndex(self):
-        return self._DKEY_MLP_SEQUENCE_STEP_INDEX
+    def dkey_mlpMethod(self):
+        return self._DKEY_MLP_ML_METHOD
+
+    def dkey_mlpMethodIndex(self):
+        return self._DKEY_MLP_METHOD_INDEX
+
+    def dkey_multifileTrainingProcessing(self):
+        return self._DKEY_MLP_MULTIFILE_TRAINING_PROCESSING
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -285,6 +296,9 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetTabMachineLearningSettings.tabGeneral.spinBox_ExperimentNumber.valueChanged.connect(
             self.actionExperimentResultChange)
 
+        self.widgetTabMachineLearningSettings.tabGeneral.spinBox_MachineLearningMethodsIndex.valueChanged.connect(
+            self.actionMachineLearningMethodIndexChange)
+
         # Double Spin Boxes  Events
         self.widgetTabMachineLearningSettings.tabGeneral.doubleSpinBox_TestPercentage.valueChanged.connect(
             self.actionTestPercentageChange)
@@ -299,6 +313,13 @@ class WidgetMachineLearningMainWidget(QWidget):
         # Button Events
         self.widgetTabMachineLearningSettings.tabGeneral.buttonSetOutPath.clicked.connect(
             self.actionButtonSetOutPathClicked)
+
+        # Combo Box Events
+        self.widgetTabMachineLearningSettings.tabGeneral.comboBox_MachineLearningMethods.currentTextChanged.connect(
+            self.actionMachineLearningMethodChange)
+
+        self.widgetTabMachineLearningSettings.tabGeneral.comboBox_MultifileTrainingProcessing.currentTextChanged.connect(
+            self.actionMultifileTrainingProcessingChange)
 
     def setTabSettingsLinearRegressionEvents_(self):
         pass
@@ -613,6 +634,21 @@ class WidgetMachineLearningMainWidget(QWidget):
         if success:
             self.widgetTabMachineLearningSettings.tabGeneral.lineEdit_SetOutPath.setText(dialog)
 
+    def actionMachineLearningMethodChange(self):
+        self.dict_machineLearningParameters[self.dkey_mlpMethod()] = \
+            self.widgetTabMachineLearningSettings.tabGeneral.comboBox_MachineLearningMethods.currentText()
+        # print(self.dict_machineLearningParameters[self.dkey_mlpMethod()])
+
+    def actionMachineLearningMethodIndexChange(self):
+        self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()] = \
+            self.widgetTabMachineLearningSettings.tabGeneral.spinBox_MachineLearningMethodsIndex.value()
+        # print(self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
+
+    def actionMultifileTrainingProcessingChange(self):
+        self.dict_machineLearningParameters[self.dkey_multifileTrainingProcessing()] = \
+            self.widgetTabMachineLearningSettings.tabGeneral.comboBox_MultifileTrainingProcessing.currentText()
+        # print(self.dict_machineLearningParameters[self.dkey_multifileTrainingProcessing()])
+
     # ***** SET SETTINGS MACHINE LEARNING TYPE ACTIONS *** #
 
     # ***** SET SETTINGS LINEAR REGRESSION EVENTS ACTIONS *** #
@@ -651,7 +687,6 @@ class WidgetTabMachineLearningSettings(QWidget):
         self.mainTabWidget = QTabWidget()  # Create a main widget tab
 
         self.tabGeneral = WidgetTabMachineLearningSettingsGeneral()  # create a tab for General (info)
-        self.tabMachineLearningType = WidgetTabMachineLearningSettingsMachineLearningType()  # create a tab for Type (Sequencial/Mean)
         self.tabLinearRegression = WidgetTabMachineLearningSettingsLinearRegression()  # create a tab for LinearRegression
         self.tabRidge = WidgetTabMachineLearningSettingsRidge()  # create a tab for Ridge
         self.tabLasso = WidgetTabMachineLearningSettingsLasso()  # create a tab for Lasso
@@ -667,7 +702,6 @@ class WidgetTabMachineLearningSettings(QWidget):
             :return: Nothing
         """
         self.tabGeneral.setWidget()  # set tab General (info)
-        self.tabMachineLearningType.setWidget()  # set tab Machine Learning Type
         self.tabLinearRegression.setWidget()  # set tab LinearRegression
         self.tabRidge.setWidget()  # set tab Ridge
         self.tabLasso.setWidget()  # set tab Lasso
@@ -678,7 +712,6 @@ class WidgetTabMachineLearningSettings(QWidget):
         self.tabKNeighborsRegressor.setWidget()  # set tab KNeighborsRegressor
 
         self.mainTabWidget.addTab(self.tabGeneral, "General")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabMachineLearningType, "Machine Learning Type")  # add tab to mainTabWidget
         self.mainTabWidget.addTab(self.tabLinearRegression, "Linear Regression")  # add tab to mainTabWidget
         self.mainTabWidget.addTab(self.tabRidge, "Ridge")  # add tab to mainTabWidget
         self.mainTabWidget.addTab(self.tabLasso, "Lasso")  # add tab to mainTabWidget
@@ -837,6 +870,14 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # set the minimum value to 1 (at least an experiments must be performed)
         self.spinBox_ExperimentNumber.setMinimum(1)
 
+        # create a spinBox for the MachineLearningMethodIndex
+        self.spinBox_MachineLearningMethodsIndex = QSpinBox()
+        # set the minimum value to 1 (at least a row needs to be used as input/output)
+        self.spinBox_MachineLearningMethodsIndex.setMinimum(1)
+
+        # -------------------------- #
+        # ----- QDoubleSpinBox ----- #
+        # -------------------------- #
         # create a doubleSpinBox for the test percentage
         self.doubleSpinBox_TestPercentage = QDoubleSpinBox()
         # set minimum value
@@ -857,9 +898,24 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # --------------------- #
         # ----- QLineEdit ----- #
         # --------------------- #
-
         self.lineEdit_SetOutPath = QLineEdit()
         self.lineEdit_SetOutPath.setEnabled(False)
+
+        # --------------------- #
+        # ----- QComboBox ----- #
+        # --------------------- #
+        # MachineLearningMethods
+        self.comboBox_MachineLearningMethods = QComboBox()
+        self.comboBox_MachineLearningMethods.setMinimumWidth(150)
+        self.comboBox_MachineLearningMethods.addItem(MLPF_TYPE_SEQUENTIAL)
+        self.comboBox_MachineLearningMethods.addItem(MLPF_TYPE_AVERAGE)
+        self.comboBox_MachineLearningMethods.addItem(MLPF_TYPE_SEQUENTIAL_AVERAGE)
+
+        # MultifileTrainingProcessing
+        self.comboBox_MultifileTrainingProcessing = QComboBox()
+        self.comboBox_MultifileTrainingProcessing.setMinimumWidth(200)
+        self.comboBox_MultifileTrainingProcessing.addItem(MLPF_MULTIFILE_TRAINING_PROCESSING_LINEAR)
+        self.comboBox_MultifileTrainingProcessing.addItem(MLPF_MULTIFILE_TRAINING_PROCESSING_PARALLEL)
 
         # ------------------------------ #
         # ----- Set Default Values ----- #
@@ -868,6 +924,9 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         self._testPercentageDefaultValue = MLF_DEFAULT_TEST_PERCENTAGE
         self._holdoutPercentageDefaultValue = MLF_DEFAULT_HOLDOUT_PERCENTAGE
         self._exportPathDefaultValue = MLF_DEFAULT_EXPORT_FOLDER_PATH
+        self._mlMethodDefaultValue = MLF_DEFAULT_METHOD
+        self._mlMethodIndexDefaultValue = MLF_DEFAULT_METHOD_INDEX
+        self._mlMultifileTrainingProcessingDefaultValue = MLF_DEFAULT_MULTIFILE_TRAINING_PROCESSING
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -884,8 +943,10 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         label_ExperimentalNumber = QLabel("Number of Experiments:")
         label_TestPercentage = QLabel("Test Percentage (0.00-0.75):")
         label_HoldOutPercentage = QLabel("Hold-Out Percentage (0.00-0.75):")
-
         label_SetOutPath = QLabel("Export Folder:")
+        label_MachineLearningMethod = QLabel("Machine Learning Method:")
+        label_MachineLearningMethodIndex = QLabel("Method Usage Index:")
+        label_MultifileTrainingProcessing = QLabel("Multifile Training Processing:")
 
         # Set SpinBoxes
         hbox_ExperimentalNumber = QHBoxLayout()
@@ -919,8 +980,31 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         hbox_buttons.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
         hbox_buttons.addWidget(self.buttonRestoreDefault)
 
+        # MachineLearningMethods
+        hbox_MachineLearningMethods = QHBoxLayout()
+        hbox_MachineLearningMethods.addWidget(label_MachineLearningMethod)
+        hbox_MachineLearningMethods.addWidget(self.comboBox_MachineLearningMethods)
+        hbox_MachineLearningMethods.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_MachineLearningMethodsIndex = QHBoxLayout()
+        hbox_MachineLearningMethodsIndex.addWidget(label_MachineLearningMethodIndex)
+        hbox_MachineLearningMethodsIndex.addWidget(self.spinBox_MachineLearningMethodsIndex)
+        hbox_MachineLearningMethodsIndex.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        vbox_finalMachineLearningMethods = QVBoxLayout()
+        vbox_finalMachineLearningMethods.addLayout(hbox_MachineLearningMethods)
+        vbox_finalMachineLearningMethods.addLayout(hbox_MachineLearningMethodsIndex)
+
+        # MultifileTrainingProcessing
+        hbox_MultifileTrainingProcessing = QHBoxLayout()
+        hbox_MultifileTrainingProcessing.addWidget(label_MultifileTrainingProcessing)
+        hbox_MultifileTrainingProcessing.addWidget(self.comboBox_MultifileTrainingProcessing)
+        hbox_MultifileTrainingProcessing.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
         self.vbox_main_layout.addLayout(vbox_finalSpinBoxes)
         self.vbox_main_layout.addLayout(hbox_SetOutPath)
+        self.vbox_main_layout.addLayout(vbox_finalMachineLearningMethods)
+        self.vbox_main_layout.addLayout(hbox_MultifileTrainingProcessing)
         self.vbox_main_layout.addSpacerItem(QSpacerItem(0, INT_MAX_STRETCH))
         self.vbox_main_layout.addLayout(hbox_buttons)
 
@@ -930,6 +1014,9 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         self.doubleSpinBox_TestPercentage.setValue(self._testPercentageDefaultValue)
         self.doubleSpinBox_HoldoutPercentage.setValue(self._holdoutPercentageDefaultValue)
         self.lineEdit_SetOutPath.setText(os.path.normpath(self._exportPathDefaultValue))
+        self.comboBox_MachineLearningMethods.setCurrentText(self._mlMethodDefaultValue)
+        self.spinBox_MachineLearningMethodsIndex.setValue(self._mlMethodIndexDefaultValue)
+        self.comboBox_MultifileTrainingProcessing.setCurrentText(self._mlMultifileTrainingProcessingDefaultValue)
 
     def setEvents_(self):
         self.buttonRestoreDefault.clicked.connect(self.restoreDefaultValues)
@@ -949,28 +1036,14 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
     def getDefaultExportPath(self):
         return self._exportPathDefaultValue
 
+    def getDefaultMethod(self):
+        return self._mlMethodDefaultValue
 
-class WidgetTabMachineLearningSettingsMachineLearningType(QWidget):
-    def __init__(self):
-        super().__init__()
+    def getDefaultMethodIndex(self):
+        return self._mlMethodIndexDefaultValue
 
-        self.setStyleSheet(setStyle_())
-
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
-        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
-
-    # --------------------------- #
-    # ----- Reuse Functions ----- #
-    # --------------------------- #
-    def setWidget(self):
-        """
-            A function to create the widget components into the main QWidget
-            :return: Nothing
-        """
-        # Set Label
-        pass
+    def getDefaultMultifileTrainingProcessing(self):
+        return self._mlMultifileTrainingProcessingDefaultValue
 
 
 class WidgetTabMachineLearningSettingsLinearRegression(QWidget):

@@ -27,67 +27,6 @@ import lib.gui.commonFunctions as coFunc
 class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidget):
     def __init__(self, w=512, h=512, minW=256, minH=256, maxW=512, maxH=512, winTitle='My Window', iconPath=''):
         super().__init__(w, h, minW, minH, maxW, maxH, winTitle, iconPath)
-        self.widgetTabInputOutput = WidgetTabInputOutput()  # A tab for input output columns
-        self.iconPath = iconPath
-
-    # ------------------------------- #
-    # ----- Overwrite Functions ----- #
-    # ------------------------------- #
-
-    def setEvents_(self):
-        # buttonInputColumn
-        self.widgetTabInputOutput.buttonInputColumn.clicked.connect(self.actionButtonInput)
-        # buttonRemInputColumn
-        self.widgetTabInputOutput.buttonRemInputColumn.clicked.connect(self.actionButtonRemInput)
-        # buttonOutputColumn
-        self.widgetTabInputOutput.buttonOutputColumn.clicked.connect(self.actionButtonOutput)
-        # buttonRemOutputColumn
-        self.widgetTabInputOutput.buttonRemOutputColumn.clicked.connect(self.actionButtonRemOutput)
-        # buttonPrimaryEvent
-        self.widgetTabInputOutput.buttonPrimaryEvent.clicked.connect(self.actionButtonPrimaryEvent)
-        # buttonRemPrimaryEvent
-        self.widgetTabInputOutput.buttonRemPrimaryEvent.clicked.connect(self.actionButtonRemPrimaryEvent)
-
-    def setTab(self):
-        # Set main Tab Widget
-        self.widgetTabInputOutput.setWidget()  # Set the Tab File Management Widget
-        self.mainTabWidget.addTab(self.widgetTabInputOutput, "Input/Output Management")  # Add it to mainTanWidget
-
-    # *********************************************************** #
-    # *****(***** Helping Functions for ButtonExecute *********** #
-    # *********************************************************** #
-    # *                                                         * #
-
-    def BE_errorExist(self, fName):
-        errorType404 = "Error 404: "  # set error type
-        # Check if Input Columns don't exist for the specified file
-        if not self.dict_tableFilesPaths[fName][self.dkeyInputList()]:  # if True
-            msg = "In < " + fName + " > no INPUT columns found!"  # set message
-            coFunc.consoleMessage(errorType404 + msg)  # print message to Console as Warning
-            coFunc.errorMessageDialog(classRef=self,
-                                      errorType=errorType404,
-                                      textMessageInfo=msg,
-                                      iconPath=self.iconPath)  # print message to Error Dialog
-            return True  # return True
-        # Check if Output Columns don't exist for the specified file
-        elif not self.dict_tableFilesPaths[fName][self.dkeyOutputList()]:  # if True
-            msg = "In < " + fName + " > no OUTPUT columns found!"  # set message
-            coFunc.consoleMessage(errorType404 + msg)  # print message to Console as Warning
-            coFunc.errorMessageDialog(classRef=self,
-                                      errorType=errorType404,
-                                      textMessageInfo=msg,
-                                      iconPath=self.iconPath)  # print message to Error Dialog
-            return True  # return True
-        return False  # return False
-
-    def BE_linearExecution(self):
-        pass
-
-    def BE_parallelExecution(self):
-        pass
-
-    # *                                                         * #
-    # *********************************************************** #
 
     def actionButtonExecute(self):
         dict_list_input_columns = {}
@@ -98,7 +37,7 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
         dict_max_values_for_output_columns = {}
         dict_store_folderFileNames = {}
 
-        sequenceStepIndex = self.dict_machineLearningParameters[self.dkey_mlpSequenceStepIndex()]
+        sequenceStepIndex = self.dict_machineLearningParameters[self.dkey_mlpTypeIndex()]
         list_of_input_headers = []
         list_of_output_headers = []
         list_of_output_headers_real = []
@@ -617,156 +556,10 @@ class WidgetMachineLearningSequential2(ML_mainWid.WidgetMachineLearningMainWidge
             else:
                 pass
 
-    # *********************************************************** #
-    # ******************** Helping Functions ******************** #
-    # *********************************************************** #
-    # *                                                         * #
 
-    def updateInputList(self):
-        self.widgetTabInputOutput.listWidget_InputColumns.clear()  # Clear Event Widget
-        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
-            if self.dict_tableFilesPaths[key][self.dkeyInputList()] is not []:  # if event key is not []
-                for event in self.dict_tableFilesPaths[key][self.dkeyInputList()]:  # for each EVENT
-                    # Add ITEM to INPUT widget
-                    self.widgetTabInputOutput.listWidget_InputColumns.addItem(
-                        QListWidgetItem(key + " -> " + event))
 
-    def removeFromInputColumn(self, fileName, column):
-        # Remove the specified COLUMN from INPUT_COLUMN_LIST for the specified FILE
-        if column in self.dict_tableFilesPaths[fileName][self.dkeyInputList()]:
-            self.dict_tableFilesPaths[fileName][self.dkeyInputList()].remove(column)
 
-    def updateOutputList(self):
-        self.widgetTabInputOutput.listWidget_OutputColumns.clear()  # Clear Event Widget
-        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
-            if self.dict_tableFilesPaths[key][self.dkeyOutputList()] is not []:  # if event key is not []
-                for event in self.dict_tableFilesPaths[key][self.dkeyOutputList()]:  # for each EVENT
-                    # Add ITEM to OUTPUT widget
-                    self.widgetTabInputOutput.listWidget_OutputColumns.addItem(
-                        QListWidgetItem(key + " -> " + event))
 
-    def removeFromOutputColumn(self, fileName, column):
-        # Remove the specified COLUMN from OUTPUT_COLUMN_LIST for the specified FILE
-        if column in self.dict_tableFilesPaths[fileName][self.dkeyOutputList()]:
-            self.dict_tableFilesPaths[fileName][self.dkeyOutputList()].remove(column)
-
-    def updatePrimaryEventList(self):
-        self.widgetTabInputOutput.listWidget_PrimaryEvent.clear()  # Clear Primary Event Widget
-        for key in self.dict_tableFilesPaths.keys():  # For each key (fileName)
-            # if primary event key is not None
-            if self.dict_tableFilesPaths[key][self.dkeyPrimaryEventColumn()] is not None:
-                # Add ITEM to PRIMARY_EVENT widget
-                self.widgetTabInputOutput.listWidget_PrimaryEvent.addItem(
-                    QListWidgetItem(key + " -> " + self.dict_tableFilesPaths[key][self.dkeyPrimaryEventColumn()]))
-
-    def resetPrimEventColumn(self, fileName):
-        # Set PRIMARY_COLUMN for the specified FILE to None
-        self.dict_tableFilesPaths[fileName][self.dkeyPrimaryEventColumn()] = None
-
-    # *                                                         * #
-    # *********************************************************** #
-
-    def updateButtonRemove(self):
-        self.updateInputList()
-        self.updateOutputList()
-        self.updatePrimaryEventList()
-
-    # ------------------ #
-    # ----- Events ----- #
-    # ------------------ #
-
-    def actionButtonInput(self):
-        # If some file is selected and some columns are selected
-        if self.listWidget_FileList.currentItem() is not None and \
-                self.listWidget_ColumnList.currentItem() is not None:
-            # get current columns selected
-            currentSelectedItems = self.listWidget_ColumnList.selectedItems()
-            for currentColumnSelected in currentSelectedItems:  # for each item selected
-                # if this column is not in the INPUT List
-                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self.dkeyInputList()]:
-                    # Add it to list
-                    self.dict_tableFilesPaths[self.fileName][self.dkeyInputList()].append(currentColumnSelected.text())
-                    # If this column exist in the private event list
-                    if currentColumnSelected.text() == self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()]:
-                        self.resetPrimEventColumn(self.fileName)  # remove it from the list
-                        self.updatePrimaryEventList()  # update Input widget
-                # print(currentFileName, " -> ", currentColumnSelected.text())
-            self.updateInputList()  # update Event widget
-
-    def actionButtonRemInput(self):
-        # If some file is selected and some columns are selected
-        if self.widgetTabInputOutput.listWidget_InputColumns.currentItem() is not None:
-            # get selected items
-            selectedItems = self.widgetTabInputOutput.listWidget_InputColumns.selectedItems()
-            for item in selectedItems:  # for each item
-                tmp_str = item.text()  # get text
-                fileName = tmp_str.split(' -> ')[0]  # get fileName
-                columnName = tmp_str.split(' -> ')[1]  # get columnName
-                self.removeFromInputColumn(fileName, columnName)  # remove event from the list
-            self.updateInputList()  # update EVENT widget
-
-    def actionButtonOutput(self):
-        # If some file is selected and some columns are selected
-        if self.listWidget_FileList.currentItem() is not None and \
-                self.listWidget_ColumnList.currentItem() is not None:
-            # get current columns selected
-            currentSelectedItems = self.listWidget_ColumnList.selectedItems()
-            for currentColumnSelected in currentSelectedItems:  # for each item selected
-                # if this column is not in the INPUT List
-                if currentColumnSelected.text() not in self.dict_tableFilesPaths[self.fileName][self.dkeyOutputList()]:
-                    # Add it to list
-                    self.dict_tableFilesPaths[self.fileName][self.dkeyOutputList()].append(currentColumnSelected.text())
-                    # If this column exist in the private event list
-                    if currentColumnSelected.text() == self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()]:
-                        self.resetPrimEventColumn(self.fileName)  # remove it from the list
-                        self.updatePrimaryEventList()  # update Input widget
-                # print(currentFileName, " -> ", currentColumnSelected.text())
-            self.updateOutputList()  # update Event widget
-
-    def actionButtonRemOutput(self):
-        # If some file is selected and some columns are selected
-        if self.widgetTabInputOutput.listWidget_OutputColumns.currentItem() is not None:
-            # get selected items
-            selectedItems = self.widgetTabInputOutput.listWidget_OutputColumns.selectedItems()
-            for item in selectedItems:  # for each item
-                tmp_str = item.text()  # get text
-                fileName = tmp_str.split(' -> ')[0]  # get fileName
-                columnName = tmp_str.split(' -> ')[1]  # get columnName
-                self.removeFromOutputColumn(fileName, columnName)  # remove event from the list
-            self.updateOutputList()  # update EVENT widget
-
-    def actionButtonPrimaryEvent(self):
-        # If some file is selected and some column is selected
-        if self.listWidget_FileList.currentItem() is not None and \
-                self.listWidget_ColumnList.currentItem() is not None:
-            # get current column name
-            currentColumnSelected = self.listWidget_ColumnList.currentItem().text()
-            # If this column exist in the input list
-            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self.dkeyInputList()]:
-                self.removeFromInputColumn(self.fileName, currentColumnSelected)  # remove it from the list
-                self.updateInputList()  # update Input widget
-            # If this column exist in the output list
-            if currentColumnSelected in self.dict_tableFilesPaths[self.fileName][self.dkeyOutputList()]:
-                self.removeFromOutputColumn(self.fileName, currentColumnSelected)  # remove it from the list
-                self.updateOutputList()  # update Input widget
-
-            # print(currentFileName, " -> ", currentColumnSelected)
-
-            # Add it to the PRIMARY_EVENT
-            self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()] = currentColumnSelected
-            self.updatePrimaryEventList()  # update Primary Event widget
-
-    def actionButtonRemPrimaryEvent(self):
-        # If some file is selected and some columns are selected
-        if self.widgetTabInputOutput.listWidget_PrimaryEvent.isActiveWindow() and \
-                self.widgetTabInputOutput.listWidget_PrimaryEvent.currentItem() is not None:
-            # get selected item
-            selectedItems = self.widgetTabInputOutput.listWidget_PrimaryEvent.selectedItems()
-            for item in selectedItems:  # for each item
-                tmp_str = item.text()  # get text
-                fileName = tmp_str.split(' -> ')[0]  # get fileName
-                self.resetPrimEventColumn(fileName)  # remove PRIMARY_EVENT from the list
-            self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
 
 
 class WidgetTabInputOutput(QWidget):
