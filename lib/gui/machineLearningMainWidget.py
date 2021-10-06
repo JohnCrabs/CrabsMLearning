@@ -4,7 +4,7 @@ import matplotlib
 import pandas as pd
 
 # from PySide2.QtCore import (
-#     QUrl
+#     QThreadPool
 # )
 
 from PySide2.QtWidgets import (
@@ -23,7 +23,7 @@ from PySide2.QtWidgets import (
     QSpinBox,
     QDoubleSpinBox,
     QLineEdit,
-    QComboBox
+    QComboBox,
 )
 
 from PySide2.QtGui import (
@@ -31,7 +31,7 @@ from PySide2.QtGui import (
     QPixmap
 )
 
-import lib.core.my_calendar_v2 as my_cal_v2
+# import lib.core.my_calendar_v2 as my_cal_v2
 from lib.core.project_flags import *
 
 from lib.gui.guiStyle import setStyle_
@@ -251,7 +251,7 @@ class WidgetMachineLearningMainWidget(QWidget):
     # ----- Reuse Action Functions ----- #
     # ---------------------------------- #
 
-    def addItemsToList(self, fullPath, splitter=my_cal_v2.del_comma):
+    def addItemsToList(self, fullPath):
         fileName = fullPath.split('/')[-1:][0]  # find the name of the file
         # Create the dictionary
         self.dict_tableFilesPaths[fileName] = {self.dkeyFileName(): fileName,
@@ -373,7 +373,7 @@ class WidgetMachineLearningMainWidget(QWidget):
     # -------------------------- #
     # ***** SET MAIN EVENTS ACTIONS *** #
     def actionButtonAdd(self):
-        # Open a dialog for CSV files
+        # Open dialog
         success, dialog = coFunc.openFileDialog(
             classRef=self,
             dialogName='Open Table File',
@@ -490,7 +490,8 @@ class WidgetMachineLearningMainWidget(QWidget):
     def actionButtonExecute(self):
         # FUNCTION FLAGS
         _FUNC_FLAG_KEY_DATA = 'Data'
-        _FUNC_FLAG_KEY_PRIMARY_EVENT = 'Primary Event'
+        _FUNC_FLAG_KEY_COLUMN_PRIMARY_EVENT_DATA = 'Column Primary Event Data'
+        _FUNC_FLAG_KEY_PRIMARY_EVENT_UNIQUE_VALUES = 'Primary Event Unique Values'
 
         dict_fileData = {}
 
@@ -503,8 +504,31 @@ class WidgetMachineLearningMainWidget(QWidget):
 
             # 01 - Read the data
             for fileName in self.dict_tableFilesPaths.keys():
+                # Create a tmp variable primaryEvent for code simplicity
+                primaryEvent = self.dict_tableFilesPaths[fileName][self.dkeyPrimaryEventColumn()]
                 dict_fileData[fileName] = {}  # Create a dictionary for file Data
+                # read the data and store them in dictionary
                 dict_fileData[fileName][_FUNC_FLAG_KEY_DATA] = self.BE_readFileData(fileName)
+                # create the PRIMARY_EVENT_DATA key and set it as None till we check the user selection
+                dict_fileData[fileName][_FUNC_FLAG_KEY_COLUMN_PRIMARY_EVENT_DATA] = None
+                # if primaryEvent value is not None (means the user picked a primary column)
+                if primaryEvent is not None:
+                    # add the unique values in the dictionary with key PRIMARY_EVENT_UNIQUE_VALUES
+                    dict_fileData[fileName][_FUNC_FLAG_KEY_PRIMARY_EVENT_UNIQUE_VALUES] = []
+                    [dict_fileData[fileName][_FUNC_FLAG_KEY_PRIMARY_EVENT_UNIQUE_VALUES].append(value)
+                     for value in dict_fileData[fileName][_FUNC_FLAG_KEY_DATA][primaryEvent]
+                     if value not in dict_fileData[fileName][_FUNC_FLAG_KEY_PRIMARY_EVENT_UNIQUE_VALUES]]
+
+                    # Set the PRIMARY_EVENT_DATA as a dict
+                    dict_fileData[fileName][_FUNC_FLAG_KEY_COLUMN_PRIMARY_EVENT_DATA] = {}
+
+                    # Create the event keys and store the corresponding rows for each key
+                    for _event_ in dict_fileData[fileName][_FUNC_FLAG_KEY_PRIMARY_EVENT_UNIQUE_VALUES]:
+                        tmp_df = dict_fileData[fileName][_FUNC_FLAG_KEY_DATA].copy()  # create a tmp copy of the data
+                        tmp_df = tmp_df.loc[tmp_df[primaryEvent] == _event_]  # select only the rows of the events
+                        del tmp_df[primaryEvent]
+                        dict_fileData[fileName][_FUNC_FLAG_KEY_COLUMN_PRIMARY_EVENT_DATA][_event_] = tmp_df.values.tolist()
+                # print(dict_fileData[fileName])
 
     def actionFileListRowChanged_event(self):
         self.listWidget_ColumnList.clear()  # Clear Column Widget
