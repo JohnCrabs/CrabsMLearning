@@ -98,11 +98,11 @@ def getColumnNames(path):
     # Read the file Data - CSV
     if suffix == 'csv':
         # read only the needed columns
-        fileData = pd.read_csv(path)
+        fileData = pd.read_csv(path, nrows=1)
         columns = fileData.keys().tolist()
         # print(fileData.keys())
     elif suffix == 'xlsx':
         # read only the needed columns
-        fileData = pd.read_excel(path)
+        fileData = pd.read_excel(path, nrows=1)
         columns = fileData.keys().tolist()
     return columns
