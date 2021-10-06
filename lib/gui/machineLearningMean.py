@@ -308,7 +308,7 @@ class WidgetMachineLearningMean(QWidget):
         # Create the dictionary
         self.dict_tableFilesPaths[fileName] = {_DKEY_FILE_NAME: fileName,
                                                _DKEY_FULLPATH: fullPath,
-                                               _DKEY_COLUMNS: file_manip.getColumnNames(fullPath, splitter=splitter),
+                                               _DKEY_COLUMNS: file_manip.getColumnNames(fullPath),
                                                _DKEY_INPUT_LIST: [],
                                                _DKEY_OUTPUT_LIST: [],
                                                _DKEY_PRIMARY_EVENT_COLUMN: None

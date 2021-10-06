@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from shutil import copyfile
 
 PATH_NORM_SLASH = os.path.normpath('/')
@@ -90,7 +91,18 @@ def pathFileSuffix(path):
     return os.path.splitext(path)[1]
 
 
-def getColumnNames(path, splitter=','):
-    with open(path, 'r') as f:
-        columnLine = f.readline()
-        return columnLine.rstrip().lstrip().split(splitter)
+def getColumnNames(path):
+    # find the file suffix (extension) and take is as lowercase without the comma
+    suffix = os.path.splitext(path)[1].lower().split('.')[1]
+    columns = []
+    # Read the file Data - CSV
+    if suffix == 'csv':
+        # read only the needed columns
+        fileData = pd.read_csv(path)
+        columns = fileData.keys().tolist()
+        # print(fileData.keys())
+    elif suffix == 'xlsx':
+        # read only the needed columns
+        fileData = pd.read_excel(path)
+        columns = fileData.keys().tolist()
+    return columns

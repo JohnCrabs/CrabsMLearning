@@ -1,6 +1,7 @@
 import os.path
 import sys
 import matplotlib
+import pandas as pd
 
 # from PySide2.QtCore import (
 #     QUrl
@@ -43,9 +44,13 @@ matplotlib.use("Agg")  # Set matplotlib to use non-interface (don't plot figures
 
 class WidgetMachineLearningMainWidget(QWidget):
     def __init__(self, w=512, h=512, minW=256, minH=256, maxW=None, maxH=None,
-                 winTitle='My Window', iconPath=''):
+                 winTitle='My Window', iconPath=None):
         super().__init__()
         self.setStyleSheet(setStyle_())  # Set the styleSheet
+        self.iconPath = iconPath
+
+        # Set this flag to True to show debugging messages to console
+        self.debugMessageFlag = True
 
         # -------------------------------- #
         # ----- Private QTabWidget ------- #
@@ -81,7 +86,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         # ----- Set Window ----- #
         # ---------------------- #
         self.setWindowTitle(winTitle)  # Set Window Title
-        self.setWindowIcon(QIcon(iconPath))  # Set Window Icon
+        self.setWindowIcon(QIcon(self.iconPath))  # Set Window Icon
         self.setGeometry(INT_SCREEN_WIDTH / 4, INT_SCREEN_HEIGHT / 4, w, h)  # Set Window Geometry
         self.setMinimumWidth(minW)  # Set Window Minimum Width
         self.setMinimumHeight(minH)  # Set Window Minimum Height
@@ -251,8 +256,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         # Create the dictionary
         self.dict_tableFilesPaths[fileName] = {self.dkeyFileName(): fileName,
                                                self.dkeyFullPath(): fullPath,
-                                               self.dkeyColumnsList(): file_manip.getColumnNames(fullPath,
-                                                                                                 splitter=splitter),
+                                               self.dkeyColumnsList(): file_manip.getColumnNames(fullPath),
                                                self.dkeyInputList(): [],
                                                self.dkeyOutputList(): [],
                                                self.dkeyPrimaryEventColumn(): None
@@ -372,9 +376,10 @@ class WidgetMachineLearningMainWidget(QWidget):
         # Open a dialog for CSV files
         success, dialog = coFunc.openFileDialog(
             classRef=self,
-            dialogName='Open Table File (Currently strictly CSV)',
+            dialogName='Open Table File',
             dialogOpenAt=self.str_pathToTheProject,
-            dialogFilters=["CSV File Format (*.csv)"],
+            dialogFilters=["CSV File Format (*.csv)",
+                           "Microsoft Office Excel File (*.xlsx)"],
             dialogMultipleSelection=True)
 
         if success:  # if True
@@ -410,7 +415,7 @@ class WidgetMachineLearningMainWidget(QWidget):
                 self.buttonExecute.setEnabled(False)  # disable the Execute Button
 
     # *********************************************************** #
-    # *****(***** Helping Functions for ButtonExecute *********** #
+    # *********** Helping Functions for ButtonExecute *********** #
     # *********************************************************** #
     # *                                                         * #
 
@@ -436,6 +441,43 @@ class WidgetMachineLearningMainWidget(QWidget):
             return True  # return True
         return False  # return False
 
+    def BE_readFileData(self, fName):
+        # find the file suffix (extension) and take is as lowercase without the comma
+        suffix = os.path.splitext(self.dict_tableFilesPaths[fName][self.dkeyFullPath()])[1].lower().split('.')[1]
+        # create a variable named fileData and set it to None (it will store panda array if all goes well)
+        fileData = None
+        # create a list to store all the needed columns (we don't need columns we will not use - RAM saving)
+        fileDataUseColumns = []
+        # Check if user selected primary event column
+        if self.dict_tableFilesPaths[fName][self.dkeyPrimaryEventColumn()] is not None:
+            fileDataUseColumns.append(self.dict_tableFilesPaths[fName][self.dkeyPrimaryEventColumn()])  # add it to list
+            # print(self.dict_tableFilesPaths[fName][self.dkeyPrimaryEventColumn()])
+        # append to list (if not already) the values from input column list
+        [fileDataUseColumns.append(col) for col in self.dict_tableFilesPaths[fName][self.dkeyInputList()]
+         if col not in fileDataUseColumns]
+        # append to list (if not already) the values from output column list
+        [fileDataUseColumns.append(col) for col in self.dict_tableFilesPaths[fName][self.dkeyOutputList()]
+         if col not in fileDataUseColumns]
+        # print(fileDataUseColumns)
+
+        print("Read " + suffix + " file.")  # info message
+
+        # Read the file Data - CSV
+        if suffix == 'csv':
+            # read only the needed columns
+            fileData = pd.read_csv(self.dict_tableFilesPaths[fName][self.dkeyFullPath()])[fileDataUseColumns]
+            # print(fileData.keys())
+        elif suffix == 'xlsx':
+            # read only the needed columns
+            fileData = pd.read_excel(self.dict_tableFilesPaths[fName][self.dkeyFullPath()])[fileDataUseColumns]
+
+        # print(fileData)
+
+        if fileData is not None:  # if file has been read successfully
+            fileData.fillna(method='ffill', inplace=True)  # fill na values using ffill
+            fileData.fillna(method='bfill', inplace=True)  # fill na values using bfill
+        return fileData  # return the fileData
+
     def BE_linearExecution(self):
         pass
 
@@ -446,7 +488,23 @@ class WidgetMachineLearningMainWidget(QWidget):
     # *********************************************************** #
 
     def actionButtonExecute(self):
-        pass
+        # FUNCTION FLAGS
+        _FUNC_FLAG_KEY_DATA = 'Data'
+        _FUNC_FLAG_KEY_PRIMARY_EVENT = 'Primary Event'
+
+        dict_fileData = {}
+
+        # If true run the main pipeline
+        if self.dict_tableFilesPaths.keys().__len__() > 0:  # if there is at least a file (safety if)
+            # 00 - Error Checking
+            for fileName in self.dict_tableFilesPaths.keys():  # for each file in tableFilePaths
+                if self.BE_errorExist(fileName):  # if errors exists
+                    return  # exit the function
+
+            # 01 - Read the data
+            for fileName in self.dict_tableFilesPaths.keys():
+                dict_fileData[fileName] = {}  # Create a dictionary for file Data
+                dict_fileData[fileName][_FUNC_FLAG_KEY_DATA] = self.BE_readFileData(fileName)
 
     def actionFileListRowChanged_event(self):
         self.listWidget_ColumnList.clear()  # Clear Column Widget
@@ -607,22 +665,26 @@ class WidgetMachineLearningMainWidget(QWidget):
     def actionExperimentResultChange(self):
         self.dict_machineLearningParameters[self.dkey_mlpExperimentNumber()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.spinBox_ExperimentNumber.value()
-        # print(self.dict_machineLearningParameters[self.dkey_mlpExperimentNumber()])
+        if self.debugMessageFlag:
+            print(self.dict_machineLearningParameters[self.dkey_mlpExperimentNumber()])
 
     def actionTestPercentageChange(self):
         self.dict_machineLearningParameters[self.dkey_mlpTestPercentage()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.doubleSpinBox_TestPercentage.value()
-        # print(self.dict_machineLearningParameters[self.dkey_mlpTestPercentage()])
+        if self.debugMessageFlag:
+            print(self.dict_machineLearningParameters[self.dkey_mlpTestPercentage()])
 
     def actionHoldoutPercentageChange(self):
         self.dict_machineLearningParameters[self.dkey_mlpHoldoutPercentage()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.doubleSpinBox_HoldoutPercentage.value()
-        # print(self.dict_machineLearningParameters[self.dkey_mlpHoldoutPercentage()])
+        if self.debugMessageFlag:
+            print(self.dict_machineLearningParameters[self.dkey_mlpHoldoutPercentage()])
 
     def actionLineEditChange(self):
         self.dict_machineLearningParameters[self.dkey_mlpExportFolder()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.lineEdit_SetOutPath.text()
-        # print(self.dict_machineLearningParameters[self.dkey_mlpExportFolder()])
+        if self.debugMessageFlag:
+            print(self.dict_machineLearningParameters[self.dkey_mlpExportFolder()])
 
     def actionButtonSetOutPathClicked(self):
         success, dialog = coFunc.openDirectoryDialog(
@@ -637,17 +699,20 @@ class WidgetMachineLearningMainWidget(QWidget):
     def actionMachineLearningMethodChange(self):
         self.dict_machineLearningParameters[self.dkey_mlpMethod()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.comboBox_MachineLearningMethods.currentText()
-        # print(self.dict_machineLearningParameters[self.dkey_mlpMethod()])
+        if self.debugMessageFlag:
+            print(self.dict_machineLearningParameters[self.dkey_mlpMethod()])
 
     def actionMachineLearningMethodIndexChange(self):
         self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.spinBox_MachineLearningMethodsIndex.value()
-        # print(self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
+        if self.debugMessageFlag:
+            print(self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
 
     def actionMultifileTrainingProcessingChange(self):
         self.dict_machineLearningParameters[self.dkey_multifileTrainingProcessing()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.comboBox_MultifileTrainingProcessing.currentText()
-        # print(self.dict_machineLearningParameters[self.dkey_multifileTrainingProcessing()])
+        if self.debugMessageFlag:
+            print(self.dict_machineLearningParameters[self.dkey_multifileTrainingProcessing()])
 
     # ***** SET SETTINGS MACHINE LEARNING TYPE ACTIONS *** #
 
@@ -665,66 +730,13 @@ class WidgetMachineLearningMainWidget(QWidget):
 
     # ***** SET SETTINGS K-NEIGHBORS REGRESSOR EVENTS ACTIONS *** #
 
-    # ------------------------- #
-    # ----- Message Boxes ----- #
-    # ------------------------- #
 
+# *********************************** #
+# *********** Tab Widgets *********** #
+# *********************************** #
+# *                                 * #
 
-class WidgetTabMachineLearningSettings(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setStyleSheet(setStyle_())
-
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
-        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
-
-        # ------------------- #
-        # ----- Set Tab ----- #
-        # ------------------- #
-        self.mainTabWidget = QTabWidget()  # Create a main widget tab
-
-        self.tabGeneral = WidgetTabMachineLearningSettingsGeneral()  # create a tab for General (info)
-        self.tabLinearRegression = WidgetTabMachineLearningSettingsLinearRegression()  # create a tab for LinearRegression
-        self.tabRidge = WidgetTabMachineLearningSettingsRidge()  # create a tab for Ridge
-        self.tabLasso = WidgetTabMachineLearningSettingsLasso()  # create a tab for Lasso
-        self.tabDecisionTreeRegressor = WidgetTabMachineLearningSettingsDecisionTreeRegressor()  # create a tab for DecisionTreeRegressor
-        self.tabRandomForestRegressor = WidgetTabMachineLearningSettingsRandomForestRegressor()  # create a tab for RandomForestRegressor
-        self.tabGradientBoostingRegressor = WidgetTabMachineLearningSettingsGradientBoostingRegressor()  # create a tab for GradientBoostingRegressor
-        self.tabAdaBoostRegressor = WidgetTabMachineLearningSettingsAdaBoostRegressor()  # create a tab for AdaBoostRegressor
-        self.tabKNeighborsRegressor = WidgetTabMachineLearningSettingsKNeighborsRegressor()  # create a tab for KNeighborsRegressor
-
-    def setWidget(self):
-        """
-            A function to create the widget components into the main QWidget
-            :return: Nothing
-        """
-        self.tabGeneral.setWidget()  # set tab General (info)
-        self.tabLinearRegression.setWidget()  # set tab LinearRegression
-        self.tabRidge.setWidget()  # set tab Ridge
-        self.tabLasso.setWidget()  # set tab Lasso
-        self.tabDecisionTreeRegressor.setWidget()  # set tab DecisionTreeRegressor
-        self.tabRandomForestRegressor.setWidget()  # set tab RandomForestRegressor
-        self.tabGradientBoostingRegressor.setWidget()  # set tab GradientBoostingRegressor
-        self.tabAdaBoostRegressor.setWidget()  # set tab AdaBoostRegressor
-        self.tabKNeighborsRegressor.setWidget()  # set tab KNeighborsRegressor
-
-        self.mainTabWidget.addTab(self.tabGeneral, "General")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabLinearRegression, "Linear Regression")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabRidge, "Ridge")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabLasso, "Lasso")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabDecisionTreeRegressor, "Decision Tree Regressor")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabRandomForestRegressor, "Random Forest Regressor")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabGradientBoostingRegressor,
-                                  "Gradient Boosting Regressor")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabAdaBoostRegressor, "Ada Boost Regressor")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabKNeighborsRegressor, "K-Neighbors Regressor")  # add tab to mainTabWidget
-
-        self.vbox_main_layout.addWidget(self.mainTabWidget)  # add tabWidget to main layout
-
-
+# *********** Machine Learning I/O *********** #
 class WidgetTabInputOutput(QWidget):
     def __init__(self):
         super().__init__()
@@ -837,6 +849,63 @@ class WidgetTabInputOutput(QWidget):
         self.vbox_main_layout.addLayout(vbox_finalListWidget)
 
 
+# *********** Machine Learning Settings *********** #
+class WidgetTabMachineLearningSettings(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet(setStyle_())
+
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+        # ------------------- #
+        # ----- Set Tab ----- #
+        # ------------------- #
+        self.mainTabWidget = QTabWidget()  # Create a main widget tab
+
+        self.tabGeneral = WidgetTabMachineLearningSettingsGeneral()  # create a tab for General (info)
+        self.tabLinearRegression = WidgetTabMachineLearningSettingsLinearRegression()  # create a tab for LinearRegression
+        self.tabRidge = WidgetTabMachineLearningSettingsRidge()  # create a tab for Ridge
+        self.tabLasso = WidgetTabMachineLearningSettingsLasso()  # create a tab for Lasso
+        self.tabDecisionTreeRegressor = WidgetTabMachineLearningSettingsDecisionTreeRegressor()  # create a tab for DecisionTreeRegressor
+        self.tabRandomForestRegressor = WidgetTabMachineLearningSettingsRandomForestRegressor()  # create a tab for RandomForestRegressor
+        self.tabGradientBoostingRegressor = WidgetTabMachineLearningSettingsGradientBoostingRegressor()  # create a tab for GradientBoostingRegressor
+        self.tabAdaBoostRegressor = WidgetTabMachineLearningSettingsAdaBoostRegressor()  # create a tab for AdaBoostRegressor
+        self.tabKNeighborsRegressor = WidgetTabMachineLearningSettingsKNeighborsRegressor()  # create a tab for KNeighborsRegressor
+
+    def setWidget(self):
+        """
+            A function to create the widget components into the main QWidget
+            :return: Nothing
+        """
+        self.tabGeneral.setWidget()  # set tab General (info)
+        self.tabLinearRegression.setWidget()  # set tab LinearRegression
+        self.tabRidge.setWidget()  # set tab Ridge
+        self.tabLasso.setWidget()  # set tab Lasso
+        self.tabDecisionTreeRegressor.setWidget()  # set tab DecisionTreeRegressor
+        self.tabRandomForestRegressor.setWidget()  # set tab RandomForestRegressor
+        self.tabGradientBoostingRegressor.setWidget()  # set tab GradientBoostingRegressor
+        self.tabAdaBoostRegressor.setWidget()  # set tab AdaBoostRegressor
+        self.tabKNeighborsRegressor.setWidget()  # set tab KNeighborsRegressor
+
+        self.mainTabWidget.addTab(self.tabGeneral, "General")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabLinearRegression, "Linear Regression")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabRidge, "Ridge")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabLasso, "Lasso")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabDecisionTreeRegressor, "Decision Tree Regressor")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabRandomForestRegressor, "Random Forest Regressor")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabGradientBoostingRegressor,
+                                  "Gradient Boosting Regressor")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabAdaBoostRegressor, "Ada Boost Regressor")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabKNeighborsRegressor, "K-Neighbors Regressor")  # add tab to mainTabWidget
+
+        self.vbox_main_layout.addWidget(self.mainTabWidget)  # add tabWidget to main layout
+
+
+# *********** Machine Learning Settings --> General *********** #
 class WidgetTabMachineLearningSettingsGeneral(QWidget):
     def __init__(self):
         super().__init__()
@@ -1046,6 +1115,7 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         return self._mlMultifileTrainingProcessingDefaultValue
 
 
+# *********** Machine Learning Settings --> LinearRegression *********** #
 class WidgetTabMachineLearningSettingsLinearRegression(QWidget):
     def __init__(self):
         super().__init__()
@@ -1069,6 +1139,7 @@ class WidgetTabMachineLearningSettingsLinearRegression(QWidget):
         pass
 
 
+# *********** Machine Learning Settings --> Ridge *********** #
 class WidgetTabMachineLearningSettingsRidge(QWidget):
     def __init__(self):
         super().__init__()
@@ -1092,6 +1163,7 @@ class WidgetTabMachineLearningSettingsRidge(QWidget):
         pass
 
 
+# *********** Machine Learning Settings --> Lasso *********** #
 class WidgetTabMachineLearningSettingsLasso(QWidget):
     def __init__(self):
         super().__init__()
@@ -1115,6 +1187,7 @@ class WidgetTabMachineLearningSettingsLasso(QWidget):
         pass
 
 
+# *********** Machine Learning Settings --> DecisionTreeRegressor *********** #
 class WidgetTabMachineLearningSettingsDecisionTreeRegressor(QWidget):
     def __init__(self):
         super().__init__()
@@ -1138,6 +1211,7 @@ class WidgetTabMachineLearningSettingsDecisionTreeRegressor(QWidget):
         pass
 
 
+# *********** Machine Learning Settings --> RandomForestRegressor *********** #
 class WidgetTabMachineLearningSettingsRandomForestRegressor(QWidget):
     def __init__(self):
         super().__init__()
@@ -1161,6 +1235,7 @@ class WidgetTabMachineLearningSettingsRandomForestRegressor(QWidget):
         pass
 
 
+# *********** Machine Learning Settings --> GradientBoostingRegressor *********** #
 class WidgetTabMachineLearningSettingsGradientBoostingRegressor(QWidget):
     def __init__(self):
         super().__init__()
@@ -1184,6 +1259,7 @@ class WidgetTabMachineLearningSettingsGradientBoostingRegressor(QWidget):
         pass
 
 
+# *********** Machine Learning Settings --> AdaBoostRegressor *********** #
 class WidgetTabMachineLearningSettingsAdaBoostRegressor(QWidget):
     def __init__(self):
         super().__init__()
@@ -1207,6 +1283,7 @@ class WidgetTabMachineLearningSettingsAdaBoostRegressor(QWidget):
         pass
 
 
+# *********** Machine Learning Settings --> KNeighborsRegressor *********** #
 class WidgetTabMachineLearningSettingsKNeighborsRegressor(QWidget):
     def __init__(self):
         super().__init__()
@@ -1229,6 +1306,8 @@ class WidgetTabMachineLearningSettingsKNeighborsRegressor(QWidget):
         # Set Label
         pass
 
+# *                                 * #
+# *********************************** #
 
 # ******************************************************* #
 # ********************   EXECUTION   ******************** #
