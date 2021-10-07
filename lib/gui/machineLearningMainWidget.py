@@ -478,6 +478,20 @@ class WidgetMachineLearningMainWidget(QWidget):
             fileData.fillna(method='bfill', inplace=True)  # fill na values using bfill
         return fileData  # return the fileData
 
+    def BE_setTrainValTestArrays(self, dictData):
+        X = 0
+        y = 0
+        if self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL:
+            pass
+        elif self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_AVERAGE:
+            pass
+        elif self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL_AVERAGE:
+            pass
+        else:
+            pass
+
+        return X, y
+
     def BE_linearExecution(self):
         pass
 
@@ -498,7 +512,8 @@ class WidgetMachineLearningMainWidget(QWidget):
         _FF_KEY_OUT_COL_HEADER_PRED = 'Output Header Predicted'
         _FF_KEY_INP_COL_DENORM_VAL = 'Denormalize Input Values'
         _FF_KEY_OUT_COL_DENORM_VAL = 'Denormalize Output Values'
-
+        _FF_KEY_TRAIN_VAL_ARRAY = 'Training Validation Array'
+        _FF_KEY_TEST_ARRAY = 'Test Array'
         dict_fileData = {}
 
         # If true run the main pipeline
@@ -516,8 +531,8 @@ class WidgetMachineLearningMainWidget(QWidget):
                 # read the data and store them in dictionary
                 dict_fileData[fileName][_FF_KEY_DATA] = self.BE_readFileData(fileName)
 
-                # create the PRIMARY_EVENT_DATA key and set it as None till we check the user selection
-                dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA] = None
+                # Set the PRIMARY_EVENT_DATA as a dict
+                dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA] = {}
                 # if primaryEvent value is not None (means the user picked a primary column)
                 if primaryEvent is not None:
                     # add the unique values in the dictionary with key PRIMARY_EVENT_UNIQUE_VALUES
@@ -526,9 +541,6 @@ class WidgetMachineLearningMainWidget(QWidget):
                      for value in dict_fileData[fileName][_FF_KEY_DATA][primaryEvent]
                      if value not in dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES]]
 
-                    # Set the PRIMARY_EVENT_DATA as a dict
-                    dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA] = {}
-
                     # Create the event keys and store the corresponding rows for each key
                     for _event_ in dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES]:
                         tmp_df = dict_fileData[fileName][_FF_KEY_DATA].copy()  # create a tmp copy of the data
@@ -536,9 +548,15 @@ class WidgetMachineLearningMainWidget(QWidget):
                         del tmp_df[primaryEvent]
                         dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_event_] = tmp_df.values.tolist()
 
+                else:
+                    tmp_df = dict_fileData[fileName][_FF_KEY_DATA].copy()
+                    dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_DATA] = tmp_df
+
                 # Set the input/output columns
-                dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS] = self.dict_tableFilesPaths[fileName][self.dkeyInputList()]
-                dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS] = self.dict_tableFilesPaths[fileName][self.dkeyOutputList()]
+                dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS] = self.dict_tableFilesPaths[fileName][
+                    self.dkeyInputList()]
+                dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS] = self.dict_tableFilesPaths[fileName][
+                    self.dkeyOutputList()]
                 # Set the output headers Real/Pred which will be used later in the exported results
                 dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL] = []
                 [dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL].append(col + "_Real")
@@ -571,6 +589,9 @@ class WidgetMachineLearningMainWidget(QWidget):
                                                    exportPath=os.path.normpath(
                                                        exportDataFolder + '/OutputColumnsDenormValues.csv'),
                                                    headerLine=['OutputColumn, DenormValue'])
+
+                dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY], dict_fileData[fileName][_FF_KEY_TEST_ARRAY] = \
+                    self.BE_setTrainValTestArrays(dictData=dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA])
 
                 print(dict_fileData[fileName])
 
@@ -1044,9 +1065,9 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # MachineLearningMethods
         self.comboBox_MachineLearningMethods = QComboBox()
         self.comboBox_MachineLearningMethods.setMinimumWidth(150)
-        self.comboBox_MachineLearningMethods.addItem(MLPF_TYPE_SEQUENTIAL)
-        self.comboBox_MachineLearningMethods.addItem(MLPF_TYPE_AVERAGE)
-        self.comboBox_MachineLearningMethods.addItem(MLPF_TYPE_SEQUENTIAL_AVERAGE)
+        self.comboBox_MachineLearningMethods.addItem(MLPF_METHOD_SEQUENTIAL)
+        self.comboBox_MachineLearningMethods.addItem(MLPF_METHOD_AVERAGE)
+        self.comboBox_MachineLearningMethods.addItem(MLPF_METHOD_SEQUENTIAL_AVERAGE)
 
         # MultifileTrainingProcessing
         self.comboBox_MultifileTrainingProcessing = QComboBox()
@@ -1373,6 +1394,7 @@ class WidgetTabMachineLearningSettingsKNeighborsRegressor(QWidget):
         """
         # Set Label
         pass
+
 
 # *                                 * #
 # *********************************** #
