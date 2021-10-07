@@ -489,9 +489,15 @@ class WidgetMachineLearningMainWidget(QWidget):
 
     def actionButtonExecute(self):
         # FUNCTION FLAGS
-        _FUNC_FLAG_KEY_DATA = 'Data'
-        _FUNC_FLAG_KEY_COLUMN_PRIMARY_EVENT_DATA = 'Column Primary Event Data'
-        _FUNC_FLAG_KEY_PRIMARY_EVENT_UNIQUE_VALUES = 'Primary Event Unique Values'
+        _FF_KEY_DATA = 'Data'
+        _FF_KEY_COLUMN_PRIMARY_EVENT_DATA = 'Column Primary Event Data'
+        _FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES = 'Primary Event Unique Values'
+        _FF_KEY_INPUT_COLUMNS = 'Input Columns'
+        _FF_KEY_OUTPUT_COLUMNS = 'Output Columns'
+        _FF_KEY_OUT_COL_HEADER_REAL = 'Output Header Real'
+        _FF_KEY_OUT_COL_HEADER_PRED = 'Output Header Predicted'
+        _FF_KEY_INP_COL_DENORM_VAL = 'Denormalize Input Values'
+        _FF_KEY_OUT_COL_DENORM_VAL = 'Denormalize Output Values'
 
         dict_fileData = {}
 
@@ -508,27 +514,65 @@ class WidgetMachineLearningMainWidget(QWidget):
                 primaryEvent = self.dict_tableFilesPaths[fileName][self.dkeyPrimaryEventColumn()]
                 dict_fileData[fileName] = {}  # Create a dictionary for file Data
                 # read the data and store them in dictionary
-                dict_fileData[fileName][_FUNC_FLAG_KEY_DATA] = self.BE_readFileData(fileName)
+                dict_fileData[fileName][_FF_KEY_DATA] = self.BE_readFileData(fileName)
+
                 # create the PRIMARY_EVENT_DATA key and set it as None till we check the user selection
-                dict_fileData[fileName][_FUNC_FLAG_KEY_COLUMN_PRIMARY_EVENT_DATA] = None
+                dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA] = None
                 # if primaryEvent value is not None (means the user picked a primary column)
                 if primaryEvent is not None:
                     # add the unique values in the dictionary with key PRIMARY_EVENT_UNIQUE_VALUES
-                    dict_fileData[fileName][_FUNC_FLAG_KEY_PRIMARY_EVENT_UNIQUE_VALUES] = []
-                    [dict_fileData[fileName][_FUNC_FLAG_KEY_PRIMARY_EVENT_UNIQUE_VALUES].append(value)
-                     for value in dict_fileData[fileName][_FUNC_FLAG_KEY_DATA][primaryEvent]
-                     if value not in dict_fileData[fileName][_FUNC_FLAG_KEY_PRIMARY_EVENT_UNIQUE_VALUES]]
+                    dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES] = []
+                    [dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES].append(value)
+                     for value in dict_fileData[fileName][_FF_KEY_DATA][primaryEvent]
+                     if value not in dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES]]
 
                     # Set the PRIMARY_EVENT_DATA as a dict
-                    dict_fileData[fileName][_FUNC_FLAG_KEY_COLUMN_PRIMARY_EVENT_DATA] = {}
+                    dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA] = {}
 
                     # Create the event keys and store the corresponding rows for each key
-                    for _event_ in dict_fileData[fileName][_FUNC_FLAG_KEY_PRIMARY_EVENT_UNIQUE_VALUES]:
-                        tmp_df = dict_fileData[fileName][_FUNC_FLAG_KEY_DATA].copy()  # create a tmp copy of the data
+                    for _event_ in dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES]:
+                        tmp_df = dict_fileData[fileName][_FF_KEY_DATA].copy()  # create a tmp copy of the data
                         tmp_df = tmp_df.loc[tmp_df[primaryEvent] == _event_]  # select only the rows of the events
                         del tmp_df[primaryEvent]
-                        dict_fileData[fileName][_FUNC_FLAG_KEY_COLUMN_PRIMARY_EVENT_DATA][_event_] = tmp_df.values.tolist()
-                # print(dict_fileData[fileName])
+                        dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_event_] = tmp_df.values.tolist()
+
+                # Set the input/output columns
+                dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS] = self.dict_tableFilesPaths[fileName][self.dkeyInputList()]
+                dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS] = self.dict_tableFilesPaths[fileName][self.dkeyOutputList()]
+                # Set the output headers Real/Pred which will be used later in the exported results
+                dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL] = []
+                [dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL].append(col + "_Real")
+                 for col in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS]]
+                dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_PRED] = []
+                [dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_PRED].append(col + "_Pred")
+                 for col in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS]]
+
+                # Set the normalize/denormalize values
+                dict_fileData[fileName][_FF_KEY_INP_COL_DENORM_VAL] = {}
+                for _value_ in dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS]:
+                    tmp_col_max_value = dict_fileData[fileName][_FF_KEY_DATA][_value_].max()
+                    dict_fileData[fileName][_FF_KEY_INP_COL_DENORM_VAL][_value_] = tmp_col_max_value
+                dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL] = {}
+                for _value_ in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS]:
+                    tmp_col_max_value = dict_fileData[fileName][_FF_KEY_DATA][_value_].max()
+                    dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL][_value_] = tmp_col_max_value
+
+                # Set a path for exporting the input-output data
+                exportDataFolder = os.path.normpath(self.dict_machineLearningParameters[self.dkey_mlpExportFolder()] +
+                                                    '/' + fileName + '/Data')
+                file_manip.checkAndCreateFolders(exportDataFolder)  # check if path exists and if not create it
+                # Export the input values
+                file_manip.exportDictionaryNonList(dictForExport=dict_fileData[fileName][_FF_KEY_INP_COL_DENORM_VAL],
+                                                   exportPath=os.path.normpath(
+                                                       exportDataFolder + '/InputColumnsDenormValues.csv'),
+                                                   headerLine=['InputColumn, DenormValue'])
+                # Export the output values
+                file_manip.exportDictionaryNonList(dictForExport=dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL],
+                                                   exportPath=os.path.normpath(
+                                                       exportDataFolder + '/OutputColumnsDenormValues.csv'),
+                                                   headerLine=['OutputColumn, DenormValue'])
+
+                print(dict_fileData[fileName])
 
     def actionFileListRowChanged_event(self):
         self.listWidget_ColumnList.clear()  # Clear Column Widget

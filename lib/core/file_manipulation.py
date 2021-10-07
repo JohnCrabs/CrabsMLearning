@@ -1,4 +1,6 @@
 import os
+import csv
+import warnings
 import pandas as pd
 from shutil import copyfile
 
@@ -106,3 +108,32 @@ def getColumnNames(path):
         fileData = pd.read_excel(path, nrows=1)
         columns = fileData.keys().tolist()
     return columns
+
+
+def exportCSV(csv_path: str, list_write: []):
+    """
+    A Function for writing CSV files.
+    :param csv_path: The path for the csv to be exported.
+    :param list_write: The list to be written in file
+    :return: Nothing
+    """
+    if not os.path.exists(os.path.dirname(csv_path)):  # Check if path does not exist
+        warnings.warn("Path does not exist! Path will be created!")  # Warn in console
+        directory = os.path.dirname(csv_path)  # Find the directories in the path
+        os.mkdir(directory)  # Create the directories
+
+    with open(csv_path, 'w', newline='') as csvfile:  # Open the path to write the file
+        csv_writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        for row in list_write:  # For each row
+            csv_writer.writerow(row)  # Write row to file
+
+
+def exportDictionaryNonList(dictForExport: {}, exportPath: str, headerLine=None):
+    exportList = []
+    if headerLine is not None:
+        exportList.append(headerLine)
+    for key in dictForExport.keys():
+        tmp_row = [key, dictForExport[key]]
+        exportList.append(tmp_row)
+    exportCSV(exportPath, exportList)
+
