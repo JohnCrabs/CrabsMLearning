@@ -2,6 +2,7 @@ import os.path
 import sys
 import matplotlib
 import pandas as pd
+import numpy as np
 
 # from PySide2.QtCore import (
 #     QThreadPool
@@ -66,9 +67,10 @@ class WidgetMachineLearningMainWidget(QWidget):
 
         # DICTIONARY MACHINE LEARNING PARAMETERS
         self._DKEY_MLP_TEST_PERCENTAGE: str = 'test-percentage'
-        self._DKEY_MLP_VALIDATION_PERCENTAGE: str = 'validation-percentage'
+        self._DKEY_MLP_TEST_PERCENTAGE_DISTRIBUTION: str = 'test-percentage-distribution'
+        self._DKEY_MLP_HOLDOUT_PERCENTAGE: str = 'holdout-percentage'
+        self._DKEY_MLP_HOLDOUT_PERCENTAGE_DISTRIBUTION: str = 'holdout-percentage-distribution'
         self._DKEY_MLP_EXPORT_FOLDER: str = 'export-folder'
-        self._DKEY_MLP_HOLDOUT_SIZE: str = 'holdout-size'
         self._DKEY_MLP_EXPER_NUMBER: str = 'experiment-number'
         self._DKEY_MLP_ML_METHOD: str = 'ml-method'
         self._DKEY_MLP_METHOD_INDEX: str = 'ml-type-index'
@@ -142,7 +144,9 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.dict_machineLearningParameters = {
             self.dkey_mlpExperimentNumber(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultExperimentNumber(),
             self.dkey_mlpTestPercentage(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultTestPercentage(),
+            self.dkey_mlpTestPercentageDistribution(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultTestPercentageDistribution(),
             self.dkey_mlpHoldoutPercentage(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultHoldoutPercentage(),
+            self.dkey_mlpHoldoutPercentageDistribution(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultHoldoutPercentageDistribution(),
             self.dkey_mlpExportFolder(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultExportPath(),
             self.dkey_mlpMethod(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultMethod(),
             self.dkey_mlpMethodIndex(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultMethodIndex(),
@@ -172,14 +176,17 @@ class WidgetMachineLearningMainWidget(QWidget):
     def dkey_mlpTestPercentage(self):
         return self._DKEY_MLP_TEST_PERCENTAGE
 
-    def dkey_mlpValidationPercentage(self):
-        return self._DKEY_MLP_VALIDATION_PERCENTAGE
+    def dkey_mlpTestPercentageDistribution(self):
+        return self._DKEY_MLP_TEST_PERCENTAGE_DISTRIBUTION
 
     def dkey_mlpExportFolder(self):
         return self._DKEY_MLP_EXPORT_FOLDER
 
     def dkey_mlpHoldoutPercentage(self):
-        return self._DKEY_MLP_HOLDOUT_SIZE
+        return self._DKEY_MLP_HOLDOUT_PERCENTAGE
+
+    def dkey_mlpHoldoutPercentageDistribution(self):
+        return self._DKEY_MLP_HOLDOUT_PERCENTAGE_DISTRIBUTION
 
     def dkey_mlpExperimentNumber(self):
         return self._DKEY_MLP_EXPER_NUMBER
@@ -324,6 +331,12 @@ class WidgetMachineLearningMainWidget(QWidget):
 
         self.widgetTabMachineLearningSettings.tabGeneral.comboBox_MultifileTrainingProcessing.currentTextChanged.connect(
             self.actionMultifileTrainingProcessingChange)
+
+        self.widgetTabMachineLearningSettings.tabGeneral.comboBox_TestPercentageDistribution.currentTextChanged.connect(
+            self.actionTestPercentageDistributionChange)
+
+        self.widgetTabMachineLearningSettings.tabGeneral.comboBox_HoldoutPercentageDistribution.currentTextChanged.connect(
+            self.actionHoldoutPercentageDistributionChange)
 
     def setTabSettingsLinearRegressionEvents_(self):
         pass
@@ -478,19 +491,233 @@ class WidgetMachineLearningMainWidget(QWidget):
             fileData.fillna(method='bfill', inplace=True)  # fill na values using bfill
         return fileData  # return the fileData
 
-    def BE_setTrainValTestArrays(self, dictData):
-        X = 0
-        y = 0
+    def BE_setTrainValTestArrays(self, dictDataInput: {}, dictDataOutput: {}, inputHeaders: [], outputHeaders: []):
+        def getTrainValTest(inputArr, outputArr):
+            datasetSize = inputArr.__len__()
+            testPercentage = self.dict_machineLearningParameters[self.dkey_mlpTestPercentage()]
+            X_train_val_ = []
+            y_train_val_ = []
+            X_test_ = []
+            y_test_ = []
+
+            if self.dict_machineLearningParameters[
+                self.dkey_mlpTestPercentageDistribution()] == MLPF_PERCENTAGE_DISTRIBUTION_RANDOM_FROM_START:
+                permIndexes = np.random.permutation(datasetSize).tolist()
+                trainIdxs = permIndexes[int(testPercentage * datasetSize):]
+                testIdxs = permIndexes[:int(testPercentage * datasetSize)]
+
+                X_train_val_ = np.array(inputArr)[trainIdxs]
+                y_train_val_ = np.array(outputArr)[trainIdxs]
+                X_test_ = np.array(inputArr)[testIdxs]
+                y_test_ = np.array(outputArr)[testIdxs]
+
+            elif self.dict_machineLearningParameters[
+                self.dkey_mlpTestPercentageDistribution()] == MLPF_PERCENTAGE_DISTRIBUTION_RANDOM_FROM_MIDDLE:
+                permIndexes = np.random.permutation(datasetSize).tolist()
+                midIndex = datasetSize / 2
+                sliceSize = testPercentage * datasetSize
+                startIndex = int(midIndex - sliceSize / 2)
+                endIndex = int(midIndex - sliceSize / 2)
+
+                trainIdxs = permIndexes[:startIndex] + permIndexes[-endIndex:]
+                testIdxs = permIndexes[startIndex:-endIndex]
+
+                X_train_val_ = np.array(inputArr)[trainIdxs]
+                y_train_val_ = np.array(outputArr)[trainIdxs]
+                X_test_ = np.array(inputArr)[testIdxs]
+                y_test_ = np.array(outputArr)[testIdxs]
+
+            elif self.dict_machineLearningParameters[
+                self.dkey_mlpTestPercentageDistribution()] == MLPF_PERCENTAGE_DISTRIBUTION_RANDOM_FROM_END:
+                permIndexes = np.random.permutation(datasetSize).tolist()
+                trainIdxs = permIndexes[:-int(testPercentage * datasetSize)]
+                testIdxs = permIndexes[-int(testPercentage * datasetSize):]
+
+                X_train_val_ = np.array(inputArr)[trainIdxs]
+                y_train_val_ = np.array(outputArr)[trainIdxs]
+                X_test_ = np.array(inputArr)[testIdxs]
+                y_test_ = np.array(outputArr)[testIdxs]
+
+            elif self.dict_machineLearningParameters[
+                self.dkey_mlpTestPercentageDistribution()] == MLPF_PERCENTAGE_DISTRIBUTION_FROM_START:
+                datasetIndexes = list(range(datasetSize))
+                trainIdxs = datasetIndexes[int(testPercentage * datasetSize):]
+                testIdxs = datasetIndexes[:int(testPercentage * datasetSize)]
+
+                X_train_val_ = np.array(inputArr)[trainIdxs]
+                y_train_val_ = np.array(outputArr)[trainIdxs]
+                X_test_ = np.array(inputArr)[testIdxs]
+                y_test_ = np.array(outputArr)[testIdxs]
+
+            elif self.dict_machineLearningParameters[
+                self.dkey_mlpTestPercentageDistribution()] == MLPF_PERCENTAGE_DISTRIBUTION_FROM_MIDDLE:
+                datasetIndexes = list(range(datasetSize))
+                midIndex = datasetSize / 2
+                sliceSize = testPercentage * datasetSize
+                startIndex = int(midIndex - sliceSize / 2)
+                endIndex = int(midIndex - sliceSize / 2)
+
+                trainIdxs = datasetIndexes[:startIndex] + datasetIndexes[-endIndex:]
+                testIdxs = datasetIndexes[startIndex:-endIndex]
+
+                X_train_val_ = np.array(inputArr)[trainIdxs]
+                y_train_val_ = np.array(outputArr)[trainIdxs]
+                X_test_ = np.array(inputArr)[testIdxs]
+                y_test_ = np.array(outputArr)[testIdxs]
+
+            elif self.dict_machineLearningParameters[
+                self.dkey_mlpTestPercentageDistribution()] == MLPF_PERCENTAGE_DISTRIBUTION_FROM_END:
+                datasetIndexes = np.array(list(range(datasetSize)))
+                trainIdxs = datasetIndexes[:-int(testPercentage * datasetSize)]
+                testIdxs = datasetIndexes[-int(testPercentage * datasetSize):]
+
+                X_train_val_ = np.array(inputArr)[trainIdxs]
+                y_train_val_ = np.array(outputArr)[trainIdxs]
+                X_test_ = np.array(inputArr)[testIdxs]
+                y_test_ = np.array(outputArr)[testIdxs]
+
+            return X_train_val_, y_train_val_, X_test_, y_test_
+
+        # X_full = {}  # Create an input dict to store the values of train_val + test lists
+        # y_full = {}  # Create an output dict to store the values of train_val + test lists
+        X_train_val = {}  # Create an input dict to store the values of train_val lists
+        y_train_val = {}  # Create an output dict to store the values of train_val lists
+        X_test = {}  # Create an input dict to store the values of test lists
+        y_test = {}  # Create an output dict to store the values of test lists
+        # Shorten the name of methodIndex
+        methodIndex = self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()]
+
+        inputHeaderColumnsForML = []
+        outputHeaderColumnsForML = []
+
+        # Check if the user selected Sequential method
         if self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL:
-            pass
+            for _event_ in dictDataInput.keys():
+                # X_full[_event_] = []
+                # y_full[_event_] = []
+                X_train_val[_event_] = []
+                y_train_val[_event_] = []
+                X_test[_event_] = []
+                y_test[_event_] = []
+
+                tmp_event_arr_input = []
+                tmp_event_arr_output = []
+                for _index_ in range(0, dictDataInput[_event_].__len__() - (2 * methodIndex + 1)):
+                    tmp_arr_input = []
+                    tmp_arr_output = []
+                    for _index2_ in range(_index_, _index_ + methodIndex):
+                        tmp_arr_input.extend(dictDataInput[_event_][_index2_])
+                        tmp_arr_output.extend(dictDataOutput[_event_][_index2_ + methodIndex])
+                    tmp_event_arr_input.append(tmp_arr_input)
+                    tmp_event_arr_output.append(tmp_arr_output)
+                    # X_full[_event_].append(tmp_arr_input)
+                    # y_full[_event_].append(tmp_arr_output)
+                # print("Event: ", _event_)
+                # print("InputShape: ", np.array(tmp_event_arr_input).shape)
+                # print("OutputShape: ", np.array(tmp_event_arr_output).shape)
+                # print()
+
+                X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[_event_] = getTrainValTest(
+                    tmp_event_arr_input,
+                    tmp_event_arr_output)
+
+            for _index_ in range(0, methodIndex):
+                for columnName in inputHeaders:
+                    inputHeaderColumnsForML.append(columnName + '_SEQ_' + str(_index_))
+            for _index_ in range(0, methodIndex):
+                for columnName in outputHeaders:
+                    outputHeaderColumnsForML.append(columnName + '_SEQ_' + str(_index_))
+
+        # Else if the user selected Average method
         elif self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_AVERAGE:
-            pass
+            for _event_ in dictDataInput.keys():
+                # X_full[_event_] = []
+                # y_full[_event_] = []
+                X_train_val[_event_] = []
+                y_train_val[_event_] = []
+                X_test[_event_] = []
+                y_test[_event_] = []
+
+                tmp_event_arr_input = []
+                tmp_event_arr_output = []
+                for _index_ in range(0, dictDataInput[_event_].__len__() - (methodIndex + 1)):
+                    tmp_arr_input = np.zeros(np.array(dictDataInput[_event_][_index_]).shape)
+                    tmp_arr_output = np.zeros(np.array(dictDataOutput[_event_][_index_]).shape)
+                    for _index2_ in range(_index_, _index_ + methodIndex):
+                        tmp_arr_input += np.array(np.array(dictDataInput[_event_][_index2_]))
+                        tmp_arr_output += np.array(np.array(dictDataOutput[_event_][_index2_]))
+                    tmp_arr_input /= methodIndex
+                    tmp_arr_output /= methodIndex
+
+                    tmp_event_arr_input.append(tmp_arr_input.tolist())
+                    tmp_event_arr_output.append(tmp_arr_output.tolist())
+                    # X_full[_event_].append(tmp_arr_input.tolist())
+                    # y_full[_event_].append(tmp_arr_output.tolist())
+                # print("Event: ", _event_)
+                # print("InputShape: ", np.array(tmp_event_arr_input).shape)
+                # print("OutputShape: ", np.array(tmp_event_arr_output).shape)
+                # print()
+
+                X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[_event_] = getTrainValTest(
+                    tmp_event_arr_input,
+                    tmp_event_arr_output)
+
+            inputHeaderColumnsForML = inputHeaders
+            outputHeaderColumnsForML = outputHeaders
+
+        # Check if the user selected Sequential Average method
         elif self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL_AVERAGE:
-            pass
+            for _event_ in dictDataInput.keys():
+                # X_full[_event_] = []
+                # y_full[_event_] = []
+                X_train_val[_event_] = []
+                y_train_val[_event_] = []
+                X_test[_event_] = []
+                y_test[_event_] = []
+
+                tmp_event_arr_input = []
+                tmp_event_arr_output = []
+                for _index_ in range(0, dictDataInput[_event_].__len__() - (2 * methodIndex + 1)):
+                    tmp_arr_input = []
+                    tmp_arr_output = []
+
+                    tmp_arr_input_mean = np.zeros(np.array(dictDataInput[_event_][_index_]).shape)
+                    for _index2_ in range(_index_, _index_ + methodIndex):
+                        tmp_arr_input_mean += dictDataInput[_event_][_index2_]
+                    tmp_arr_input_mean /= methodIndex
+
+                    for _index2_ in range(_index_, _index_ + methodIndex):
+                        # Non absolute values - Uncomment this line for setting the input as non absolute values
+                        tmp_input_ext = np.array(dictDataInput[_event_][_index2_]) - tmp_arr_input_mean
+                        # Absolute values  - Uncomment this line for setting the input as absolute values
+                        # tmp_input_ext = np.absolute(np.array(dictDataInput[_event_][_index2_]) - tmp_arr_input_mean)
+                        tmp_arr_input.extend(tmp_input_ext.tolist())
+                        tmp_arr_output.extend(dictDataOutput[_event_][_index2_ + methodIndex])
+
+                    tmp_event_arr_input.append(tmp_arr_input)
+                    tmp_event_arr_output.append(tmp_arr_output)
+                    # X_full[_event_].append(tmp_arr_input)
+                    # y_full[_event_].append(tmp_arr_output)
+                # print("Event: ", _event_)
+                # print("InputShape: ", np.array(tmp_event_arr_input).shape)
+                # print("OutputShape: ", np.array(tmp_event_arr_output).shape)
+                # print()
+
+                X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[_event_] = getTrainValTest(
+                    tmp_event_arr_input,
+                    tmp_event_arr_output)
+
+            for _index_ in range(0, methodIndex):
+                for columnName in inputHeaders:
+                    inputHeaderColumnsForML.append(columnName + '_SEQ_' + str(_index_))
+            for _index_ in range(0, methodIndex):
+                for columnName in outputHeaders:
+                    outputHeaderColumnsForML.append(columnName + '_SEQ_' + str(_index_))
+
         else:
             pass
 
-        return X, y
+        return X_train_val, y_train_val, X_test, y_test, inputHeaderColumnsForML, outputHeaderColumnsForML
 
     def BE_linearExecution(self):
         pass
@@ -508,12 +735,16 @@ class WidgetMachineLearningMainWidget(QWidget):
         _FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES = 'Primary Event Unique Values'
         _FF_KEY_INPUT_COLUMNS = 'Input Columns'
         _FF_KEY_OUTPUT_COLUMNS = 'Output Columns'
+        _FF_KEY_INPUT_COLUMNS_FOR_ML = 'Input Columns Machine Learning'
+        _FF_KEY_OUTPUT_COLUMNS_FOR_ML = 'Output Columns Machine Learning'
         _FF_KEY_OUT_COL_HEADER_REAL = 'Output Header Real'
         _FF_KEY_OUT_COL_HEADER_PRED = 'Output Header Predicted'
         _FF_KEY_INP_COL_DENORM_VAL = 'Denormalize Input Values'
         _FF_KEY_OUT_COL_DENORM_VAL = 'Denormalize Output Values'
         _FF_KEY_TRAIN_VAL_ARRAY = 'Training Validation Array'
         _FF_KEY_TEST_ARRAY = 'Test Array'
+        _FF_KEY_INPUT = 'Input Array'
+        _FF_KEY_OUTPUT = 'Output Array'
         dict_fileData = {}
 
         # If true run the main pipeline
@@ -531,39 +762,11 @@ class WidgetMachineLearningMainWidget(QWidget):
                 # read the data and store them in dictionary
                 dict_fileData[fileName][_FF_KEY_DATA] = self.BE_readFileData(fileName)
 
-                # Set the PRIMARY_EVENT_DATA as a dict
-                dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA] = {}
-                # if primaryEvent value is not None (means the user picked a primary column)
-                if primaryEvent is not None:
-                    # add the unique values in the dictionary with key PRIMARY_EVENT_UNIQUE_VALUES
-                    dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES] = []
-                    [dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES].append(value)
-                     for value in dict_fileData[fileName][_FF_KEY_DATA][primaryEvent]
-                     if value not in dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES]]
-
-                    # Create the event keys and store the corresponding rows for each key
-                    for _event_ in dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES]:
-                        tmp_df = dict_fileData[fileName][_FF_KEY_DATA].copy()  # create a tmp copy of the data
-                        tmp_df = tmp_df.loc[tmp_df[primaryEvent] == _event_]  # select only the rows of the events
-                        del tmp_df[primaryEvent]
-                        dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_event_] = tmp_df.values.tolist()
-
-                else:
-                    tmp_df = dict_fileData[fileName][_FF_KEY_DATA].copy()
-                    dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_DATA] = tmp_df
-
                 # Set the input/output columns
                 dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS] = self.dict_tableFilesPaths[fileName][
                     self.dkeyInputList()]
                 dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS] = self.dict_tableFilesPaths[fileName][
                     self.dkeyOutputList()]
-                # Set the output headers Real/Pred which will be used later in the exported results
-                dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL] = []
-                [dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL].append(col + "_Real")
-                 for col in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS]]
-                dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_PRED] = []
-                [dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_PRED].append(col + "_Pred")
-                 for col in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS]]
 
                 # Set the normalize/denormalize values
                 dict_fileData[fileName][_FF_KEY_INP_COL_DENORM_VAL] = {}
@@ -576,8 +779,9 @@ class WidgetMachineLearningMainWidget(QWidget):
                     dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL][_value_] = tmp_col_max_value
 
                 # Set a path for exporting the input-output data
+
                 exportDataFolder = os.path.normpath(self.dict_machineLearningParameters[self.dkey_mlpExportFolder()] +
-                                                    '/' + fileName + '/Data')
+                                                    '/' + os.path.splitext(fileName)[0] + '/Data')
                 file_manip.checkAndCreateFolders(exportDataFolder)  # check if path exists and if not create it
                 # Export the input values
                 file_manip.exportDictionaryNonList(dictForExport=dict_fileData[fileName][_FF_KEY_INP_COL_DENORM_VAL],
@@ -590,8 +794,117 @@ class WidgetMachineLearningMainWidget(QWidget):
                                                        exportDataFolder + '/OutputColumnsDenormValues.csv'),
                                                    headerLine=['OutputColumn, DenormValue'])
 
-                dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY], dict_fileData[fileName][_FF_KEY_TEST_ARRAY] = \
-                    self.BE_setTrainValTestArrays(dictData=dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA])
+                # Set the PRIMARY_EVENT_DATA as a dict
+                dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA] = {_FF_KEY_INPUT: {}, _FF_KEY_OUTPUT: {}}
+                # if primaryEvent value is not None (means the user picked a primary column)
+                if primaryEvent is not None:
+                    # add the unique event values in the dictionary with key PRIMARY_EVENT_UNIQUE_VALUES
+                    dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES] = []
+                    [dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES].append(value)
+                     for value in dict_fileData[fileName][_FF_KEY_DATA][primaryEvent]
+                     if value not in dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES]]
+
+                    # Create a dictionary to normalize the data
+                    tmp_dict_normValues = {}
+                    for key in dict_fileData[fileName][_FF_KEY_INP_COL_DENORM_VAL].keys():
+                        tmp_dict_normValues[key] = dict_fileData[fileName][_FF_KEY_INP_COL_DENORM_VAL][key]
+                    for key in dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL].keys():
+                        tmp_dict_normValues[key] = dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL][key]
+
+                    # Create the event keys and store the corresponding rows for each key
+                    for _event_ in dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES]:
+                        tmp_df = dict_fileData[fileName][_FF_KEY_DATA].copy()  # create a tmp copy of the data
+                        tmp_df = tmp_df.loc[tmp_df[primaryEvent] == _event_]  # select only the rows of the events
+                        del tmp_df[primaryEvent]
+
+                        for key in tmp_df.keys():
+                            tmp_df[key] /= tmp_dict_normValues[key]
+
+                        tmp_input_columns = dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS]
+                        tmp_output_columns = dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS]
+
+                        dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_INPUT][_event_] = tmp_df[
+                            tmp_input_columns].values.tolist()
+                        dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_OUTPUT][_event_] = tmp_df[
+                            tmp_output_columns].values.tolist()
+
+                else:
+                    # Create a dictionary to normalize the date
+                    tmp_dict_normValues = {}
+                    for key in dict_fileData[fileName][_FF_KEY_INP_COL_DENORM_VAL].keys():
+                        tmp_dict_normValues[key] = dict_fileData[fileName][_FF_KEY_INP_COL_DENORM_VAL][key]
+                    for key in dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL].keys():
+                        tmp_dict_normValues[key] = dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL][key]
+
+                    tmp_df = dict_fileData[fileName][_FF_KEY_DATA].copy()
+
+                    for key in tmp_df.keys():
+                        tmp_df[key] /= tmp_dict_normValues[key]
+
+                    tmp_input_columns = dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS]
+                    tmp_output_columns = dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS]
+
+                    dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_INPUT][_FF_KEY_DATA] = tmp_df[
+                        tmp_input_columns].values.tolist()
+                    dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_OUTPUT][_FF_KEY_DATA] = tmp_df[
+                        tmp_output_columns].values.tolist()
+
+                dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY] = {}
+                dict_fileData[fileName][_FF_KEY_TEST_ARRAY] = {}
+                dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS_FOR_ML] = []
+                dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML] = []
+
+                (dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_INPUT],
+                 dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_OUTPUT],
+                 dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_INPUT],
+                 dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_OUTPUT],
+                 dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS_FOR_ML],
+                 dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]) = \
+                    self.BE_setTrainValTestArrays(dictDataInput=dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_INPUT],
+                                                  dictDataOutput=dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_OUTPUT],
+                                                  inputHeaders=dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS],
+                                                  outputHeaders=dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS])
+
+                tmp_input_header_arr = ['Event']
+                tmp_input_header_arr.extend(dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS_FOR_ML])
+                tmp_output_header_arr = ['Event']
+                tmp_output_header_arr.extend(dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML])
+
+                print("Export INPUT training array...")
+                file_manip.exportDictionaryList(
+                    dictForExport=dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_INPUT],
+                    exportPath=os.path.normpath(
+                        exportDataFolder + '/InputTrainingValidation.csv'),
+                    headerLine=tmp_input_header_arr)
+
+                print("Export OUTPUT training array...")
+                file_manip.exportDictionaryList(
+                    dictForExport=dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_OUTPUT],
+                    exportPath=os.path.normpath(
+                        exportDataFolder + '/OutputTrainingValidation.csv'),
+                    headerLine=tmp_output_header_arr)
+
+                print("Export INPUT testing array...")
+                file_manip.exportDictionaryList(
+                    dictForExport=dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_INPUT],
+                    exportPath=os.path.normpath(
+                        exportDataFolder + '/InputTest.csv'),
+                    headerLine=tmp_input_header_arr)
+
+                print("Export OUTPUT testing array...")
+                file_manip.exportDictionaryList(
+                    dictForExport=dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_OUTPUT],
+                    exportPath=os.path.normpath(
+                        exportDataFolder + '/OutputTest.csv'),
+                    headerLine=tmp_output_header_arr)
+
+                # Set the output headers Real/Pred which will be used later in the exported results
+                dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL] = []
+                [dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL].append(col + "_Real")
+                 for col in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]]
+                dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_PRED] = []
+                [dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_PRED].append(col + "_Pred")
+                 for col in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]]
 
                 print(dict_fileData[fileName])
 
@@ -669,7 +982,8 @@ class WidgetMachineLearningMainWidget(QWidget):
                     # Add it to list
                     self.dict_tableFilesPaths[self.fileName][self.dkeyInputList()].append(currentColumnSelected.text())
                     # If this column exist in the private event list
-                    if currentColumnSelected.text() == self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()]:
+                    if currentColumnSelected.text() == self.dict_tableFilesPaths[self.fileName][
+                        self.dkeyPrimaryEventColumn()]:
                         self.resetPrimEventColumn(self.fileName)  # remove it from the list
                         self.updatePrimaryEventList()  # update Input widget
                 # print(currentFileName, " -> ", currentColumnSelected.text())
@@ -699,7 +1013,8 @@ class WidgetMachineLearningMainWidget(QWidget):
                     # Add it to list
                     self.dict_tableFilesPaths[self.fileName][self.dkeyOutputList()].append(currentColumnSelected.text())
                     # If this column exist in the private event list
-                    if currentColumnSelected.text() == self.dict_tableFilesPaths[self.fileName][self.dkeyPrimaryEventColumn()]:
+                    if currentColumnSelected.text() == self.dict_tableFilesPaths[self.fileName][
+                        self.dkeyPrimaryEventColumn()]:
                         self.resetPrimEventColumn(self.fileName)  # remove it from the list
                         self.updatePrimaryEventList()  # update Input widget
                 # print(currentFileName, " -> ", currentColumnSelected.text())
@@ -802,6 +1117,18 @@ class WidgetMachineLearningMainWidget(QWidget):
             self.widgetTabMachineLearningSettings.tabGeneral.comboBox_MultifileTrainingProcessing.currentText()
         if self.debugMessageFlag:
             print(self.dict_machineLearningParameters[self.dkey_multifileTrainingProcessing()])
+
+    def actionTestPercentageDistributionChange(self):
+        self.dict_machineLearningParameters[self.dkey_mlpTestPercentageDistribution()] = \
+            self.widgetTabMachineLearningSettings.tabGeneral.comboBox_TestPercentageDistribution.currentText()
+        if self.debugMessageFlag:
+            print(self.dict_machineLearningParameters[self.dkey_mlpTestPercentageDistribution()])
+
+    def actionHoldoutPercentageDistributionChange(self):
+        self.dict_machineLearningParameters[self.dkey_mlpHoldoutPercentageDistribution()] = \
+            self.widgetTabMachineLearningSettings.tabGeneral.comboBox_HoldoutPercentageDistribution.currentText()
+        if self.debugMessageFlag:
+            print(self.dict_machineLearningParameters[self.dkey_mlpHoldoutPercentageDistribution()])
 
     # ***** SET SETTINGS MACHINE LEARNING TYPE ACTIONS *** #
 
@@ -1065,15 +1392,22 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # MachineLearningMethods
         self.comboBox_MachineLearningMethods = QComboBox()
         self.comboBox_MachineLearningMethods.setMinimumWidth(150)
-        self.comboBox_MachineLearningMethods.addItem(MLPF_METHOD_SEQUENTIAL)
-        self.comboBox_MachineLearningMethods.addItem(MLPF_METHOD_AVERAGE)
-        self.comboBox_MachineLearningMethods.addItem(MLPF_METHOD_SEQUENTIAL_AVERAGE)
+        self.comboBox_MachineLearningMethods.addItems(MLPF_METHOD_LIST)
 
         # MultifileTrainingProcessing
         self.comboBox_MultifileTrainingProcessing = QComboBox()
         self.comboBox_MultifileTrainingProcessing.setMinimumWidth(200)
-        self.comboBox_MultifileTrainingProcessing.addItem(MLPF_MULTIFILE_TRAINING_PROCESSING_LINEAR)
-        self.comboBox_MultifileTrainingProcessing.addItem(MLPF_MULTIFILE_TRAINING_PROCESSING_PARALLEL)
+        self.comboBox_MultifileTrainingProcessing.addItems(MLPF_MULTIFILE_TRAINING_PROCESSING_LIST)
+
+        # TestPercentageDistribution
+        self.comboBox_TestPercentageDistribution = QComboBox()
+        self.comboBox_TestPercentageDistribution.setMinimumWidth(200)
+        self.comboBox_TestPercentageDistribution.addItems(MLPF_PERCENTAGE_DISTRIBUTION_LIST)
+
+        # HoldoutPercentageDistribution
+        self.comboBox_HoldoutPercentageDistribution = QComboBox()
+        self.comboBox_HoldoutPercentageDistribution.setMinimumWidth(200)
+        self.comboBox_HoldoutPercentageDistribution.addItems(MLPF_PERCENTAGE_DISTRIBUTION_LIST)
 
         # ------------------------------ #
         # ----- Set Default Values ----- #
@@ -1085,6 +1419,8 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         self._mlMethodDefaultValue = MLF_DEFAULT_METHOD
         self._mlMethodIndexDefaultValue = MLF_DEFAULT_METHOD_INDEX
         self._mlMultifileTrainingProcessingDefaultValue = MLF_DEFAULT_MULTIFILE_TRAINING_PROCESSING
+        self._testPercentageDistributionDefaultValue = MLF_DEFAULT_TEST_PERCENTAGE_DISTRIBUTION
+        self._holdoutPercentageDistributionDefaultValue = MLF_DEFAULT_HOLDOUT_PERCENTAGE_DISTRIBUTION
 
     # --------------------------- #
     # ----- Reuse Functions ----- #
@@ -1099,12 +1435,23 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
 
         # Set Label
         label_ExperimentalNumber = QLabel("Number of Experiments:")
+        # label_ExperimentalNumber.setMinimumWidth(100)
         label_TestPercentage = QLabel("Test Percentage (0.00-0.75):")
+        # label_TestPercentage.setMinimumWidth(100)
+        label_TestPercentageDistribution = QLabel("Test Percentage Distribution:")
+        # label_TestPercentageDistribution.setMinimumWidth(100)
         label_HoldOutPercentage = QLabel("Hold-Out Percentage (0.00-0.75):")
+        # label_HoldOutPercentage.setMinimumWidth(100)
+        label_HoldoutPercentageDistribution = QLabel("Hold-Out Percentage Distribution:")
+        # label_HoldoutPercentageDistribution.setMinimumWidth(100)
         label_SetOutPath = QLabel("Export Folder:")
+        # label_SetOutPath.setMinimumWidth(100)
         label_MachineLearningMethod = QLabel("Machine Learning Method:")
+        # label_MachineLearningMethod.setMinimumWidth(100)
         label_MachineLearningMethodIndex = QLabel("Method Usage Index:")
+        # label_MachineLearningMethodIndex.setMinimumWidth(100)
         label_MultifileTrainingProcessing = QLabel("Multifile Training Processing:")
+        # label_MultifileTrainingProcessing.setMinimumWidth(100)
 
         # Set SpinBoxes
         hbox_ExperimentalNumber = QHBoxLayout()
@@ -1117,21 +1464,34 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         hbox_TestPercentage.addWidget(self.doubleSpinBox_TestPercentage)
         hbox_TestPercentage.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
 
+        hbox_TestPercentageDistribution = QHBoxLayout()
+        hbox_TestPercentageDistribution.addWidget(label_TestPercentageDistribution)
+        hbox_TestPercentageDistribution.addWidget(self.comboBox_TestPercentageDistribution)
+        hbox_TestPercentageDistribution.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
         hbox_HoldOutPercentage = QHBoxLayout()
         hbox_HoldOutPercentage.addWidget(label_HoldOutPercentage)
         hbox_HoldOutPercentage.addWidget(self.doubleSpinBox_HoldoutPercentage)
         hbox_HoldOutPercentage.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
 
+        hbox_HoldOutPercentageDistribution = QHBoxLayout()
+        hbox_HoldOutPercentageDistribution.addWidget(label_HoldoutPercentageDistribution)
+        hbox_HoldOutPercentageDistribution.addWidget(self.comboBox_HoldoutPercentageDistribution)
+        hbox_HoldOutPercentageDistribution.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
         vbox_finalSpinBoxes = QVBoxLayout()
         vbox_finalSpinBoxes.addLayout(hbox_ExperimentalNumber)
         vbox_finalSpinBoxes.addLayout(hbox_TestPercentage)
+        vbox_finalSpinBoxes.addLayout(hbox_TestPercentageDistribution)
         vbox_finalSpinBoxes.addLayout(hbox_HoldOutPercentage)
+        vbox_finalSpinBoxes.addLayout(hbox_HoldOutPercentageDistribution)
 
         # SetOutPath Layout
         hbox_SetOutPath = QHBoxLayout()
         hbox_SetOutPath.addWidget(label_SetOutPath)
         hbox_SetOutPath.addWidget(self.lineEdit_SetOutPath)
         hbox_SetOutPath.addWidget(self.buttonSetOutPath)
+        # hbox_SetOutPath.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
 
         # Button Layout
         hbox_buttons = QHBoxLayout()
@@ -1163,7 +1523,7 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         self.vbox_main_layout.addLayout(hbox_SetOutPath)
         self.vbox_main_layout.addLayout(vbox_finalMachineLearningMethods)
         self.vbox_main_layout.addLayout(hbox_MultifileTrainingProcessing)
-        self.vbox_main_layout.addSpacerItem(QSpacerItem(0, INT_MAX_STRETCH))
+        # self.vbox_main_layout.addSpacerItem(QSpacerItem(0, INT_MAX_STRETCH))
         self.vbox_main_layout.addLayout(hbox_buttons)
 
     def restoreDefaultValues(self):
@@ -1175,6 +1535,8 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         self.comboBox_MachineLearningMethods.setCurrentText(self._mlMethodDefaultValue)
         self.spinBox_MachineLearningMethodsIndex.setValue(self._mlMethodIndexDefaultValue)
         self.comboBox_MultifileTrainingProcessing.setCurrentText(self._mlMultifileTrainingProcessingDefaultValue)
+        self.comboBox_TestPercentageDistribution.setCurrentText(self._testPercentageDistributionDefaultValue)
+        self.comboBox_HoldoutPercentageDistribution.setCurrentText(self._holdoutPercentageDistributionDefaultValue)
 
     def setEvents_(self):
         self.buttonRestoreDefault.clicked.connect(self.restoreDefaultValues)
@@ -1188,8 +1550,14 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
     def getDefaultTestPercentage(self):
         return self._testPercentageDefaultValue
 
+    def getDefaultTestPercentageDistribution(self):
+        return self._testPercentageDistributionDefaultValue
+
     def getDefaultHoldoutPercentage(self):
         return self._holdoutPercentageDefaultValue
+
+    def getDefaultHoldoutPercentageDistribution(self):
+        return self._holdoutPercentageDistributionDefaultValue
 
     def getDefaultExportPath(self):
         return self._exportPathDefaultValue

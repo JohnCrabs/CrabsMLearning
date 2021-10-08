@@ -2,6 +2,7 @@ import os
 import csv
 import warnings
 import pandas as pd
+import numpy as np
 from shutil import copyfile
 
 PATH_NORM_SLASH = os.path.normpath('/')
@@ -135,5 +136,23 @@ def exportDictionaryNonList(dictForExport: {}, exportPath: str, headerLine=None)
     for key in dictForExport.keys():
         tmp_row = [key, dictForExport[key]]
         exportList.append(tmp_row)
+    exportCSV(exportPath, exportList)
+
+
+def exportDictionaryList(dictForExport: {}, exportPath: str, headerLine=None):
+    exportList = []
+    if headerLine is not None:
+        exportList.append(headerLine)
+    for key in dictForExport.keys():
+        tmp_list = dictForExport[key].copy()
+        if type(tmp_list) is np.ndarray:
+            tmp_list = tmp_list.tolist()
+        for row in tmp_list:
+            tmp_row = [key]
+            if type(row) is list:
+                tmp_row.extend(row)
+            else:
+                tmp_row.append(row)
+            exportList.append(tmp_row)
     exportCSV(exportPath, exportList)
 
