@@ -36,6 +36,7 @@ from sklearn.model_selection import (
 )
 
 
+# A class to store the Machine Learning Regression algorithms
 class MachineLearningRegression:
     def __init__(self):
         pass
