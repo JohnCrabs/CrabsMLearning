@@ -43,14 +43,15 @@ except IOError:
     sys.exit(1)
 print('.. Required libraries loading was successful.')
 
-FLAG_KNN = 'KNN'
+
 FLAG_LINREG = 'LinearRegression'
 FLAG_RIDGE = 'Ridge'
 FLAG_LASSO = 'Lasso'
-FLAG_RFR = 'RandomForestRegressor'
 FLAG_DTR = 'DecisionTreeRegressor'
+FLAG_RFR = 'RandomForestRegressor'
 FLAG_MOP_GBR = 'Multi_OP_GBR'
 FLAG_MOP_ADAB = 'Multi_OP_AdaB'
+FLAG_KNN = 'KNN'
 FLAG_DNN = 'DNN'
 FLAG_LSTM = 'SIMPLE_LSTM'
 FLAG_S2S_LSTM = 'S2S_LSTM'

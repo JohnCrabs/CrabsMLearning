@@ -719,12 +719,6 @@ class WidgetMachineLearningMainWidget(QWidget):
 
         return X_train_val, y_train_val, X_test, y_test, inputHeaderColumnsForML, outputHeaderColumnsForML
 
-    def BE_linearExecution(self):
-        pass
-
-    def BE_parallelExecution(self):
-        pass
-
     # *                                                         * #
     # *********************************************************** #
 
@@ -907,6 +901,8 @@ class WidgetMachineLearningMainWidget(QWidget):
                  for col in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]]
 
                 print(dict_fileData[fileName])
+
+            # 02 - Run Machine Learning Process
 
     def actionFileListRowChanged_event(self):
         self.listWidget_ColumnList.clear()  # Clear Column Widget
@@ -1132,20 +1128,6 @@ class WidgetMachineLearningMainWidget(QWidget):
 
     # ***** SET SETTINGS MACHINE LEARNING TYPE ACTIONS *** #
 
-    # ***** SET SETTINGS LINEAR REGRESSION EVENTS ACTIONS *** #
-
-    # ***** SET SETTINGS RIDGE EVENTS ACTIONS *** #
-
-    # ***** SET SETTINGS LASSO EVENTS ACTIONS *** #
-
-    # ***** SET SETTINGS DECISION TREE REGRESSOR EVENTS ACTIONS *** #
-
-    # ***** SET SETTINGS GRADIENT BOOSTING REGRESSOR EVENTS ACTIONS *** #
-
-    # ***** SET SETTINGS ADA BOOST REGRESSOR EVENTS ACTIONS *** #
-
-    # ***** SET SETTINGS K-NEIGHBORS REGRESSOR EVENTS ACTIONS *** #
-
 
 # *********************************** #
 # *********** Tab Widgets *********** #
@@ -1283,14 +1265,6 @@ class WidgetTabMachineLearningSettings(QWidget):
         self.mainTabWidget = QTabWidget()  # Create a main widget tab
 
         self.tabGeneral = WidgetTabMachineLearningSettingsGeneral()  # create a tab for General (info)
-        self.tabLinearRegression = WidgetTabMachineLearningSettingsLinearRegression()  # create a tab for LinearRegression
-        self.tabRidge = WidgetTabMachineLearningSettingsRidge()  # create a tab for Ridge
-        self.tabLasso = WidgetTabMachineLearningSettingsLasso()  # create a tab for Lasso
-        self.tabDecisionTreeRegressor = WidgetTabMachineLearningSettingsDecisionTreeRegressor()  # create a tab for DecisionTreeRegressor
-        self.tabRandomForestRegressor = WidgetTabMachineLearningSettingsRandomForestRegressor()  # create a tab for RandomForestRegressor
-        self.tabGradientBoostingRegressor = WidgetTabMachineLearningSettingsGradientBoostingRegressor()  # create a tab for GradientBoostingRegressor
-        self.tabAdaBoostRegressor = WidgetTabMachineLearningSettingsAdaBoostRegressor()  # create a tab for AdaBoostRegressor
-        self.tabKNeighborsRegressor = WidgetTabMachineLearningSettingsKNeighborsRegressor()  # create a tab for KNeighborsRegressor
 
     def setWidget(self):
         """
@@ -1298,26 +1272,7 @@ class WidgetTabMachineLearningSettings(QWidget):
             :return: Nothing
         """
         self.tabGeneral.setWidget()  # set tab General (info)
-        self.tabLinearRegression.setWidget()  # set tab LinearRegression
-        self.tabRidge.setWidget()  # set tab Ridge
-        self.tabLasso.setWidget()  # set tab Lasso
-        self.tabDecisionTreeRegressor.setWidget()  # set tab DecisionTreeRegressor
-        self.tabRandomForestRegressor.setWidget()  # set tab RandomForestRegressor
-        self.tabGradientBoostingRegressor.setWidget()  # set tab GradientBoostingRegressor
-        self.tabAdaBoostRegressor.setWidget()  # set tab AdaBoostRegressor
-        self.tabKNeighborsRegressor.setWidget()  # set tab KNeighborsRegressor
-
         self.mainTabWidget.addTab(self.tabGeneral, "General")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabLinearRegression, "Linear Regression")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabRidge, "Ridge")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabLasso, "Lasso")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabDecisionTreeRegressor, "Decision Tree Regressor")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabRandomForestRegressor, "Random Forest Regressor")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabGradientBoostingRegressor,
-                                  "Gradient Boosting Regressor")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabAdaBoostRegressor, "Ada Boost Regressor")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabKNeighborsRegressor, "K-Neighbors Regressor")  # add tab to mainTabWidget
-
         self.vbox_main_layout.addWidget(self.mainTabWidget)  # add tabWidget to main layout
 
 
@@ -1570,198 +1525,6 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
 
     def getDefaultMultifileTrainingProcessing(self):
         return self._mlMultifileTrainingProcessingDefaultValue
-
-
-# *********** Machine Learning Settings --> LinearRegression *********** #
-class WidgetTabMachineLearningSettingsLinearRegression(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setStyleSheet(setStyle_())
-
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
-        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
-
-    # --------------------------- #
-    # ----- Reuse Functions ----- #
-    # --------------------------- #
-    def setWidget(self):
-        """
-            A function to create the widget components into the main QWidget
-            :return: Nothing
-        """
-        # Set Label
-        pass
-
-
-# *********** Machine Learning Settings --> Ridge *********** #
-class WidgetTabMachineLearningSettingsRidge(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setStyleSheet(setStyle_())
-
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
-        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
-
-    # --------------------------- #
-    # ----- Reuse Functions ----- #
-    # --------------------------- #
-    def setWidget(self):
-        """
-            A function to create the widget components into the main QWidget
-            :return: Nothing
-        """
-        # Set Label
-        pass
-
-
-# *********** Machine Learning Settings --> Lasso *********** #
-class WidgetTabMachineLearningSettingsLasso(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setStyleSheet(setStyle_())
-
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
-        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
-
-    # --------------------------- #
-    # ----- Reuse Functions ----- #
-    # --------------------------- #
-    def setWidget(self):
-        """
-            A function to create the widget components into the main QWidget
-            :return: Nothing
-        """
-        # Set Label
-        pass
-
-
-# *********** Machine Learning Settings --> DecisionTreeRegressor *********** #
-class WidgetTabMachineLearningSettingsDecisionTreeRegressor(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setStyleSheet(setStyle_())
-
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
-        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
-
-    # --------------------------- #
-    # ----- Reuse Functions ----- #
-    # --------------------------- #
-    def setWidget(self):
-        """
-            A function to create the widget components into the main QWidget
-            :return: Nothing
-        """
-        # Set Label
-        pass
-
-
-# *********** Machine Learning Settings --> RandomForestRegressor *********** #
-class WidgetTabMachineLearningSettingsRandomForestRegressor(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setStyleSheet(setStyle_())
-
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
-        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
-
-    # --------------------------- #
-    # ----- Reuse Functions ----- #
-    # --------------------------- #
-    def setWidget(self):
-        """
-            A function to create the widget components into the main QWidget
-            :return: Nothing
-        """
-        # Set Label
-        pass
-
-
-# *********** Machine Learning Settings --> GradientBoostingRegressor *********** #
-class WidgetTabMachineLearningSettingsGradientBoostingRegressor(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setStyleSheet(setStyle_())
-
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
-        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
-
-    # --------------------------- #
-    # ----- Reuse Functions ----- #
-    # --------------------------- #
-    def setWidget(self):
-        """
-            A function to create the widget components into the main QWidget
-            :return: Nothing
-        """
-        # Set Label
-        pass
-
-
-# *********** Machine Learning Settings --> AdaBoostRegressor *********** #
-class WidgetTabMachineLearningSettingsAdaBoostRegressor(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setStyleSheet(setStyle_())
-
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
-        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
-
-    # --------------------------- #
-    # ----- Reuse Functions ----- #
-    # --------------------------- #
-    def setWidget(self):
-        """
-            A function to create the widget components into the main QWidget
-            :return: Nothing
-        """
-        # Set Label
-        pass
-
-
-# *********** Machine Learning Settings --> KNeighborsRegressor *********** #
-class WidgetTabMachineLearningSettingsKNeighborsRegressor(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setStyleSheet(setStyle_())
-
-        # ---------------------- #
-        # ----- Set Window ----- #
-        # ---------------------- #
-        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
-
-    # --------------------------- #
-    # ----- Reuse Functions ----- #
-    # --------------------------- #
-    def setWidget(self):
-        """
-            A function to create the widget components into the main QWidget
-            :return: Nothing
-        """
-        # Set Label
-        pass
 
 
 # *                                 * #
