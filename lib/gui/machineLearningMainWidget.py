@@ -4,9 +4,9 @@ import matplotlib
 import pandas as pd
 import numpy as np
 
-# from PySide2.QtCore import (
-#     QThreadPool
-# )
+from PySide2.QtCore import (
+    Qt
+)
 
 from PySide2.QtWidgets import (
     QWidget,
@@ -14,6 +14,7 @@ from PySide2.QtWidgets import (
     QPushButton,
     QHBoxLayout,
     QVBoxLayout,
+    QGridLayout,
     QSpacerItem,
     QListWidget,
     QListWidgetItem,
@@ -25,6 +26,8 @@ from PySide2.QtWidgets import (
     QDoubleSpinBox,
     QLineEdit,
     QComboBox,
+    QCheckBox,
+    QScrollArea
 )
 
 from PySide2.QtGui import (
@@ -34,9 +37,11 @@ from PySide2.QtGui import (
 
 # import lib.core.my_calendar_v2 as my_cal_v2
 from lib.core.project_flags import *
+import lib.core.machineLearningRegression as mlr
 
 from lib.gui.guiStyle import setStyle_
 import lib.gui.commonFunctions as coFunc
+
 
 # *************************************************************************************************** #
 
@@ -1265,6 +1270,7 @@ class WidgetTabMachineLearningSettings(QWidget):
         self.mainTabWidget = QTabWidget()  # Create a main widget tab
 
         self.tabGeneral = WidgetTabMachineLearningSettingsGeneral()  # create a tab for General (info)
+        self.tabRegressionMethods = WidgetTabMachineLearningSettingsRegressionMethods()
 
     def setWidget(self):
         """
@@ -1272,7 +1278,9 @@ class WidgetTabMachineLearningSettings(QWidget):
             :return: Nothing
         """
         self.tabGeneral.setWidget()  # set tab General (info)
+        self.tabRegressionMethods.setWidget()  # set tab Regression methods
         self.mainTabWidget.addTab(self.tabGeneral, "General")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabRegressionMethods, "Regression Methods")  # add tab to mainTabWidget
         self.vbox_main_layout.addWidget(self.mainTabWidget)  # add tabWidget to main layout
 
 
@@ -1526,6 +1534,361 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
     def getDefaultMultifileTrainingProcessing(self):
         return self._mlMultifileTrainingProcessingDefaultValue
 
+
+# *********** Machine Learning Settings --> Regression Methods *********** #
+class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet(setStyle_())  # set the tab style
+
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+        # ----------------------- #
+        # ----- PushButtons ----- #
+        # ----------------------- #
+        _icon = QIcon(QPixmap(ICON_OPTION_SETTINGS))
+        self.button_Ridge = QPushButton()
+        self.button_BayesianRidge = QPushButton()
+        self.button_Lasso = QPushButton()
+        self.button_LassoLars = QPushButton()
+        self.button_TweedieRegressor = QPushButton()
+        self.button_SGDRegressor = QPushButton()
+        self.button_SVR = QPushButton()
+        self.button_LinearSVR = QPushButton()
+        self.button_SVR = QPushButton()
+        self.button_NearestNeighbor = QPushButton()
+        self.button_KNeighborsRegressor = QPushButton()
+        self.button_DecisionTreeRegressor = QPushButton()
+        self.button_RandomForestRegressor = QPushButton()
+        self.button_AdaBoostRegressor = QPushButton()
+        self.button_GradientBoostingRegressor = QPushButton()
+
+        self.button_Ridge.setIcon(_icon)
+        self.button_BayesianRidge.setIcon(_icon)
+        self.button_Lasso.setIcon(_icon)
+        self.button_LassoLars.setIcon(_icon)
+        self.button_TweedieRegressor.setIcon(_icon)
+        self.button_SGDRegressor.setIcon(_icon)
+        self.button_SVR.setIcon(_icon)
+        self.button_LinearSVR.setIcon(_icon)
+        self.button_SVR.setIcon(_icon)
+        self.button_NearestNeighbor.setIcon(_icon)
+        self.button_KNeighborsRegressor.setIcon(_icon)
+        self.button_DecisionTreeRegressor.setIcon(_icon)
+        self.button_RandomForestRegressor.setIcon(_icon)
+        self.button_AdaBoostRegressor.setIcon(_icon)
+        self.button_GradientBoostingRegressor.setIcon(_icon)
+
+        # ---------------------- #
+        # ----- CheckBoxes ----- #
+        # ---------------------- #
+        self.checkbox_LinearRegression = QCheckBox()
+        self.checkbox_Ridge = QCheckBox()
+        self.checkbox_BayesianRidge = QCheckBox()
+        self.checkbox_Lasso = QCheckBox()
+        self.checkbox_LassoLars = QCheckBox()
+        self.checkbox_TweedieRegressor = QCheckBox()
+        self.checkbox_SGDRegressor = QCheckBox()
+        self.checkbox_SVR = QCheckBox()
+        self.checkbox_LinearSVR = QCheckBox()
+        self.checkbox_SVR = QCheckBox()
+        self.checkbox_NearestNeighbor = QCheckBox()
+        self.checkbox_KNeighborsRegressor = QCheckBox()
+        self.checkbox_DecisionTreeRegressor = QCheckBox()
+        self.checkbox_RandomForestRegressor = QCheckBox()
+        self.checkbox_AdaBoostRegressor = QCheckBox()
+        self.checkbox_GradientBoostingRegressor = QCheckBox()
+
+        # ---------------------- #
+        # ----- ScrollArea ----- #
+        # ---------------------- #
+        self.scrollArea_regMethods = QScrollArea()
+
+    # --------------------------- #
+    # ----- Reuse Functions ----- #
+    # --------------------------- #
+    def setWidget(self):
+        """
+            A function to create the widget components into the main QWidget
+            :return: Nothing
+        """
+        self.scrollArea_regMethods.setWidgetResizable(True)
+        self.scrollArea_regMethods.setWidget(self._setGridLayout())
+        self.vbox_main_layout.addWidget(self.scrollArea_regMethods)
+
+    def _setGridLayout(self):
+        # label_min_width = 200
+
+        # Set Label
+        label_Method = QLabel('<b><u>Method<\\u><\\b>')
+        # label_Method.setMaximumHeight(30)
+
+        label_State = QLabel('<b><u>State<\\u><\\b>')
+        # label_State.setMaximumHeight(30)
+
+        label_Options = QLabel('<b><u>Options<\\u><\\b>')
+        # label_Options.setMaximumHeight(30)
+
+        label_LinearRegression = QLabel(mlr.ML_REG_LINEAR_REGRESSION)
+        # label_LinearRegression.setMinimumWidth(label_min_width)
+        label_Ridge = QLabel(mlr.ML_REG_RIDGE)
+        # label_Ridge.setMinimumWidth(label_min_width)
+        label_BayesianRidge = QLabel(mlr.ML_REG_BAYESIAN_RIDGE)
+        # label_BayesianRidge.setMinimumWidth(label_min_width)
+        label_Lasso = QLabel(mlr.ML_REG_LASSO)
+        # label_Lasso.setMinimumWidth(label_min_width)
+        label_LassoLars = QLabel(mlr.ML_REG_LASSO_LARS)
+        # label_LassoLars.setMinimumWidth(label_min_width)
+        label_TweedieRegressor = QLabel(mlr.ML_REG_TWEEDIE_REGRESSOR)
+        # label_TweedieRegressor.setMinimumWidth(label_min_width)
+        label_SGDRegressor = QLabel(mlr.ML_REG_SGD_REGRESSOR)
+        # label_SGDRegressor.setMinimumWidth(label_min_width)
+        label_SVR = QLabel(mlr.ML_REG_SVR)
+        # label_SVR.setMinimumWidth(label_min_width)
+        label_LinearSVR = QLabel(mlr.ML_REG_LINEAR_SVR)
+        # label_LinearSVR.setMinimumWidth(label_min_width)
+        label_NearestNeighbor = QLabel(mlr.ML_REG_NEAREST_NEIGHBORS)
+        # label_NearestNeighbor.setMinimumWidth(label_min_width)
+        label_KNeighborsRegressor = QLabel(mlr.ML_REG_K_NEIGHBORS_REGRESSOR)
+        # label_KNeighborsRegressor.setMinimumWidth(label_min_width)
+        label_DecisionTreeRegressor = QLabel(mlr.ML_REG_DECISION_TREE_REGRESSOR)
+        # label_DecisionTreeRegressor.setMinimumWidth(label_min_width)
+        label_RandomForestRegressor = QLabel(mlr.ML_REG_RANDOM_FOREST_REGRESSOR)
+        # label_RandomForestRegressor.setMinimumWidth(label_min_width)
+        label_AdaBoostRegressor = QLabel(mlr.ML_REG_ADA_BOOST_REGRESSOR)
+        # label_AdaBoostRegressor.setMinimumWidth(label_min_width)
+        label_GradientBoostingRegressor = QLabel(mlr.ML_REG_GRADIENT_BOOSTING_REGRESSOR)
+        # label_GradientBoostingRegressor.setMinimumWidth(label_min_width)
+
+        # Set layout
+        scrollAreaWidget = QWidget()
+        scrollAreaWidget.setMaximumWidth(840)
+        scrollAreaWidget.setMaximumHeight(512)
+        gridBox_Methods = QGridLayout(scrollAreaWidget)
+
+        gridBox_Methods.addWidget(label_Method, 0, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(label_State, 0, 1, alignment=Qt.AlignCenter)
+        gridBox_Methods.addWidget(label_Options, 0, 2, alignment=Qt.AlignCenter)
+
+        gridBox_Methods.addWidget(label_LinearRegression, 1, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_LinearRegression, 1, 1, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_Ridge, 2, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_Ridge, 2, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_Ridge, 2, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_BayesianRidge, 3, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_BayesianRidge, 3, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_BayesianRidge, 3, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_Lasso, 4, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_Lasso, 4, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_Lasso, 4, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_LassoLars, 5, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_LassoLars, 5, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_LassoLars, 5, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_TweedieRegressor, 6, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_TweedieRegressor, 6, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_TweedieRegressor, 6, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_SGDRegressor, 7, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_SGDRegressor, 7, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_SGDRegressor, 7, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_SVR, 8, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_SVR, 8, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_SVR, 8, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_LinearSVR, 9, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_LinearSVR, 9, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_LinearSVR, 9, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_NearestNeighbor, 10, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_NearestNeighbor, 10, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_NearestNeighbor, 10, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_KNeighborsRegressor, 11, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_KNeighborsRegressor, 11, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_KNeighborsRegressor, 11, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_DecisionTreeRegressor, 12, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_DecisionTreeRegressor, 12, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_DecisionTreeRegressor, 12, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_RandomForestRegressor, 13, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_RandomForestRegressor, 13, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_RandomForestRegressor, 13, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_AdaBoostRegressor, 14, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_AdaBoostRegressor, 14, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_AdaBoostRegressor, 14, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_GradientBoostingRegressor, 15, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_GradientBoostingRegressor, 15, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_GradientBoostingRegressor, 15, 2, alignment=Qt.AlignHCenter)
+
+        return scrollAreaWidget
+
+    def _setHorLayout(self):
+        label_min_width = 200
+
+        # Set Label
+        label_Method = QLabel('Method')
+        label_Method.setMinimumWidth(label_min_width)
+
+        label_LinearRegression = QLabel(mlr.ML_REG_LINEAR_REGRESSION)
+        label_LinearRegression.setMinimumWidth(label_min_width)
+        label_Ridge = QLabel(mlr.ML_REG_RIDGE)
+        label_Ridge.setMinimumWidth(label_min_width)
+        label_BayesianRidge = QLabel(mlr.ML_REG_BAYESIAN_RIDGE)
+        label_BayesianRidge.setMinimumWidth(label_min_width)
+        label_Lasso = QLabel(mlr.ML_REG_LASSO)
+        label_Lasso.setMinimumWidth(label_min_width)
+        label_LassoLars = QLabel(mlr.ML_REG_LASSO_LARS)
+        label_LassoLars.setMinimumWidth(label_min_width)
+        label_TweedieRegressor = QLabel(mlr.ML_REG_TWEEDIE_REGRESSOR)
+        label_TweedieRegressor.setMinimumWidth(label_min_width)
+        label_SGDRegressor = QLabel(mlr.ML_REG_SGD_REGRESSOR)
+        label_SGDRegressor.setMinimumWidth(label_min_width)
+        label_SVR = QLabel(mlr.ML_REG_SVR)
+        label_SVR.setMinimumWidth(label_min_width)
+        label_LinearSVR = QLabel(mlr.ML_REG_LINEAR_SVR)
+        label_LinearSVR.setMinimumWidth(label_min_width)
+        label_NearestNeighbor = QLabel(mlr.ML_REG_NEAREST_NEIGHBORS)
+        label_NearestNeighbor.setMinimumWidth(label_min_width)
+        label_KNeighborsRegressor = QLabel(mlr.ML_REG_K_NEIGHBORS_REGRESSOR)
+        label_KNeighborsRegressor.setMinimumWidth(label_min_width)
+        label_DecisionTreeRegressor = QLabel(mlr.ML_REG_DECISION_TREE_REGRESSOR)
+        label_DecisionTreeRegressor.setMinimumWidth(label_min_width)
+        label_RandomForestRegressor = QLabel(mlr.ML_REG_RANDOM_FOREST_REGRESSOR)
+        label_RandomForestRegressor.setMinimumWidth(label_min_width)
+        label_AdaBoostRegressor = QLabel(mlr.ML_REG_ADA_BOOST_REGRESSOR)
+        label_AdaBoostRegressor.setMinimumWidth(label_min_width)
+        label_GradientBoostingRegressor = QLabel(mlr.ML_REG_GRADIENT_BOOSTING_REGRESSOR)
+        label_GradientBoostingRegressor.setMinimumWidth(label_min_width)
+
+        # Set hboxes
+        hbox_header = QHBoxLayout()
+        hbox_LinearRegression = QHBoxLayout()
+        hbox_Ridge = QHBoxLayout()
+        hbox_BayesianRidge = QHBoxLayout()
+        hbox_Lasso = QHBoxLayout()
+        hbox_LassoLars = QHBoxLayout()
+        hbox_TweedieRegressor = QHBoxLayout()
+        hbox_SGDRegressor = QHBoxLayout()
+        hbox_SVR = QHBoxLayout()
+        hbox_LinearSVR = QHBoxLayout()
+        hbox_NearestNeighbor = QHBoxLayout()
+        hbox_KNeighborsRegressor = QHBoxLayout()
+        hbox_DecisionTreeRegressor = QHBoxLayout()
+        hbox_RandomForestRegressor = QHBoxLayout()
+        hbox_AdaBoostRegressor = QHBoxLayout()
+        hbox_GradientBoostingRegressor = QHBoxLayout()
+
+        # Add to hboxes
+        hbox_header.addWidget(label_Method)
+        hbox_header.addWidget(QLabel("State"))
+        hbox_header.addWidget(QLabel("Options"))
+
+        hbox_LinearRegression.addWidget(label_LinearRegression)
+        hbox_LinearRegression.addWidget(self.checkbox_LinearRegression)
+        hbox_LinearRegression.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_Ridge.addWidget(label_Ridge)
+        hbox_Ridge.addWidget(self.checkbox_Ridge)
+        hbox_Ridge.addWidget(self.button_Ridge)
+        hbox_Ridge.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_BayesianRidge.addWidget(label_BayesianRidge)
+        hbox_BayesianRidge.addWidget(self.checkbox_BayesianRidge)
+        hbox_BayesianRidge.addWidget(self.button_BayesianRidge)
+        hbox_BayesianRidge.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_Lasso.addWidget(label_Lasso)
+        hbox_Lasso.addWidget(self.checkbox_Lasso)
+        hbox_Lasso.addWidget(self.button_Lasso)
+        hbox_Lasso.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_LassoLars.addWidget(label_LassoLars)
+        hbox_LassoLars.addWidget(self.checkbox_LassoLars)
+        hbox_LassoLars.addWidget(self.button_LassoLars)
+        hbox_LassoLars.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_TweedieRegressor.addWidget(label_TweedieRegressor)
+        hbox_TweedieRegressor.addWidget(self.checkbox_TweedieRegressor)
+        hbox_TweedieRegressor.addWidget(self.button_TweedieRegressor)
+        hbox_TweedieRegressor.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_SGDRegressor.addWidget(label_SGDRegressor)
+        hbox_SGDRegressor.addWidget(self.checkbox_SGDRegressor)
+        hbox_SGDRegressor.addWidget(self.button_SGDRegressor)
+        hbox_SGDRegressor.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_SVR.addWidget(label_SVR)
+        hbox_SVR.addWidget(self.checkbox_SVR)
+        hbox_SVR.addWidget(self.button_SVR)
+        hbox_SVR.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_LinearSVR.addWidget(label_LinearSVR)
+        hbox_LinearSVR.addWidget(self.checkbox_LinearSVR)
+        hbox_LinearSVR.addWidget(self.button_LinearSVR)
+        hbox_LinearSVR.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_NearestNeighbor.addWidget(label_NearestNeighbor)
+        hbox_NearestNeighbor.addWidget(self.checkbox_NearestNeighbor)
+        hbox_NearestNeighbor.addWidget(self.button_NearestNeighbor)
+        hbox_NearestNeighbor.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_KNeighborsRegressor.addWidget(label_KNeighborsRegressor)
+        hbox_KNeighborsRegressor.addWidget(self.checkbox_KNeighborsRegressor)
+        hbox_KNeighborsRegressor.addWidget(self.button_KNeighborsRegressor)
+        hbox_KNeighborsRegressor.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_DecisionTreeRegressor.addWidget(label_DecisionTreeRegressor)
+        hbox_DecisionTreeRegressor.addWidget(self.checkbox_DecisionTreeRegressor)
+        hbox_DecisionTreeRegressor.addWidget(self.button_DecisionTreeRegressor)
+        hbox_DecisionTreeRegressor.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_RandomForestRegressor.addWidget(label_RandomForestRegressor)
+        hbox_RandomForestRegressor.addWidget(self.checkbox_RandomForestRegressor)
+        hbox_RandomForestRegressor.addWidget(self.button_RandomForestRegressor)
+        hbox_RandomForestRegressor.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_AdaBoostRegressor.addWidget(label_AdaBoostRegressor)
+        hbox_AdaBoostRegressor.addWidget(self.checkbox_AdaBoostRegressor)
+        hbox_AdaBoostRegressor.addWidget(self.button_AdaBoostRegressor)
+        hbox_AdaBoostRegressor.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_GradientBoostingRegressor.addWidget(label_GradientBoostingRegressor)
+        hbox_GradientBoostingRegressor.addWidget(self.checkbox_GradientBoostingRegressor)
+        hbox_GradientBoostingRegressor.addWidget(self.button_GradientBoostingRegressor)
+        hbox_GradientBoostingRegressor.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        vbox_Methods = QVBoxLayout()
+        vbox_Methods.addLayout(hbox_header)
+        vbox_Methods.addLayout(hbox_LinearRegression)
+        vbox_Methods.addLayout(hbox_Ridge)
+        vbox_Methods.addLayout(hbox_BayesianRidge)
+        vbox_Methods.addLayout(hbox_Lasso)
+        vbox_Methods.addLayout(hbox_LassoLars)
+        vbox_Methods.addLayout(hbox_TweedieRegressor)
+        vbox_Methods.addLayout(hbox_SGDRegressor)
+        vbox_Methods.addLayout(hbox_SVR)
+        vbox_Methods.addLayout(hbox_LinearSVR)
+        vbox_Methods.addLayout(hbox_NearestNeighbor)
+        vbox_Methods.addLayout(hbox_KNeighborsRegressor)
+        vbox_Methods.addLayout(hbox_DecisionTreeRegressor)
+        vbox_Methods.addLayout(hbox_RandomForestRegressor)
+        vbox_Methods.addLayout(hbox_AdaBoostRegressor)
+        vbox_Methods.addLayout(hbox_GradientBoostingRegressor)
+
+        return vbox_Methods
 
 # *                                 * #
 # *********************************** #

@@ -20,6 +20,7 @@ ICON_ADD = PROJECT_FOLDER + "/icon/add_cross_128x128.png"
 ICON_REMOVE = PROJECT_FOLDER + "/icon/remove_line_128x128.png"
 ICON_ADD_FILLED = PROJECT_FOLDER + "/icon/add_cross_128x128_filled.png"
 ICON_REMOVE_FILLED = PROJECT_FOLDER + "/icon/remove_line_128x128_filled.png"
+ICON_OPTION_SETTINGS = PROJECT_FOLDER + "/icon/optionSettings_128x128.png"
 
 # --- PLOT INFO --- #
 PLOT_FONTSIZE_TITLE = 25
