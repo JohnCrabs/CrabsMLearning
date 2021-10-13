@@ -89,6 +89,15 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetTabInputOutput = WidgetTabInputOutput()  # create a tab for input output columns
         self.widgetTabMachineLearningSettings = WidgetTabMachineLearningSettings()
 
+        # ------------------------------- #
+        # ----- Set WidgetMethods ------- #
+        # ------------------------------- #
+        _WIDGET_OPTIONS_SIZE = 256
+        self.widgetOptions_Ridge = WidgetRidgeML(w=_WIDGET_OPTIONS_SIZE, h=_WIDGET_OPTIONS_SIZE,
+                                                 minW=_WIDGET_OPTIONS_SIZE, minH=_WIDGET_OPTIONS_SIZE,
+                                                 maxW=_WIDGET_OPTIONS_SIZE, maxH=_WIDGET_OPTIONS_SIZE,
+                                                 winTitle='Ridge Options', iconPath=self.iconPath)
+
         # ---------------------- #
         # ----- Set Window ----- #
         # ---------------------- #
@@ -223,6 +232,8 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetTabMachineLearningSettings.setWidget()
         self.mainTabWidget.addTab(self.widgetTabMachineLearningSettings, "Machine Learning Settings")
 
+        self.widgetOptions_Ridge.setWidget()
+
         # Disable Generate Button
         self.buttonExecute.setEnabled(False)
 
@@ -343,29 +354,46 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetTabMachineLearningSettings.tabGeneral.comboBox_HoldoutPercentageDistribution.currentTextChanged.connect(
             self.actionHoldoutPercentageDistributionChange)
 
-    def setTabSettingsLinearRegressionEvents_(self):
-        pass
+    def setTabSettingsRegressionMethodsEvents_(self):
+        # ChangeState -> LinearRegression
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_LinearRegression.stateChanged.connect(
+            self.actionStateChangeLinearRegression)
+        # ChangeState -> Ridge
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_Ridge.stateChanged.connect(
+            self.actionStateChangeRidge)
+        # ChangeState -> BayesianRidge
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_BayesianRidge.stateChanged.connect(
+            self.actionStateChangeBayesianRidge)
+        # ChangeState -> Lasso
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_Lasso.stateChanged.connect(
+            self.actionStateChangeLasso)
+        # ChangeState -> LassoLars
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_LassoLars.stateChanged.connect(
+            self.actionStateChangeLassoLars)
 
-    def setTabSettingsRidgeEvents_(self):
-        pass
+        # ChangeState -> TweedieRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_TweedieRegressor.stateChanged.connect(
+            self.actionStateChangeTweedieRegressor)
 
-    def setTabSettingsLassoEvents_(self):
-        pass
+        # ChangeState -> SGDRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_SGDRegressor.stateChanged.connect(
+            self.actionStateChangeSGDRegressor)
 
-    def setTabSettingsDecisionTreeRegressorEvents_(self):
-        pass
+        # ChangeState -> SVR
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_SVR.stateChanged.connect(
+            self.actionStateChangeSVR)
 
-    def setTabSettingsRandomForestRegressorEvents_(self):
-        pass
+        # ChangeState -> LinearSVR
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_LinearSVR.stateChanged.connect(
+            self.actionStateChangeLinearSVR)
 
-    def setTabSettingsGradientBoostingRegressorEvents_(self):
-        pass
+        # ChangeState -> NearestNeighbor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_NearestNeighbor.stateChanged.connect(
+            self.actionStateChangeNearestNeighbor)
 
-    def setTabSettingsAdaBoostRegressorEvents_(self):
-        pass
-
-    def setTabSettingsKNeighborsRegressorEvents_(self):
-        pass
+        # ChangeState -> KNearestRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_KNeighborsRegressor.stateChanged.connect(
+            self.actionStateChangeKNeighborsRegressor)
 
     def setMainEvents_(self):
         # Button Events
@@ -377,14 +405,7 @@ class WidgetMachineLearningMainWidget(QWidget):
 
         self.setEvents_()  # set the user specified event (inherited)
         self.setTabSettingsGeneralEvents_()  # set the tab settings GENERAL events
-        self.setTabSettingsLinearRegressionEvents_()  # set the tab settings LINEAR REGRESSION events
-        self.setTabSettingsRidgeEvents_()  # set the tab settings RIDGE events
-        self.setTabSettingsLassoEvents_()  # set the tab settings LASSO events
-        self.setTabSettingsDecisionTreeRegressorEvents_()  # set the tab settings DECISION TREE REGRESSOR events
-        self.setTabSettingsRandomForestRegressorEvents_()  # set the tab settings RANDOM FOREST REGRESSOR events
-        self.setTabSettingsGradientBoostingRegressorEvents_()  # set the tab settings GRADIENT BOOSTING REGRESSOR events
-        self.setTabSettingsAdaBoostRegressorEvents_()  # set the tab settings ADA BOOST REGRESSOR events
-        self.setTabSettingsKNeighborsRegressorEvents_()  # set the tab settings K NEIGHBORS REGRESSOR events
+        self.setTabSettingsRegressionMethodsEvents_()  # set the tab settings REGRESSION METHODS events
 
     # -------------------------- #
     # ----- Events Actions ----- #
@@ -1131,8 +1152,95 @@ class WidgetMachineLearningMainWidget(QWidget):
         if self.debugMessageFlag:
             print(self.dict_machineLearningParameters[self.dkey_mlpHoldoutPercentageDistribution()])
 
-    # ***** SET SETTINGS MACHINE LEARNING TYPE ACTIONS *** #
+    # ***** SET SETTINGS MACHINE LEARNING REGRESSION METHODS *** #
+    # _____ CheckBox State Change Event _____ *
+    def actionStateChangeLinearRegression(self):
+        pass
 
+    def actionStateChangeRidge(self):
+        pass
+
+    def actionStateChangeBayesianRidge(self):
+        pass
+
+    def actionStateChangeLasso(self):
+        pass
+
+    def actionStateChangeLassoLars(self):
+        pass
+
+    def actionStateChangeTweedieRegressor(self):
+        pass
+
+    def actionStateChangeSGDRegressor(self):
+        pass
+
+    def actionStateChangeSVR(self):
+        pass
+
+    def actionStateChangeLinearSVR(self):
+        pass
+
+    def actionStateChangeNearestNeighbor(self):
+        pass
+
+    def actionStateChangeKNeighborsRegressor(self):
+        pass
+
+    def actionStateChangeDecisionTreeRegressor(self):
+        pass
+
+    def actionStateChangeRandomForestRegressor(self):
+        pass
+
+    def actionStateChangeAdaBoostRegressor(self):
+        pass
+
+    def actionStateChangeGradientBoostingRegressor(self):
+        pass
+
+    # _____ CheckBox State Change Event _____ *
+    def actionButtonClickedRidge(self):
+        pass
+
+    def actionButtonClickedBayesianRidge(self):
+        pass
+
+    def actionButtonClickedLasso(self):
+        pass
+
+    def actionButtonClickedLassoLars(self):
+        pass
+
+    def actionButtonClickedTweedieRegressor(self):
+        pass
+
+    def actionButtonClickedSGDRegressor(self):
+        pass
+
+    def actionButtonClickedSVR(self):
+        pass
+
+    def actionButtonClickedLinearSVR(self):
+        pass
+
+    def actionButtonClickedNearestNeighbor(self):
+        pass
+
+    def actionButtonClickedKNeighborsRegressor(self):
+        pass
+
+    def actionButtonClickedDecisionTreeRegressor(self):
+        pass
+
+    def actionButtonClickedRandomForestRegressor(self):
+        pass
+
+    def actionButtonClickedAdaBoostRegressor(self):
+        pass
+
+    def actionButtonClickedGradientBoostingRegressor(self):
+        pass
 
 # *********************************** #
 # *********** Tab Widgets *********** #
@@ -1892,6 +2000,46 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
 
 # *                                 * #
 # *********************************** #
+
+# ************************************************ #
+# *********** Machine Learning Methods *********** #
+# ************************************************ #
+# *                                              * #
+
+
+class WidgetRidgeML(QWidget):
+    def __init__(self, w=512, h=512, minW=256, minH=256, maxW=None, maxH=None,
+                 winTitle='My Window', iconPath=None):
+        super().__init__()
+
+        self.setStyleSheet(setStyle_())  # set the tab style
+
+        self.iconPath = iconPath
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.setWindowTitle(winTitle)  # Set Window Title
+        self.setWindowIcon(QIcon(self.iconPath))  # Set Window Icon
+        self.setGeometry(INT_SCREEN_WIDTH / 4, INT_SCREEN_HEIGHT / 4, w, h)  # Set Window Geometry
+        self.setMinimumWidth(minW)  # Set Window Minimum Width
+        self.setMinimumHeight(minH)  # Set Window Minimum Height
+        if maxW is not None:
+            self.setMaximumWidth(maxW)  # Set Window Maximum Width
+        if maxH is not None:
+            self.setMaximumHeight(maxH)  # Set Window Maximum Width
+
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+    def setWidget(self):
+        """
+            A function to create the widget components into the main QWidget
+            :return: Nothing
+        """
+        pass
+
+# *                                              * #
+# ************************************************ #
+
 
 # ******************************************************* #
 # ********************   EXECUTION   ******************** #
