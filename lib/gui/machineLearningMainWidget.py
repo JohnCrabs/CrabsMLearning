@@ -92,7 +92,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         # ------------------------------- #
         # ----- Set WidgetMethods ------- #
         # ------------------------------- #
-        _WIDGET_OPTIONS_SIZE = 256
+        _WIDGET_OPTIONS_SIZE = 480
         self.widgetOptions_Ridge = WidgetRidgeML(w=_WIDGET_OPTIONS_SIZE, h=_WIDGET_OPTIONS_SIZE,
                                                  minW=_WIDGET_OPTIONS_SIZE, minH=_WIDGET_OPTIONS_SIZE,
                                                  maxW=_WIDGET_OPTIONS_SIZE, maxH=_WIDGET_OPTIONS_SIZE,
@@ -370,30 +370,79 @@ class WidgetMachineLearningMainWidget(QWidget):
         # ChangeState -> LassoLars
         self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_LassoLars.stateChanged.connect(
             self.actionStateChangeLassoLars)
-
         # ChangeState -> TweedieRegressor
         self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_TweedieRegressor.stateChanged.connect(
             self.actionStateChangeTweedieRegressor)
-
         # ChangeState -> SGDRegressor
         self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_SGDRegressor.stateChanged.connect(
             self.actionStateChangeSGDRegressor)
-
         # ChangeState -> SVR
         self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_SVR.stateChanged.connect(
             self.actionStateChangeSVR)
-
         # ChangeState -> LinearSVR
         self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_LinearSVR.stateChanged.connect(
             self.actionStateChangeLinearSVR)
-
         # ChangeState -> NearestNeighbor
         self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_NearestNeighbor.stateChanged.connect(
             self.actionStateChangeNearestNeighbor)
-
         # ChangeState -> KNearestRegressor
         self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_KNeighborsRegressor.stateChanged.connect(
             self.actionStateChangeKNeighborsRegressor)
+        # ChangeState -> DecisionTreeRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_DecisionTreeRegressor.stateChanged.connect(
+            self.actionStateChangeDecisionTreeRegressor)
+        # ChangeState -> RandomForestRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_RandomForestRegressor.stateChanged.connect(
+            self.actionStateChangeRandomForestRegressor)
+        # ChangeState -> AdaBoostRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_AdaBoostRegressor.stateChanged.connect(
+            self.actionStateChangeAdaBoostRegressor)
+        # ChangeState -> GradientBoostingRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_GradientBoostingRegressor.stateChanged.connect(
+            self.actionStateChangeGradientBoostingRegressor)
+
+        # ButtonClicked (Options) -> Ridge
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_Ridge.clicked.connect(
+            self.actionButtonClickedRidge)
+        # ButtonClicked (Options) -> BayesianRidge
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_BayesianRidge.clicked.connect(
+            self.actionButtonClickedBayesianRidge)
+        # ButtonClicked (Options) -> Lasso
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_Lasso.clicked.connect(
+            self.actionButtonClickedLasso)
+        # ButtonClicked (Options) -> LassoLars
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_LassoLars.clicked.connect(
+            self.actionButtonClickedLassoLars)
+        # ButtonClicked (Options) -> TweedieRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_TweedieRegressor.clicked.connect(
+            self.actionButtonClickedTweedieRegressor)
+        # ButtonClicked (Options) -> SGDRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_SGDRegressor.clicked.connect(
+            self.actionButtonClickedSGDRegressor)
+        # ButtonClicked (Options) -> SVR
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_SVR.clicked.connect(
+            self.actionButtonClickedSVR)
+        # ButtonClicked (Options) -> LinearSVR
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_LinearSVR.clicked.connect(
+            self.actionButtonClickedLinearSVR)
+        # ButtonClicked (Options) -> NearestNeighbor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_NearestNeighbor.clicked.connect(
+            self.actionButtonClickedNearestNeighbor)
+        # ButtonClicked (Options) -> KNearestRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_KNeighborsRegressor.clicked.connect(
+            self.actionButtonClickedKNeighborsRegressor)
+        # ButtonClicked (Options) -> DecisionTreeRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_DecisionTreeRegressor.clicked.connect(
+            self.actionButtonClickedDecisionTreeRegressor)
+        # ButtonClicked (Options) -> RandomForestRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_RandomForestRegressor.clicked.connect(
+            self.actionButtonClickedRandomForestRegressor)
+        # ButtonClicked (Options) -> AdaBoostRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_AdaBoostRegressor.clicked.connect(
+            self.actionButtonClickedAdaBoostRegressor)
+        # ButtonClicked (Options) -> GradientBoostingRegressor
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.button_GradientBoostingRegressor.clicked.connect(
+            self.actionButtonClickedGradientBoostingRegressor)
 
     def setMainEvents_(self):
         # Button Events
@@ -1201,7 +1250,7 @@ class WidgetMachineLearningMainWidget(QWidget):
 
     # _____ CheckBox State Change Event _____ *
     def actionButtonClickedRidge(self):
-        pass
+        self.widgetOptions_Ridge.show()
 
     def actionButtonClickedBayesianRidge(self):
         pass
@@ -1241,6 +1290,7 @@ class WidgetMachineLearningMainWidget(QWidget):
 
     def actionButtonClickedGradientBoostingRegressor(self):
         pass
+
 
 # *********************************** #
 # *********** Tab Widgets *********** #
@@ -2029,6 +2079,31 @@ class WidgetRidgeML(QWidget):
             self.setMaximumHeight(maxH)  # Set Window Maximum Width
 
         self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+        # -------------------------- #
+        # ----- QDoubleSpinBox ----- #
+        # -------------------------- #
+        self.doubleSpinBox_AlphaMin = QDoubleSpinBox()
+        self.doubleSpinBox_AlphaMax = QDoubleSpinBox()
+        self.doubleSpinBox_AlphaStep = QDoubleSpinBox()
+
+        # ----------------------- #
+        # ----- QListWidget ----- #
+        # ----------------------- #
+        self.listWidget_TolOptionsList = QListWidget()
+        self.listWidget_TolSelectedList = QListWidget()
+
+        self.listWidget_SolverOptionsList = QListWidget()
+        self.listWidget_SolverSelectedList = QListWidget()
+
+        # ----------------------- #
+        # ----- QPushButton ----- #
+        # ----------------------- #
+        self.button_TollAdd = QPushButton()
+        self.button_TollRemove = QPushButton()
+
+        self.button_SolverAdd = QPushButton()
+        self.button_SolverRemove = QPushButton()
 
     def setWidget(self):
         """
