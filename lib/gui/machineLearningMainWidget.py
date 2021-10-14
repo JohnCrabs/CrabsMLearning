@@ -1492,7 +1492,7 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         self.doubleSpinBox_TestPercentage.setMaximum(MLF_TEST_PERCENTAGE_MAX)
         # set step
         self.doubleSpinBox_TestPercentage.setSingleStep(MLF_TEST_STEP_WIDGET)
-
+        # create a doubleSpinBox fot the holdout percentage
         self.doubleSpinBox_HoldoutPercentage = QDoubleSpinBox()
         # set minimum value
         self.doubleSpinBox_HoldoutPercentage.setMinimum(MLF_HOLDOUT_PERCENTAGE_MIN)
@@ -1792,34 +1792,35 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         # label_Options.setMaximumHeight(30)
 
         label_LinearRegression = QLabel(mlr.ML_REG_LINEAR_REGRESSION)
-        # label_LinearRegression.setMinimumWidth(label_min_width)
         label_Ridge = QLabel(mlr.ML_REG_RIDGE)
-        # label_Ridge.setMinimumWidth(label_min_width)
         label_BayesianRidge = QLabel(mlr.ML_REG_BAYESIAN_RIDGE)
-        # label_BayesianRidge.setMinimumWidth(label_min_width)
         label_Lasso = QLabel(mlr.ML_REG_LASSO)
-        # label_Lasso.setMinimumWidth(label_min_width)
         label_LassoLars = QLabel(mlr.ML_REG_LASSO_LARS)
-        # label_LassoLars.setMinimumWidth(label_min_width)
         label_TweedieRegressor = QLabel(mlr.ML_REG_TWEEDIE_REGRESSOR)
-        # label_TweedieRegressor.setMinimumWidth(label_min_width)
         label_SGDRegressor = QLabel(mlr.ML_REG_SGD_REGRESSOR)
-        # label_SGDRegressor.setMinimumWidth(label_min_width)
         label_SVR = QLabel(mlr.ML_REG_SVR)
-        # label_SVR.setMinimumWidth(label_min_width)
         label_LinearSVR = QLabel(mlr.ML_REG_LINEAR_SVR)
-        # label_LinearSVR.setMinimumWidth(label_min_width)
         label_NearestNeighbor = QLabel(mlr.ML_REG_NEAREST_NEIGHBORS)
-        # label_NearestNeighbor.setMinimumWidth(label_min_width)
         label_KNeighborsRegressor = QLabel(mlr.ML_REG_K_NEIGHBORS_REGRESSOR)
-        # label_KNeighborsRegressor.setMinimumWidth(label_min_width)
         label_DecisionTreeRegressor = QLabel(mlr.ML_REG_DECISION_TREE_REGRESSOR)
-        # label_DecisionTreeRegressor.setMinimumWidth(label_min_width)
         label_RandomForestRegressor = QLabel(mlr.ML_REG_RANDOM_FOREST_REGRESSOR)
-        # label_RandomForestRegressor.setMinimumWidth(label_min_width)
         label_AdaBoostRegressor = QLabel(mlr.ML_REG_ADA_BOOST_REGRESSOR)
-        # label_AdaBoostRegressor.setMinimumWidth(label_min_width)
         label_GradientBoostingRegressor = QLabel(mlr.ML_REG_GRADIENT_BOOSTING_REGRESSOR)
+
+        # label_LinearRegression.setMinimumWidth(label_min_width)
+        # label_Ridge.setMinimumWidth(label_min_width)
+        # label_BayesianRidge.setMinimumWidth(label_min_width)
+        # label_Lasso.setMinimumWidth(label_min_width)
+        # label_LassoLars.setMinimumWidth(label_min_width)
+        # label_TweedieRegressor.setMinimumWidth(label_min_width)
+        # label_SGDRegressor.setMinimumWidth(label_min_width)
+        # label_SVR.setMinimumWidth(label_min_width)
+        # label_LinearSVR.setMinimumWidth(label_min_width)
+        # label_NearestNeighbor.setMinimumWidth(label_min_width)
+        # label_KNeighborsRegressor.setMinimumWidth(label_min_width)
+        # label_DecisionTreeRegressor.setMinimumWidth(label_min_width)
+        # label_RandomForestRegressor.setMinimumWidth(label_min_width)
+        # label_AdaBoostRegressor.setMinimumWidth(label_min_width)
         # label_GradientBoostingRegressor.setMinimumWidth(label_min_width)
 
         # Set layout
@@ -2087,6 +2088,15 @@ class WidgetRidgeML(QWidget):
         self.doubleSpinBox_AlphaMax = QDoubleSpinBox()
         self.doubleSpinBox_AlphaStep = QDoubleSpinBox()
 
+        self.doubleSpinBox_AlphaMin.setMinimum(0.01)
+        self.doubleSpinBox_AlphaMax.setMinimum(0.01)
+        self.doubleSpinBox_AlphaStep.setMinimum(0.01)
+
+        _stepValue = 0.05
+        self.doubleSpinBox_AlphaMin.setSingleStep(_stepValue)
+        self.doubleSpinBox_AlphaMax.setSingleStep(_stepValue)
+        self.doubleSpinBox_AlphaStep.setSingleStep(_stepValue)
+
         # ----------------------- #
         # ----- QListWidget ----- #
         # ----------------------- #
@@ -2099,18 +2109,104 @@ class WidgetRidgeML(QWidget):
         # ----------------------- #
         # ----- QPushButton ----- #
         # ----------------------- #
+        _iconAdd = QIcon(QPixmap(ICON_ADD_RIGHT_LIST))
+        _iconDel = QIcon(QPixmap(ICON_DELETE_FROM_LIST))
+
         self.button_TollAdd = QPushButton()
+        self.button_TollAdd.setIcon(_iconAdd)
         self.button_TollRemove = QPushButton()
+        self.button_TollRemove.setIcon(_iconDel)
 
         self.button_SolverAdd = QPushButton()
+        self.button_SolverAdd.setIcon(_iconAdd)
         self.button_SolverRemove = QPushButton()
+        self.button_SolverRemove.setIcon(_iconDel)
+
+        self.button_RestoreDefault = QPushButton("Restore Default")
+        self.button_RestoreDefault.setMinimumWidth(150)  # Set Minimum Width
+        self.button_RestoreDefault.setMinimumHeight(30)  # Set Minimum Height
 
     def setWidget(self):
         """
             A function to create the widget components into the main QWidget
             :return: Nothing
         """
-        pass
+        self.vbox_main_layout.addLayout(self._setHorLayout())
+
+    def _setHorLayout(self):
+        label_AlphaMin = QLabel("Alpha (min):")
+        label_AlphaMax = QLabel("Alpha (max):")
+        label_AlphaStep = QLabel("Alpha (step):")
+
+        labelTolOptionList = QLabel("Tolerance Options:")
+        labelTolSelectedList = QLabel("Tolerance Selected:")
+
+        labelSolverOptionList = QLabel("Solver Options:")
+        labelSolverSelectedList = QLabel("Solver Selected:")
+
+        # Set hbox
+        hbox_AlphaMin = QHBoxLayout()
+        hbox_AlphaMax = QHBoxLayout()
+        hbox_AlphaStep = QHBoxLayout()
+
+        hbox_AlphaMin.addWidget(label_AlphaMin)
+        hbox_AlphaMin.addWidget(self.doubleSpinBox_AlphaMin)
+        hbox_AlphaMin.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+        hbox_AlphaMax.addWidget(label_AlphaMax)
+        hbox_AlphaMax.addWidget(self.doubleSpinBox_AlphaMax)
+        hbox_AlphaMax.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+        hbox_AlphaStep.addWidget(label_AlphaStep)
+        hbox_AlphaStep.addWidget(self.doubleSpinBox_AlphaStep)
+        hbox_AlphaStep.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_Restore = QHBoxLayout()
+        hbox_Restore.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+        hbox_Restore.addWidget(self.button_RestoreDefault)
+
+        # Set vbox
+        vbox_TolOptions = QVBoxLayout()
+        vbox_TolSelected = QVBoxLayout()
+
+        vbox_SolverOptions = QVBoxLayout()
+        vbox_SolverSelected = QVBoxLayout()
+
+        vbox_ButtonsTol = QVBoxLayout()
+        vbox_ButtonsSolver = QVBoxLayout()
+
+        vbox_TolOptions.addWidget(labelTolOptionList)
+        vbox_TolOptions.addWidget(self.listWidget_TolOptionsList)
+        vbox_TolSelected.addWidget(labelTolSelectedList)
+        vbox_TolSelected.addWidget(self.listWidget_TolSelectedList)
+
+        vbox_SolverOptions.addWidget(labelSolverOptionList)
+        vbox_SolverOptions.addWidget(self.listWidget_SolverOptionsList)
+        vbox_SolverSelected.addWidget(labelSolverSelectedList)
+        vbox_SolverSelected.addWidget(self.listWidget_SolverSelectedList)
+
+        vbox_ButtonsTol.addWidget(self.button_TollAdd)
+        vbox_ButtonsTol.addWidget(self.button_TollRemove)
+        vbox_ButtonsSolver.addWidget(self.button_SolverAdd)
+        vbox_ButtonsSolver.addWidget(self.button_SolverRemove)
+
+        hbox_Tol = QHBoxLayout()
+        hbox_Tol.addLayout(vbox_TolOptions)
+        hbox_Tol.addLayout(vbox_ButtonsTol)
+        hbox_Tol.addLayout(vbox_TolSelected)
+
+        hbox_Solver = QHBoxLayout()
+        hbox_Solver.addLayout(vbox_SolverOptions)
+        hbox_Solver.addLayout(vbox_ButtonsSolver)
+        hbox_Solver.addLayout(vbox_SolverSelected)
+
+        vbox_final = QVBoxLayout()
+        vbox_final.addLayout(hbox_AlphaMin)
+        vbox_final.addLayout(hbox_AlphaMax)
+        vbox_final.addLayout(hbox_AlphaStep)
+        vbox_final.addLayout(hbox_Tol)
+        vbox_final.addLayout(hbox_Solver)
+        vbox_final.addLayout(hbox_Restore)
+
+        return vbox_final
 
 # *                                              * #
 # ************************************************ #

@@ -54,22 +54,23 @@ ML_REG_RANDOM_FOREST_REGRESSOR = 'RandomForestRegressor'
 ML_REG_ADA_BOOST_REGRESSOR = 'AdaBoostRegressor'
 ML_REG_GRADIENT_BOOSTING_REGRESSOR = 'GradientBoostingRegressor'
 
-ML_REG_METHODS = [ML_REG_LINEAR_REGRESSION,
-                  ML_REG_RIDGE,
-                  ML_REG_BAYESIAN_RIDGE,
-                  ML_REG_LASSO,
-                  ML_REG_LASSO_LARS,
-                  ML_REG_TWEEDIE_REGRESSOR,
-                  ML_REG_SGD_REGRESSOR,
-                  ML_REG_SVR,
-                  ML_REG_LINEAR_SVR,
-                  ML_REG_NEAREST_NEIGHBORS,
-                  ML_REG_K_NEIGHBORS_REGRESSOR,
-                  ML_REG_DECISION_TREE_REGRESSOR,
-                  ML_REG_RANDOM_FOREST_REGRESSOR,
-                  ML_REG_ADA_BOOST_REGRESSOR,
-                  ML_REG_GRADIENT_BOOSTING_REGRESSOR
-                  ]
+ML_REG_METHODS = [
+    ML_REG_LINEAR_REGRESSION,
+    ML_REG_RIDGE,
+    ML_REG_BAYESIAN_RIDGE,
+    ML_REG_LASSO,
+    ML_REG_LASSO_LARS,
+    ML_REG_TWEEDIE_REGRESSOR,
+    ML_REG_SGD_REGRESSOR,
+    ML_REG_SVR,
+    ML_REG_LINEAR_SVR,
+    ML_REG_NEAREST_NEIGHBORS,
+    ML_REG_K_NEIGHBORS_REGRESSOR,
+    ML_REG_DECISION_TREE_REGRESSOR,
+    ML_REG_RANDOM_FOREST_REGRESSOR,
+    ML_REG_ADA_BOOST_REGRESSOR,
+    ML_REG_GRADIENT_BOOSTING_REGRESSOR
+]
 
 ML_SOLVER_AUTO = 'auto'
 ML_SOLVER_SVD = 'svd'
@@ -80,15 +81,16 @@ ML_SOLVER_SAG = 'sag'
 ML_SOLVER_SAGA = 'saga'
 ML_SOLVER_LBFGS = 'lbfgs'
 
-ML_SOLVER_OPTIONS = [ML_SOLVER_AUTO,
-                     ML_SOLVER_SVD,
-                     ML_SOLVER_CHOLESKY,
-                     ML_SOLVER_LSQR,
-                     ML_SOLVER_SPARSE_CG,
-                     ML_SOLVER_SAG,
-                     ML_SOLVER_SAGA,
-                     ML_SOLVER_LBFGS
-                     ]
+ML_SOLVER_OPTIONS = [
+    ML_SOLVER_AUTO,
+    ML_SOLVER_SVD,
+    ML_SOLVER_CHOLESKY,
+    ML_SOLVER_LSQR,
+    ML_SOLVER_SPARSE_CG,
+    ML_SOLVER_SAG,
+    ML_SOLVER_SAGA,
+    ML_SOLVER_LBFGS
+]
 
 ML_KEY_METHOD = 'Method'
 ML_KEY_PARAM_GRID = 'Grid Parameter'
@@ -96,6 +98,19 @@ ML_KEY_PARAM_GRID = 'Grid Parameter'
 ML_KEY_ALPHA = 'alpha'
 ML_KEY_TOL = 'tol'
 ML_KEY_SOLVER = 'solver'
+
+ML_TOL_LIST = [
+    1e-1,
+    1e-2,
+    1e-3,
+    1e-4,
+    1e-5,
+    1e-6,
+    1e-7,
+    1e-8,
+    1e-9,
+    1e-10
+]
 
 
 # A class to store the Machine Learning Regression algorithms
@@ -166,7 +181,7 @@ class MachineLearningRegression:
                                                                   self._MLR_KEY_MAX: self._MLR_RIDGE_ALPHA_DEFAULT,
                                                                   self._MLR_KEY_STEP: self._MLR_RIDGE_ALPHA_DEFAULT},
                                                    ML_KEY_TOL: self._MLR_RIDGE_TOL_DEFAULT,
-                                                   ML_KEY_SOLVER:  self._MLR_RIDGE_SOLVER_DEFAULT
+                                                   ML_KEY_SOLVER: self._MLR_RIDGE_SOLVER_DEFAULT
                                                }
                                                }
 
