@@ -167,6 +167,8 @@ class WidgetMachineLearningMainWidget(QWidget):
             self.dkey_multifileTrainingProcessing(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultMultifileTrainingProcessing()
         }
 
+        self.mlr_Regression = mlr.MachineLearningRegression()
+
     # DICTIONARY FILE PARAMETERS
     def dkeyFileName(self):
         return self._DKEY_FILE_NAME
@@ -222,6 +224,10 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetTabInputOutput.setWidget()  # Set the Tab File Management Widget
         self.mainTabWidget.addTab(self.widgetTabInputOutput, "Input/Output Management")  # Add it to mainTanWidget
 
+    def set_MLR_Defaults(self):
+        self.widgetOptions_Ridge.setWidget()
+        self.setWidgetRidgeDefaultValues()
+
     def setWidget(self):
         """
         A function to create the widget components into the main QWidget
@@ -229,10 +235,9 @@ class WidgetMachineLearningMainWidget(QWidget):
         """
 
         self.setTab()
+        self.set_MLR_Defaults()
         self.widgetTabMachineLearningSettings.setWidget()
         self.mainTabWidget.addTab(self.widgetTabMachineLearningSettings, "Machine Learning Settings")
-
-        self.widgetOptions_Ridge.setWidget()
 
         # Disable Generate Button
         self.buttonExecute.setEnabled(False)
@@ -269,6 +274,15 @@ class WidgetMachineLearningMainWidget(QWidget):
         # ----- Set Actions ----- #
         # ----------------------- #
         self.setMainEvents_()  # Set the events/actions of buttons, listWidgets, etc., components
+
+    def setWidgetRidgeDefaultValues(self):
+        self.widgetOptions_Ridge.setOptionList_Tol(listValue=mlr.ML_TOL_LIST)
+        self.widgetOptions_Ridge.setOptionList_Solver(listValue=mlr.ML_SOLVER_OPTIONS)
+        self.widgetOptions_Ridge.setAlphaMin(value=self.mlr_Regression.getRidge_alphaMin_Default())
+        self.widgetOptions_Ridge.setAlphaMax(value=self.mlr_Regression.getRidge_alphaMax_Default())
+        self.widgetOptions_Ridge.setAlphaStep(value=self.mlr_Regression.getRidge_alphaStep_Default())
+        self.widgetOptions_Ridge.setSelectedList_Tol(listValue=self.mlr_Regression.getRidge_Tol_Default())
+        self.widgetOptions_Ridge.setSelectedList_Solver(listValue=self.mlr_Regression.getRidge_Solver_Default())
 
     # ---------------------------------- #
     # ----- Reuse Action Functions ----- #
@@ -2207,6 +2221,55 @@ class WidgetRidgeML(QWidget):
         vbox_final.addLayout(hbox_Restore)
 
         return vbox_final
+
+    def setAlphaMin(self, value: float):
+        self.doubleSpinBox_AlphaMin.setValue(value)
+
+    def setAlphaMax(self, value: float):
+        self.doubleSpinBox_AlphaMax.setValue(value)
+
+    def setAlphaStep(self, value: float):
+        self.doubleSpinBox_AlphaStep.setValue(value)
+
+    def setOptionList_Tol(self, listValue: []):
+        self.listWidget_TolOptionsList.clear()
+        for _item_ in listValue:
+            self.listWidget_TolOptionsList.addItem(str(_item_))
+        if self.listWidget_TolOptionsList.item(0):
+            self.listWidget_TolOptionsList.setCurrentRow(0)
+
+    def setOptionList_Solver(self, listValue: []):
+        self.listWidget_SolverOptionsList.clear()
+        for _item_ in listValue:
+            self.listWidget_SolverOptionsList.addItem(str(_item_))
+        if self.listWidget_SolverOptionsList.item(0):
+            self.listWidget_SolverOptionsList.setCurrentRow(0)
+
+    def setSelectedList_Tol(self, listValue: []):
+        self.listWidget_TolSelectedList.clear()
+        for _item_ in listValue:
+            self.listWidget_TolSelectedList.addItem(str(_item_))
+        if self.listWidget_TolSelectedList.item(0):
+            self.listWidget_TolSelectedList.setCurrentRow(0)
+
+    def setSelectedList_Solver(self, listValue: []):
+        self.listWidget_SolverSelectedList.clear()
+        for _item_ in listValue:
+            self.listWidget_SolverSelectedList.addItem(str(_item_))
+        if self.listWidget_SolverSelectedList.item(0):
+            self.listWidget_SolverSelectedList.setCurrentRow(0)
+
+    def addToOptionList_Tol(self, value):
+        self.listWidget_TolOptionsList.addItem(str(value))
+
+    def addToOptionList_Solver(self, value):
+        self.listWidget_SolverOptionsList.addItem(str(value))
+
+    def addToSelectedList_Tol(self, value):
+        self.listWidget_TolSelectedList.addItem(str(value))
+
+    def addToSelectedList_Solver(self, value):
+        self.listWidget_SolverSelectedList.addItem(str(value))
 
 # *                                              * #
 # ************************************************ #
