@@ -458,6 +458,10 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetTabMachineLearningSettings.tabRegressionMethods.button_GradientBoostingRegressor.clicked.connect(
             self.actionButtonClickedGradientBoostingRegressor)
 
+    def setWidgetRidgeEvents_(self):
+        self.widgetOptions_Ridge.button_TollAdd.clicked.connect(self.actionButtonClicked_TolAdd)
+        self.widgetOptions_Ridge.button_SolverAdd.clicked.connect(self.actionButtonClicked_SolverAdd)
+
     def setMainEvents_(self):
         # Button Events
         self.buttonAdd.clicked.connect(self.actionButtonAdd)  # buttonAdd -> clicked
@@ -469,6 +473,8 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.setEvents_()  # set the user specified event (inherited)
         self.setTabSettingsGeneralEvents_()  # set the tab settings GENERAL events
         self.setTabSettingsRegressionMethodsEvents_()  # set the tab settings REGRESSION METHODS events
+
+        self.setWidgetRidgeEvents_()  # set the events of Ridge Options
 
     # -------------------------- #
     # ----- Events Actions ----- #
@@ -1262,7 +1268,7 @@ class WidgetMachineLearningMainWidget(QWidget):
     def actionStateChangeGradientBoostingRegressor(self):
         pass
 
-    # _____ CheckBox State Change Event _____ *
+    # _____ Button Clicked Event _____ *
     def actionButtonClickedRidge(self):
         self.widgetOptions_Ridge.show()
 
@@ -1304,6 +1310,22 @@ class WidgetMachineLearningMainWidget(QWidget):
 
     def actionButtonClickedGradientBoostingRegressor(self):
         pass
+
+    # ***** MACHINE LEARNING WIDGET OPTIONS EVENTS *** #
+    # _____ RIDGE _____ *
+    def actionButtonClicked_TolAdd(self):
+        _items_ = self.widgetOptions_Ridge.getListOptionSelectedItems_Tol()
+        for _it_ in _items_:
+            stateExist = self.widgetOptions_Ridge.checkIfItemAlreadyInList_Tol(_it_)
+            if not stateExist:
+                self.widgetOptions_Ridge.addToSelectedList_Tol(_it_)
+
+    def actionButtonClicked_SolverAdd(self):
+        _items_ = self.widgetOptions_Ridge.getListOptionSelectedItems_Solver()
+        for _it_ in _items_:
+            stateExist = self.widgetOptions_Ridge.checkIfItemAlreadyInList_Solver(_it_)
+            if not stateExist:
+                self.widgetOptions_Ridge.addToSelectedList_Solver(_it_)
 
 
 # *********************************** #
@@ -2115,9 +2137,11 @@ class WidgetRidgeML(QWidget):
         # ----- QListWidget ----- #
         # ----------------------- #
         self.listWidget_TolOptionsList = QListWidget()
+        self.listWidget_TolOptionsList.setSelectionMode(QListWidget.ExtendedSelection)  # Set Extended Selection
         self.listWidget_TolSelectedList = QListWidget()
 
         self.listWidget_SolverOptionsList = QListWidget()
+        self.listWidget_SolverOptionsList.setSelectionMode(QListWidget.ExtendedSelection)  # Set Extended Selection
         self.listWidget_SolverSelectedList = QListWidget()
 
         # ----------------------- #
@@ -2267,9 +2291,33 @@ class WidgetRidgeML(QWidget):
 
     def addToSelectedList_Tol(self, value):
         self.listWidget_TolSelectedList.addItem(str(value))
+        self.listWidget_TolSelectedList.sortItems(Qt.DescendingOrder)
 
     def addToSelectedList_Solver(self, value):
         self.listWidget_SolverSelectedList.addItem(str(value))
+        self.listWidget_SolverSelectedList.sortItems(Qt.DescendingOrder)
+
+    def getListOptionSelectedItems_Tol(self):
+        return [_item_.text() for _item_ in self.listWidget_TolOptionsList.selectedItems()]
+
+    def getListOptionSelectedItems_Solver(self):
+        return [_item_.text() for _item_ in self.listWidget_SolverOptionsList.selectedItems()]
+
+    def checkIfItemAlreadyInList_Tol(self, item):
+        itemFound = False
+        for _index_ in range(self.listWidget_TolSelectedList.count()):
+            if item == self.listWidget_TolSelectedList.item(_index_).text():
+                itemFound = True
+                break
+        return itemFound
+
+    def checkIfItemAlreadyInList_Solver(self, item):
+        itemFound = False
+        for _index_ in range(self.listWidget_SolverSelectedList.count()):
+            if item == self.listWidget_SolverSelectedList.item(_index_).text():
+                itemFound = True
+                break
+        return itemFound
 
 # *                                              * #
 # ************************************************ #
