@@ -458,6 +458,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetTabMachineLearningSettings.tabRegressionMethods.button_GradientBoostingRegressor.clicked.connect(
             self.actionButtonClickedGradientBoostingRegressor)
 
+    # Set event for RidgeOptions
     def setWidgetRidgeEvents_(self):
         # Set Button Events
         self.widgetOptions_Ridge.button_TollAdd.clicked.connect(self.actionButtonClicked_TolAdd)
@@ -469,6 +470,11 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetOptions_Ridge.button_RestoreDefault.clicked.connect(self.setWidgetRidgeDefaultValues)
 
         # Set ChangeValue Events
+        self.widgetOptions_Ridge.doubleSpinBox_AlphaMin.valueChanged.connect(self.actionChange_AlphaMin)
+        self.widgetOptions_Ridge.doubleSpinBox_AlphaMax.valueChanged.connect(self.actionChange_AlphaMax)
+        self.widgetOptions_Ridge.doubleSpinBox_AlphaStep.valueChanged.connect(self.actionChange_AlphaStep)
+        self.widgetOptions_Ridge.listWidget_TolSelectedList.model().rowsInserted.connect(self.actionChange_SelectedTol)
+
 
     def setMainEvents_(self):
         # Button Events
@@ -1335,6 +1341,28 @@ class WidgetMachineLearningMainWidget(QWidget):
             if not stateExist:
                 self.widgetOptions_Ridge.addToSelectedList_Solver(_it_)
 
+    def actionChange_AlphaMin(self):
+        value = round(self.widgetOptions_Ridge.getAlphaMin(), 3)
+        # print(value)
+        self.mlr_Regression.setRidge_alphaMin(value)
+
+    def actionChange_AlphaMax(self):
+        value = round(self.widgetOptions_Ridge.getAlphaMax(), 3)
+        # print(value)
+        self.mlr_Regression.setRidge_alphaMax(value)
+
+    def actionChange_AlphaStep(self):
+        value = round(self.widgetOptions_Ridge.getAlphaStep(), 3)
+        # print(value)
+        self.mlr_Regression.setRidge_alphaStep(value)
+
+    def actionChange_SelectedTol(self):
+        value = self.widgetOptions_Ridge.getListOptionSelectedItems_Tol()
+        print(value)
+
+    def actionChange_SelectedSolver(self, parent, start, end):
+        value = self.widgetOptions_Ridge.getListOptionSelectedItems_Solver()
+        print(value)
 
 # *********************************** #
 # *********** Tab Widgets *********** #
@@ -2257,11 +2285,20 @@ class WidgetRidgeML(QWidget):
     def setAlphaMin(self, value: float):
         self.doubleSpinBox_AlphaMin.setValue(value)
 
+    def getAlphaMin(self):
+        return self.doubleSpinBox_AlphaMin.value()
+
     def setAlphaMax(self, value: float):
         self.doubleSpinBox_AlphaMax.setValue(value)
 
+    def getAlphaMax(self):
+        return self.doubleSpinBox_AlphaMax.value()
+
     def setAlphaStep(self, value: float):
         self.doubleSpinBox_AlphaStep.setValue(value)
+
+    def getAlphaStep(self):
+        return self.doubleSpinBox_AlphaStep.value()
 
     def setOptionList_Tol(self, listValue: []):
         self.listWidget_TolOptionsList.clear()
