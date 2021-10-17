@@ -112,6 +112,8 @@ ML_TOL_LIST = [
     1e-10
 ]
 
+ML_EXEC_STATE = False
+
 
 # A class to store the Machine Learning Regression algorithms
 class MachineLearningRegression:
@@ -169,13 +171,13 @@ class MachineLearningRegression:
 
     def restore_LinearRegression_Defaults(self):
         self._MLR_dictMethods[ML_REG_LINEAR_REGRESSION] = {ML_KEY_METHOD: LinearRegression(),
-                                                           self._MLR_KEY_STATE: False,
+                                                           self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                            ML_KEY_PARAM_GRID: {}
                                                            }
 
     def restore_Ridge_Defaults(self):
         self._MLR_dictMethods[ML_REG_RIDGE] = {ML_KEY_METHOD: Ridge(),
-                                               self._MLR_KEY_STATE: False,
+                                               self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                ML_KEY_PARAM_GRID: {
                                                    ML_KEY_ALPHA: {self._MLR_KEY_MIN: self._MLR_RIDGE_ALPHA_DEFAULT,
                                                                   self._MLR_KEY_MAX: self._MLR_RIDGE_ALPHA_DEFAULT,
@@ -187,79 +189,79 @@ class MachineLearningRegression:
 
     def restore_BayesianRidge_Default(self):
         self._MLR_dictMethods[ML_REG_BAYESIAN_RIDGE] = {ML_KEY_METHOD: BayesianRidge(),
-                                                        self._MLR_KEY_STATE: False,
+                                                        self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                         ML_KEY_PARAM_GRID: {}
                                                         }
 
     def restore_Lasso_Default(self):
         self._MLR_dictMethods[ML_REG_LASSO] = {ML_KEY_METHOD: Lasso(),
-                                               self._MLR_KEY_STATE: False,
+                                               self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                ML_KEY_PARAM_GRID: {}
                                                }
 
     def restore_LassoLars_Default(self):
         self._MLR_dictMethods[ML_REG_LASSO_LARS] = {ML_KEY_METHOD: LassoLars(),
-                                                    self._MLR_KEY_STATE: False,
+                                                    self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                     ML_KEY_PARAM_GRID: {}
                                                     }
 
     def restore_TweedieRegressor_Default(self):
         self._MLR_dictMethods[ML_REG_TWEEDIE_REGRESSOR] = {ML_KEY_METHOD: TweedieRegressor(),
-                                                           self._MLR_KEY_STATE: False,
+                                                           self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                            ML_KEY_PARAM_GRID: {}
                                                            }
 
     def restore_SGDRegressor_Default(self):
         self._MLR_dictMethods[ML_REG_SGD_REGRESSOR] = {ML_KEY_METHOD: SGDRegressor(),
-                                                       self._MLR_KEY_STATE: False,
+                                                       self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                        ML_KEY_PARAM_GRID: {}
                                                        }
 
     def restore_SVR_Default(self):
         self._MLR_dictMethods[ML_REG_SVR] = {ML_KEY_METHOD: SVR(),
-                                             self._MLR_KEY_STATE: False,
+                                             self._MLR_KEY_STATE: ML_EXEC_STATE,
                                              ML_KEY_PARAM_GRID: {}
                                              }
 
     def restore_LinearSVR_Default(self):
         self._MLR_dictMethods[ML_REG_LINEAR_SVR] = {ML_KEY_METHOD: LinearSVR(),
-                                                    self._MLR_KEY_STATE: False,
+                                                    self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                     ML_KEY_PARAM_GRID: {}
                                                     }
 
     def restore_NearestNeighbor_Default(self):
         self._MLR_dictMethods[ML_REG_NEAREST_NEIGHBORS] = {ML_KEY_METHOD: NearestNeighbors(),
-                                                           self._MLR_KEY_STATE: False,
+                                                           self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                            ML_KEY_PARAM_GRID: {}
                                                            }
 
     def restore_KNeighborsRegressor_Default(self):
         self._MLR_dictMethods[ML_REG_K_NEIGHBORS_REGRESSOR] = {ML_KEY_METHOD: KNeighborsRegressor(),
-                                                               self._MLR_KEY_STATE: False,
+                                                               self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                                ML_KEY_PARAM_GRID: {}
                                                                }
 
     def restore_DecisionTreeRegressor_Default(self):
         self._MLR_dictMethods[ML_REG_DECISION_TREE_REGRESSOR] = {ML_KEY_METHOD: DecisionTreeRegressor(),
-                                                                 self._MLR_KEY_STATE: False,
+                                                                 self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                                  ML_KEY_PARAM_GRID: {}
                                                                  }
 
     def restore_RandomForestRegressor_Default(self):
         self._MLR_dictMethods[ML_REG_RANDOM_FOREST_REGRESSOR] = {ML_KEY_METHOD: RandomForestRegressor(),
-                                                                 self._MLR_KEY_STATE: False,
+                                                                 self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                                  ML_KEY_PARAM_GRID: {}
                                                                  }
 
     def restore_AdaBoostRegressor_Default(self):
         self._MLR_dictMethods[ML_REG_ADA_BOOST_REGRESSOR] = {ML_KEY_METHOD: AdaBoostRegressor(),
-                                                             self._MLR_KEY_STATE: False,
+                                                             self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                              ML_KEY_PARAM_GRID: {}
                                                              }
 
     def restore_GradientBoostingRegressor_Default(self):
         self._MLR_dictMethods[ML_REG_GRADIENT_BOOSTING_REGRESSOR] = {ML_KEY_METHOD: GradientBoostingRegressor(),
-                                                                     self._MLR_KEY_STATE: False,
+                                                                     self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                                      ML_KEY_PARAM_GRID: {}
                                                                      }
 
@@ -313,8 +315,8 @@ class MachineLearningRegression:
     def getRidge_Solver_Default(self):
         return self._MLR_RIDGE_SOLVER_DEFAULT
 
-    def setRidge_state(self, value: bool):
-        self._MLR_dictMethods[ML_REG_RIDGE][self._MLR_KEY_STATE] = value
+    def setRidge_state(self, state: bool):
+        self._MLR_dictMethods[ML_REG_RIDGE][self._MLR_KEY_STATE] = state
 
     def getRidge_state(self):
         return self._MLR_dictMethods[ML_REG_RIDGE][self._MLR_KEY_STATE]

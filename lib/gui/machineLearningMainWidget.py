@@ -168,6 +168,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         }
 
         self.mlr_Regression = mlr.MachineLearningRegression()
+        self.mlr_Regression.setML_dict()
 
     # DICTIONARY FILE PARAMETERS
     def dkeyFileName(self):
@@ -473,8 +474,14 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetOptions_Ridge.doubleSpinBox_AlphaMin.valueChanged.connect(self.actionChange_AlphaMin)
         self.widgetOptions_Ridge.doubleSpinBox_AlphaMax.valueChanged.connect(self.actionChange_AlphaMax)
         self.widgetOptions_Ridge.doubleSpinBox_AlphaStep.valueChanged.connect(self.actionChange_AlphaStep)
-        self.widgetOptions_Ridge.listWidget_TolSelectedList.model().rowsInserted.connect(self.actionChange_SelectedTol)
-
+        self.widgetOptions_Ridge.listWidget_TolSelectedList.model().rowsInserted.connect(
+            self.actionChange_SelectedTol)
+        self.widgetOptions_Ridge.listWidget_TolSelectedList.model().rowsRemoved.connect(
+            self.actionChange_SelectedTol)
+        self.widgetOptions_Ridge.listWidget_SolverSelectedList.model().rowsInserted.connect(
+            self.actionChange_SelectedSolver)
+        self.widgetOptions_Ridge.listWidget_SolverSelectedList.model().rowsRemoved.connect(
+            self.actionChange_SelectedSolver)
 
     def setMainEvents_(self):
         # Button Events
@@ -1238,49 +1245,65 @@ class WidgetMachineLearningMainWidget(QWidget):
     # ***** SET SETTINGS MACHINE LEARNING REGRESSION METHODS *** #
     # _____ CheckBox State Change Event _____ *
     def actionStateChangeLinearRegression(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_LinearRegression()
+        print(state)
 
     def actionStateChangeRidge(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_Ridge()
+        print(state)
+        self.mlr_Regression.setRidge_state(state)
 
     def actionStateChangeBayesianRidge(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_BayesianRidge()
+        print(state)
 
     def actionStateChangeLasso(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_Lasso()
+        print(state)
 
     def actionStateChangeLassoLars(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_LassoLars()
+        print(state)
 
     def actionStateChangeTweedieRegressor(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_TweedieRegressor()
+        print(state)
 
     def actionStateChangeSGDRegressor(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_SGDRegressor()
+        print(state)
 
     def actionStateChangeSVR(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_SVR()
+        print(state)
 
     def actionStateChangeLinearSVR(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_LinearSVR()
+        print(state)
 
     def actionStateChangeNearestNeighbor(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_NearestNeighbor()
+        print(state)
 
     def actionStateChangeKNeighborsRegressor(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_KNeighborsRegressor()
+        print(state)
 
     def actionStateChangeDecisionTreeRegressor(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_DecisionTreeRegressor()
+        print(state)
 
     def actionStateChangeRandomForestRegressor(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_RandomForestRegressor()
+        print(state)
 
     def actionStateChangeAdaBoostRegressor(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_AdaBoostRegressor()
+        print(state)
 
     def actionStateChangeGradientBoostingRegressor(self):
-        pass
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_GradientBoostingRegressor()
+        print(state)
 
     # _____ Button Clicked Event _____ *
     def actionButtonClickedRidge(self):
@@ -1357,12 +1380,15 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.mlr_Regression.setRidge_alphaStep(value)
 
     def actionChange_SelectedTol(self):
-        value = self.widgetOptions_Ridge.getListOptionSelectedItems_Tol()
-        print(value)
+        value = self.widgetOptions_Ridge.getSelectedList_Tol()
+        # print(value)
+        self.mlr_Regression.setRidge_Tol(value)
 
-    def actionChange_SelectedSolver(self, parent, start, end):
-        value = self.widgetOptions_Ridge.getListOptionSelectedItems_Solver()
-        print(value)
+    def actionChange_SelectedSolver(self):
+        value = self.widgetOptions_Ridge.getSelectedList_Solver()
+        # print(value)
+        self.mlr_Regression.setRidge_Solver(value)
+
 
 # *********************************** #
 # *********** Tab Widgets *********** #
@@ -1825,7 +1851,6 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.checkbox_SGDRegressor = QCheckBox()
         self.checkbox_SVR = QCheckBox()
         self.checkbox_LinearSVR = QCheckBox()
-        self.checkbox_SVR = QCheckBox()
         self.checkbox_NearestNeighbor = QCheckBox()
         self.checkbox_KNeighborsRegressor = QCheckBox()
         self.checkbox_DecisionTreeRegressor = QCheckBox()
@@ -2121,6 +2146,100 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
 
         return vbox_Methods
 
+    # ----------------------------- #
+    # ----- Setters / Getters ----- #
+    # ----------------------------- #
+    def setCheckState_LinearRegression(self, state: bool):
+        self.checkbox_LinearRegression.setCheckState(state)
+
+    def getCheckState_LinearRegression(self):
+        return self.checkbox_LinearRegression.isChecked()
+
+    def setCheckState_Ridge(self, state: bool):
+        self.checkbox_Ridge.setCheckState(state)
+
+    def getCheckState_Ridge(self):
+        return self.checkbox_Ridge.isChecked()
+
+    def setCheckState_BayesianRidge(self, state: bool):
+        self.checkbox_BayesianRidge.setCheckState(state)
+
+    def getCheckState_BayesianRidge(self):
+        return self.checkbox_BayesianRidge.isChecked()
+
+    def setCheckState_Lasso(self, state: bool):
+        self.checkbox_Lasso.setCheckState(state)
+
+    def getCheckState_Lasso(self):
+        return self.checkbox_Lasso.isChecked()
+
+    def setCheckState_LassoLars(self, state: bool):
+        self.checkbox_LassoLars.setCheckState(state)
+
+    def getCheckState_LassoLars(self):
+        return self.checkbox_LassoLars.isChecked()
+
+    def setCheckState_TweedieRegressor(self, state: bool):
+        self.checkbox_TweedieRegressor.setCheckState(state)
+
+    def getCheckState_TweedieRegressor(self):
+        return self.checkbox_TweedieRegressor.isChecked()
+
+    def setCheckState_SGDRegressor(self, state: bool):
+        self.checkbox_SGDRegressor.setCheckState(state)
+
+    def getCheckState_SGDRegressor(self):
+        return self.checkbox_SGDRegressor.isChecked()
+
+    def setCheckState_SVR(self, state: bool):
+        self.checkbox_SVR.setCheckState(state)
+
+    def getCheckState_SVR(self):
+        return self.checkbox_SVR.isChecked()
+
+    def setCheckState_LinearSVR(self, state: bool):
+        self.checkbox_LinearSVR.setCheckState(state)
+
+    def getCheckState_LinearSVR(self):
+        return self.checkbox_LinearSVR.isChecked()
+
+    def setCheckState_NearestNeighbor(self, state: bool):
+        self.checkbox_NearestNeighbor.setCheckState(state)
+
+    def getCheckState_NearestNeighbor(self):
+        return self.checkbox_NearestNeighbor.isChecked()
+
+    def setCheckState_KNeighborsRegressor(self, state: bool):
+        self.checkbox_KNeighborsRegressor.setCheckState(state)
+
+    def getCheckState_KNeighborsRegressor(self):
+        return self.checkbox_KNeighborsRegressor.isChecked()
+
+    def setCheckState_DecisionTreeRegressor(self, state: bool):
+        self.checkbox_DecisionTreeRegressor.setCheckState(state)
+
+    def getCheckState_DecisionTreeRegressor(self):
+        return self.checkbox_DecisionTreeRegressor.isChecked()
+
+    def setCheckState_RandomForestRegressor(self, state: bool):
+        self.checkbox_RandomForestRegressor.setCheckState(state)
+
+    def getCheckState_RandomForestRegressor(self):
+        return self.checkbox_RandomForestRegressor.isChecked()
+
+    def setCheckState_AdaBoostRegressor(self, state: bool):
+        self.checkbox_RandomForestRegressor.setCheckState(state)
+
+    def getCheckState_AdaBoostRegressor(self):
+        return self.checkbox_RandomForestRegressor.isChecked()
+
+    def setCheckState_GradientBoostingRegressor(self, state: bool):
+        self.checkbox_GradientBoostingRegressor.setCheckState(state)
+
+    def getCheckState_GradientBoostingRegressor(self):
+        return self.checkbox_GradientBoostingRegressor.isChecked()
+
+
 # *                                 * #
 # *********************************** #
 
@@ -2322,6 +2441,12 @@ class WidgetRidgeML(QWidget):
             self.listWidget_TolSelectedList.setCurrentRow(0)
         self.listWidget_SolverOptionsList.sortItems(Qt.AscendingOrder)
 
+    def getSelectedList_Tol(self):
+        valueList = []
+        for _index_ in range(self.listWidget_TolSelectedList.count()):
+            valueList.append(self.listWidget_TolSelectedList.item(_index_).text())
+        return valueList
+
     def setSelectedList_Solver(self, listValue: []):
         self.listWidget_SolverSelectedList.clear()
         for _item_ in listValue:
@@ -2329,6 +2454,12 @@ class WidgetRidgeML(QWidget):
         if self.listWidget_SolverSelectedList.item(0):
             self.listWidget_SolverSelectedList.setCurrentRow(0)
         self.listWidget_SolverOptionsList.sortItems(Qt.AscendingOrder)
+
+    def getSelectedList_Solver(self):
+        valueList = []
+        for _index_ in range(self.listWidget_SolverSelectedList.count()):
+            valueList.append(self.listWidget_SolverSelectedList.item(_index_).text())
+        return valueList
 
     def addToOptionList_Tol(self, value):
         self.listWidget_TolOptionsList.addItem(str(value))
