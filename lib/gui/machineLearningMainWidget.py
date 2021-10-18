@@ -835,6 +835,14 @@ class WidgetMachineLearningMainWidget(QWidget):
 
         return X_train_val, y_train_val, X_test, y_test, inputHeaderColumnsForML, outputHeaderColumnsForML
 
+    @staticmethod
+    def BE_getArrayFromDictList(inputDictList: dict):
+        tmpOutput = []
+        for key in inputDictList.keys():
+            for value in inputDictList[key]:
+                tmpOutput.append(value)
+        return np.array(tmpOutput)
+
     # *                                                         * #
     # *********************************************************** #
 
@@ -1016,9 +1024,21 @@ class WidgetMachineLearningMainWidget(QWidget):
                 [dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_PRED].append(col + "_Pred")
                  for col in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]]
 
-                print(dict_fileData[fileName])
+                # print(dict_fileData[fileName])
 
-            # 02 - Run Machine Learning Process
+                # 02 - Run Machine Learning Process
+                # ******** THIS CODE MAY BE EDITED WITH THREADING ****
+                X_TrainVal = self.BE_getArrayFromDictList(dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_INPUT])
+                y_TrainVal = self.BE_getArrayFromDictList(dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_OUTPUT])
+                X_Test = self.BE_getArrayFromDictList(dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_INPUT])
+                y_Test = self.BE_getArrayFromDictList(dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_OUTPUT])
+                exportFolder = os.path.normpath(self.dict_machineLearningParameters[self.dkey_mlpExportFolder()]
+                                                + '/' + fileName)
+                self.mlr_Regression.fit(X_TrainVal=X_TrainVal,
+                                        y_TrainVal=y_TrainVal,
+                                        X_Test=X_Test,
+                                        y_Test=y_Test,
+                                        exportFolder=exportFolder)
 
     def actionFileListRowChanged_event(self):
         self.listWidget_ColumnList.clear()  # Clear Column Widget

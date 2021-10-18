@@ -1,3 +1,9 @@
+import os
+import datetime as dt
+import numpy as np
+
+import lib.core.file_manipulation as file_manip
+
 from sklearn.linear_model import (
     LinearRegression,
     Ridge,
@@ -33,6 +39,9 @@ from sklearn.model_selection import (
     RandomizedSearchCV,
     cross_val_score
 )
+
+PATH_DEFAULT_EXPORT_DATA = os.path.normpath(file_manip.PATH_DOCUMENTS + '/MachineLearningRegression')
+DEBUG_MESSAGES = True
 
 ML_REG_LINEAR_REGRESSION = 'LinearRegression'
 ML_REG_RIDGE = 'Ridge'
@@ -113,6 +122,30 @@ ML_TOL_LIST = [
 ]
 
 ML_EXEC_STATE = False
+
+_ML_NO_TUNING_LIST = [
+    ML_REG_LINEAR_REGRESSION
+]
+
+_ML_TUNING_NON_DEEP_METHODS = [
+    ML_REG_RIDGE,
+    ML_REG_BAYESIAN_RIDGE,
+    ML_REG_LASSO,
+    ML_REG_LASSO_LARS,
+    ML_REG_TWEEDIE_REGRESSOR,
+    ML_REG_SGD_REGRESSOR,
+    ML_REG_SVR,
+    ML_REG_LINEAR_SVR,
+    ML_REG_NEAREST_NEIGHBORS,
+    ML_REG_K_NEIGHBORS_REGRESSOR,
+    ML_REG_DECISION_TREE_REGRESSOR,
+    ML_REG_RANDOM_FOREST_REGRESSOR,
+    ML_REG_ADA_BOOST_REGRESSOR,
+    ML_REG_GRADIENT_BOOSTING_REGRESSOR
+]
+
+_ML_TUNING_DEEP_METHODS = [
+]
 
 
 # A class to store the Machine Learning Regression algorithms
@@ -320,3 +353,54 @@ class MachineLearningRegression:
 
     def getRidge_state(self):
         return self._MLR_dictMethods[ML_REG_RIDGE][self._MLR_KEY_STATE]
+
+    # ************************ #
+    # ***** MAIN EXECUTE ***** #
+    # ************************ #
+    def fit(self, X_TrainVal: np.ndarray, y_TrainVal: np.ndarray,
+            X_Test: np.ndarray, y_Test: np.ndarray, exportFolder=PATH_DEFAULT_EXPORT_DATA):
+        # Set variables
+        currentDatetime = dt.datetime.now().strftime("%d%m%Y_%H%M%S")  # take the current datetime (for folder creation)
+        errorFileName = 'PerformanceScores.xlsx'  # fileName for exporting the Performance Scores of all methods
+        listStr_ModelPaths = []  # a list to store the paths of the models and return it later
+        exportTrainedModelsPath = os.path.normpath(exportFolder + '/' +
+                                                   currentDatetime + '/TrainedModels') + '/'
+        workbookFilePath = os.path.normpath(exportFolder + '/' +
+                                            currentDatetime) + '/'
+
+        inputData_TrainVal = X_TrainVal
+        outputData_TrainVal = y_TrainVal
+
+        inputData_Test = X_Test
+        outputData_Test = y_Test
+
+        inputData_TrainVal_Shape = inputData_TrainVal.shape
+        outputData_TrainVal_Shape = outputData_TrainVal.shape
+
+        inputData_Test_Shape = inputData_Test.shape
+        outputData_Test_Shape = outputData_Test.shape
+
+        # Check if the exportFolder exists and if not create it
+        file_manip.checkAndCreateFolders(os.path.normpath(exportFolder))
+        file_manip.checkAndCreateFolders(exportTrainedModelsPath)
+
+        # Debug Messages
+        if DEBUG_MESSAGES:
+            print("CurrentDatetime = ", currentDatetime)
+            print("ErrorFileName = ", errorFileName)
+            print("ExportTrainedModelPaths = ", exportTrainedModelsPath)
+            print("WorkbookFilePath = ", workbookFilePath)
+            print("InputData_TrainVal_Shape = ", inputData_TrainVal_Shape)
+            print("OutputData_TrainVal_Shape = ", outputData_TrainVal_Shape)
+            print("InputData_Test_Shape = ", inputData_Test_Shape)
+            print("OutputData_Test_Shape = ", outputData_Test_Shape)
+
+        for _methodKey_ in self._MLR_dictMethods.keys():
+            if _methodKey_ in _ML_NO_TUNING_LIST:
+                pass
+            elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:
+                pass
+            elif _methodKey_ in _ML_TUNING_DEEP_METHODS:
+                pass
+            else:
+                pass
