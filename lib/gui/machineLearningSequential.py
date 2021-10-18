@@ -793,11 +793,17 @@ class WidgetMachineLearningSequential(QWidget):
                                             dataset = dataset_real
                                             dataset.replace('_REAL', '')
 
+                                            dataset_real.to_csv(o_dir_MLP + '/OutputReal_Normalized.csv')
+                                            dataset_pred.to_csv(o_dir_MLP + '/OutputPred_Normalized.csv')
+
                                             for out_column in dict_list_output_columns[fileName]:
                                                 if dataset_real.__contains__(out_column):
                                                     mul_ind = dict_max_values_for_output_columns[fileName][out_column]
                                             tmp_d1 = d1[dataset_real] * mul_ind
                                             tmp_d2 = d2[dataset_pred] * mul_ind
+
+                                            tmp_d1.to_csv(o_dir_MLP + '/OutputReal_Denormalized.csv')
+                                            tmp_d2.to_csv(o_dir_MLP + '/OutputPred_Denormalized.csv')
 
                                             d_cor = pd.DataFrame(np.array([tmp_d1.values, tmp_d2.values]).T,
                                                                  columns=[dataset_real, dataset_pred])
