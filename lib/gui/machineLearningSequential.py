@@ -793,8 +793,8 @@ class WidgetMachineLearningSequential(QWidget):
                                             dataset = dataset_real
                                             dataset.replace('_REAL', '')
 
-                                            dataset_real.to_csv(o_dir_MLP + '/OutputReal_Normalized.csv')
-                                            dataset_pred.to_csv(o_dir_MLP + '/OutputPred_Normalized.csv')
+                                            d1[dataset_real].to_csv(o_dir_MLP + '/OutputReal_Normalized.csv')
+                                            d2[dataset_pred].to_csv(o_dir_MLP + '/OutputPred_Normalized.csv')
 
                                             for out_column in dict_list_output_columns[fileName]:
                                                 if dataset_real.__contains__(out_column):
