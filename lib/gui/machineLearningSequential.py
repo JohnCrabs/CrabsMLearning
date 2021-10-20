@@ -774,6 +774,9 @@ class WidgetMachineLearningSequential(QWidget):
                                         d1 = pd.DataFrame(dict_models[key][0], columns=list_of_output_headers_real)
                                         d2 = pd.DataFrame(dict_models[key][1], columns=list_of_output_headers_pred)
 
+                                        d1_denorm = d1
+                                        d2_denorm = d2
+
                                         o_dir = os.path.normpath(dir_path) + '/../' + dir_plot_export + '/' + \
                                                 model_name + '/' + uniq_event + '/'
                                         file_manip.checkAndCreateFolders(o_dir)
@@ -793,17 +796,21 @@ class WidgetMachineLearningSequential(QWidget):
                                             dataset = dataset_real
                                             dataset.replace('_REAL', '')
 
-                                            d1[dataset_real].to_csv(o_dir_MLP + '/OutputReal_Normalized.csv')
-                                            d2[dataset_pred].to_csv(o_dir_MLP + '/OutputPred_Normalized.csv')
+                                            # d1[dataset_real].to_csv(o_dir_MLP + '/OutputReal_Normalized.csv')
+                                            # d2[dataset_pred].to_csv(o_dir_MLP + '/OutputPred_Normalized.csv')
 
                                             for out_column in dict_list_output_columns[fileName]:
                                                 if dataset_real.__contains__(out_column):
                                                     mul_ind = dict_max_values_for_output_columns[fileName][out_column]
+
+                                            d1_denorm[dataset_real] *= mul_ind
+                                            d2_denorm[dataset_pred] *= mul_ind
+
                                             tmp_d1 = d1[dataset_real] * mul_ind
                                             tmp_d2 = d2[dataset_pred] * mul_ind
 
-                                            tmp_d1.to_csv(o_dir_MLP + '/OutputReal_Denormalized.csv')
-                                            tmp_d2.to_csv(o_dir_MLP + '/OutputPred_Denormalized.csv')
+                                            # tmp_d1.to_csv(o_dir_MLP + '/OutputReal_Denormalized.csv')
+                                            # tmp_d2.to_csv(o_dir_MLP + '/OutputPred_Denormalized.csv')
 
                                             d_cor = pd.DataFrame(np.array([tmp_d1.values, tmp_d2.values]).T,
                                                                  columns=[dataset_real, dataset_pred])
@@ -903,6 +910,11 @@ class WidgetMachineLearningSequential(QWidget):
                                             tmp_append_row.append(denorm_err_rmse)
                                             tmp_append_row.append(norm_err_mae)
                                             tmp_append_row.append(denorm_err_mae)
+
+                                        d1.to_csv(o_dir + '/' + uniq_event + '_OutputReal_Normalized.csv')
+                                        d2.to_csv(o_dir + '/' + uniq_event + '_OutputPred_Normalized.csv')
+                                        d1_denorm.to_csv(o_dir + '/' + uniq_event + '_OutputReal_Denormalized.csv')
+                                        d2_denorm.to_csv(o_dir + '/' + uniq_event + '_OutputPred_Denormalized.csv')
 
                                         cor_CSV.append(tmp_cor_csv)
                                         ws.append(tmp_append_row)
