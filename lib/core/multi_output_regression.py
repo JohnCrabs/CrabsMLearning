@@ -337,6 +337,8 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
     workbook_dir_path = dir_path + "../"
     workbook_path = dir_path + "../" + exportFileName_path
 
+    # ------------------------------------------------------------------------------- #
+
     # convert from dict to array
     inputDataToUse_train_val = input_data_train_val
     outputDataToUse_train_val = output_data_train_val
@@ -353,6 +355,8 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
     output_shape_test = outputDataToUse_test.shape
     print(input_shape_test)
     print(output_shape_test)
+
+    # ------------------------------------------------------------------------------- #
 
     # DNN model here
     inputs = keras.Input(shape=(input_shape_train_val[1],))
@@ -437,6 +441,8 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
         FLAG_S2S_LSTM: Sequential
     }
 
+    # ------------------------------------------------------------------------------- #
+
     # other parameters to setup before start testing
     deepModelsTrainingEpochs = epochs
 
@@ -452,6 +458,8 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
     # keep 75% as training, 5% as validation and 20% as training
     trainIdxs = np.sort(randomIndexes[:int(np.round(0.85 * len(randomIndexes)))])
     valIdxs = np.sort(randomIndexes[int(np.round(0.85 * len(randomIndexes))) + 1:])
+
+    # ------------------------------------------------------------------------------- #
 
     # train and test the models
     for modelName, estimator in availableEstimators.items():

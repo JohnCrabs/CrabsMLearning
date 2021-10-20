@@ -36,8 +36,8 @@ from sklearn.ensemble import (
 
 from sklearn.model_selection import (
     GridSearchCV,
-    RandomizedSearchCV,
-    cross_val_score
+    # RandomizedSearchCV,
+    # cross_val_score
 )
 
 PATH_DEFAULT_EXPORT_DATA = os.path.normpath(file_manip.PATH_DOCUMENTS + '/MachineLearningRegression')
@@ -102,6 +102,7 @@ ML_SOLVER_OPTIONS = [
 ]
 
 ML_KEY_METHOD = 'Method'
+ML_KEY_CUSTOM_PARAM = 'Custom Parameters'
 ML_KEY_PARAM_GRID = 'Grid Parameter'
 
 ML_KEY_ALPHA = 'alpha'
@@ -158,7 +159,8 @@ class MachineLearningRegression:
         self._MLR_KEY_STEP = 'step'
         self._MLR_KEY_STATE = 'state'
 
-        self._MLR_RIDGE_ALPHA_DEFAULT = 1.0
+        self._MLR_RIDGE_ALPHA_DEFAULT_VALUE = 1.0
+        self._MLR_RIDGE_ALPHA_DEFAULT = [1.0]
         self._MLR_RIDGE_TOL_DEFAULT = [1e-3]
         self._MLR_RIDGE_SOLVER_DEFAULT = [ML_SOLVER_AUTO]
 
@@ -211,10 +213,15 @@ class MachineLearningRegression:
     def restore_Ridge_Defaults(self):
         self._MLR_dictMethods[ML_REG_RIDGE] = {ML_KEY_METHOD: Ridge(),
                                                self._MLR_KEY_STATE: ML_EXEC_STATE,
+                                               ML_KEY_CUSTOM_PARAM: {
+                                                   ML_KEY_ALPHA: {
+                                                       self._MLR_KEY_MIN: self._MLR_RIDGE_ALPHA_DEFAULT_VALUE,
+                                                       self._MLR_KEY_MAX: self._MLR_RIDGE_ALPHA_DEFAULT_VALUE,
+                                                       self._MLR_KEY_STEP: self._MLR_RIDGE_ALPHA_DEFAULT_VALUE
+                                                   }
+                                               },
                                                ML_KEY_PARAM_GRID: {
-                                                   ML_KEY_ALPHA: {self._MLR_KEY_MIN: self._MLR_RIDGE_ALPHA_DEFAULT,
-                                                                  self._MLR_KEY_MAX: self._MLR_RIDGE_ALPHA_DEFAULT,
-                                                                  self._MLR_KEY_STEP: self._MLR_RIDGE_ALPHA_DEFAULT},
+                                                   ML_KEY_ALPHA: self._MLR_RIDGE_ALPHA_DEFAULT,
                                                    ML_KEY_TOL: self._MLR_RIDGE_TOL_DEFAULT,
                                                    ML_KEY_SOLVER: self._MLR_RIDGE_SOLVER_DEFAULT
                                                }
@@ -301,34 +308,52 @@ class MachineLearningRegression:
     # ***************************** #
     # ***** SETTERS / GETTERS ***** #
     # ***************************** #
+    # ****** LINEAR_REGRESSION ***** #
+    def setLinearRegression_sate(self, state: bool):
+        self._MLR_dictMethods[ML_REG_LINEAR_REGRESSION][self._MLR_KEY_STATE] = state
+
+    def getLinearRegression_sate(self):
+        return self._MLR_dictMethods[ML_REG_LINEAR_REGRESSION][self._MLR_KEY_STATE]
 
     # ****** RIDGE ***** #
     def setRidge_alphaMin(self, value: float):
-        self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_PARAM_GRID][ML_KEY_ALPHA][self._MLR_KEY_MIN] = value
+        self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_CUSTOM_PARAM][ML_KEY_ALPHA][self._MLR_KEY_MIN] = value
+        self._setRidge_Alpha()
 
     def setRidge_alphaMax(self, value: float):
-        self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_PARAM_GRID][ML_KEY_ALPHA][self._MLR_KEY_MAX] = value
+        self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_CUSTOM_PARAM][ML_KEY_ALPHA][self._MLR_KEY_MAX] = value
+        self._setRidge_Alpha()
 
     def setRidge_alphaStep(self, value: float):
-        self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_PARAM_GRID][ML_KEY_ALPHA][self._MLR_KEY_STEP] = value
+        self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_CUSTOM_PARAM][ML_KEY_ALPHA][self._MLR_KEY_STEP] = value
+        self._setRidge_Alpha()
 
     def getRidge_alphaMin(self):
-        return self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_PARAM_GRID][ML_KEY_ALPHA][self._MLR_KEY_MIN]
+        return self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_CUSTOM_PARAM][ML_KEY_ALPHA][self._MLR_KEY_MIN]
 
     def getRidge_alphaMax(self):
-        return self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_PARAM_GRID][ML_KEY_ALPHA][self._MLR_KEY_MAX]
+        return self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_CUSTOM_PARAM][ML_KEY_ALPHA][self._MLR_KEY_MAX]
 
     def getRidge_alphaStep(self):
-        return self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_PARAM_GRID][ML_KEY_ALPHA][self._MLR_KEY_STEP]
+        return self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_CUSTOM_PARAM][ML_KEY_ALPHA][self._MLR_KEY_STEP]
+
+    def _setRidge_Alpha(self):
+        stepVal = self.getRidge_alphaStep()
+        minVal = self.getRidge_alphaMin()
+        maxVal = self.getRidge_alphaMax() + stepVal
+        tabValue = []
+        for _value_ in np.arange(minVal, maxVal, stepVal):
+            tabValue.append(_value_)
+        self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_PARAM_GRID][ML_KEY_ALPHA] = tabValue
 
     def getRidge_alphaMin_Default(self):
-        return self._MLR_RIDGE_ALPHA_DEFAULT
+        return self._MLR_RIDGE_ALPHA_DEFAULT_VALUE
 
     def getRidge_alphaMax_Default(self):
-        return self._MLR_RIDGE_ALPHA_DEFAULT
+        return self._MLR_RIDGE_ALPHA_DEFAULT_VALUE
 
     def getRidge_alphaStep_Default(self):
-        return self._MLR_RIDGE_ALPHA_DEFAULT
+        return self._MLR_RIDGE_ALPHA_DEFAULT_VALUE
 
     def setRidge_Tol(self, value: []):
         self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_PARAM_GRID][ML_KEY_TOL] = value
@@ -358,7 +383,8 @@ class MachineLearningRegression:
     # ***** MAIN EXECUTE ***** #
     # ************************ #
     def fit(self, X_TrainVal: np.ndarray, y_TrainVal: np.ndarray,
-            X_Test: np.ndarray, y_Test: np.ndarray, exportFolder=PATH_DEFAULT_EXPORT_DATA):
+            X_Test: np.ndarray, y_Test: np.ndarray, exportFolder=PATH_DEFAULT_EXPORT_DATA,
+            validationPercentage: float = 0.25):
         # Set variables
         currentDatetime = dt.datetime.now().strftime("%d%m%Y_%H%M%S")  # take the current datetime (for folder creation)
         errorFileName = 'PerformanceScores.xlsx'  # fileName for exporting the Performance Scores of all methods
@@ -384,6 +410,12 @@ class MachineLearningRegression:
         file_manip.checkAndCreateFolders(os.path.normpath(exportFolder))
         file_manip.checkAndCreateFolders(exportTrainedModelsPath)
 
+        # create train, validation and test sets indexes
+        randomIndexes = np.random.permutation(inputData_TrainVal_Shape[0])
+        # Create the training and validation indexes
+        trainIdxs = np.sort(randomIndexes[int(np.round(validationPercentage * len(randomIndexes))) + 1:])
+        valIdxs = np.sort(randomIndexes[:int(np.round(validationPercentage * len(randomIndexes)))])
+
         # Debug Messages
         if DEBUG_MESSAGES:
             print("CurrentDatetime = ", currentDatetime)
@@ -394,12 +426,28 @@ class MachineLearningRegression:
             print("OutputData_TrainVal_Shape = ", outputData_TrainVal_Shape)
             print("InputData_Test_Shape = ", inputData_Test_Shape)
             print("OutputData_Test_Shape = ", outputData_Test_Shape)
+            print("Random_Indexes_Length = ", randomIndexes.__len__())
+            print("Train_Indexes_Length = ", trainIdxs.__len__())
+            print("Validation_Indexes_Length = ", valIdxs.__len__())
 
         for _methodKey_ in self._MLR_dictMethods.keys():
             if _methodKey_ in _ML_NO_TUNING_LIST:
-                pass
+                if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
+                    print('Training ' + _methodKey_ + '...')
+                    self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD].fit(inputData_TrainVal[trainIdxs],
+                                                                          outputData_TrainVal[trainIdxs])
+                    print('...COMPLETED!')
             elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:
-                pass
+                if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
+                    print('Training ' + _methodKey_ + '...')
+                    model = GridSearchCV(self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD],
+                                         self._MLR_dictMethods[_methodKey_][ML_KEY_PARAM_GRID])
+                    model.fit(inputData_TrainVal[trainIdxs],
+                              outputData_TrainVal[trainIdxs])
+                    print('...COMPLETED!')
+                    print(model.score(inputData_Test,
+                                      outputData_Test))
+                    print(model.best_estimator_)
             elif _methodKey_ in _ML_TUNING_DEEP_METHODS:
                 pass
             else:

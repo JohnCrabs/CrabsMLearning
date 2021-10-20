@@ -1267,6 +1267,7 @@ class WidgetMachineLearningMainWidget(QWidget):
     def actionStateChangeLinearRegression(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_LinearRegression()
         print(state)
+        self.mlr_Regression.setLinearRegression_sate(state)
 
     def actionStateChangeRidge(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_Ridge()
