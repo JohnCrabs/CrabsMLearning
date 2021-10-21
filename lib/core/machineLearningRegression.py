@@ -448,14 +448,16 @@ class MachineLearningRegression:
         for _methodKey_ in self._MLR_dictMethods.keys():  # for each method
             model = None  # a parameter to store the model
             modelName = _methodKey_  # store the methodKey to modelName
+            realTrain = None  # a parameter to store the real expanded y_Train values
+            realTest = None  # a parameter to store the real expanded y_Test values
             predTrain = None  # a parameter to store the predicted y_Train values
             predTest = None  # a parameter to store the predicted y_Test values
             if _methodKey_ in _ML_NO_TUNING_LIST:  # if method cannot be tuning (e.g. LinearRegression)
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
                     print('Training ' + _methodKey_ + '...')  # console message
                     model = self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD]
-                    model.fit(inputData_TrainVal[trainIdxs, :],
-                              outputData_TrainVal[trainIdxs, :])  # model.fit()
+                    model.fit(inputData_TrainVal,
+                              outputData_TrainVal)  # model.fit()
                     print('...COMPLETED!')  # console message
                     # Export model
                     modelExportPath = exportTrainedModelsPath + modelName + '_' + \
@@ -463,7 +465,6 @@ class MachineLearningRegression:
                     listStr_ModelPaths.append(modelExportPath)
                     joblib.dump(model, modelExportPath)
                     print('Model exported at: ', modelExportPath)
-                    # print("Test Score = ", model.score(inputData_Test, outputData_Test))
 
             elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:  # elif method is not a tf.keras
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
@@ -472,8 +473,8 @@ class MachineLearningRegression:
                     model = GridSearchCV(self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD],
                                          self._MLR_dictMethods[_methodKey_][ML_KEY_PARAM_GRID],
                                          n_jobs=-1)
-                    model.fit(inputData_TrainVal[trainIdxs, :],
-                              outputData_TrainVal[trainIdxs, :])  # model.fit()
+                    model.fit(inputData_TrainVal,
+                              outputData_TrainVal)  # model.fit()
                     print('...COMPLETED!')  # console message
 
                     # Export model
@@ -484,7 +485,6 @@ class MachineLearningRegression:
                     print('Model exported at: ', modelExportPath)
                     print("Best Estimator = ", model.best_estimator_)
                     print("Best Score = ", model.best_score_)
-                    # print("Test Score = ", model.score(inputData_Test, outputData_Test))
 
             elif _methodKey_ in _ML_TUNING_DEEP_METHODS:  # elif method is keras
                 pass
@@ -492,14 +492,27 @@ class MachineLearningRegression:
                 pass
 
             if model is not None:
+                # if model is scikit learn model
+                if model not in _ML_NO_TUNING_LIST:
+                    predTrain = model.predict(inputData_TrainVal)  # make predictions (train)
+                    predTest = model.predict(inputData_Test)  # make predictions (test)
+                    realTrain = outputData_TrainVal.copy()
+                    realTest = outputData_Test.copy()
+                    realTrain = np.array(realTrain).T
+                    realTest = np.array(realTest).T
+                    predTrain = np.array(predTrain).T
+                    predTest = np.array(predTest).T
+
+                    print(realTest.shape)
+                    print(realTrain.shape)
+                    print(predTest.shape)
+                    print(predTrain.shape)
+
+                else:
+                    pass
+
                 # pre-allocating results array for raw predicted values
                 # PerObservationPoint
-                if model not in _ML_NO_TUNING_LIST:
-                    predTrain = model.predict(inputData_TrainVal[:, :])  # make predictions (train)
-                    predTest = model.predict(inputData_Test[:, :])  # make predictions (test)
-                    predTrain = np.expand_dims(predTrain, axis=1)  # expand dimensions
-                    predTest = np.expand_dims(predTest, axis=1)  # expand dimensions
-
                 errorMAE_Train = np.zeros(outputData_TrainVal_Shape[1])
                 errorMSE_Train = np.zeros(outputData_TrainVal_Shape[1])
                 errorMaxError_Train = np.zeros(outputData_TrainVal_Shape[1])
@@ -507,26 +520,27 @@ class MachineLearningRegression:
                 errorMSE_Test = np.zeros(outputData_Test_Shape[1])
                 errorMaxError_Test = np.zeros(outputData_Test_Shape[1])
 
+                print(outputData_TrainVal_Shape[1])
                 for _index_ in range(0, outputData_TrainVal_Shape[1]):
                     # normalized first
                     errorMAE_Train[_index_] = \
-                        mean_absolute_error(outputData_TrainVal[:, _index_],
-                                            predTrain[:, _index_])
+                        mean_absolute_error(realTrain[_index_],
+                                            predTrain[_index_])
                     errorMSE_Train[_index_] = \
-                        mean_squared_error(outputData_TrainVal[:, _index_],
-                                           predTrain[:, _index_])
+                        mean_squared_error(realTrain[_index_],
+                                           predTrain[_index_])
                     errorMaxError_Train[_index_] = \
-                        max_error(outputData_TrainVal[:, _index_],
-                                  predTrain[:, _index_])
+                        max_error(realTrain[_index_],
+                                  predTrain[_index_])
                     errorMAE_Test[_index_] = \
-                        mean_absolute_error(outputData_Test[:, _index_],
-                                            predTest[:, _index_])
+                        mean_absolute_error(realTest[_index_],
+                                            predTest[_index_])
                     errorMSE_Test[_index_] = \
-                        mean_squared_error(outputData_Test[:, _index_],
-                                           predTest[:, _index_])
+                        mean_squared_error(realTest[_index_],
+                                           predTest[_index_])
                     errorMaxError_Test[_index_] = \
-                        max_error(outputData_Test[:, _index_],
-                                  predTest[:, _index_])
+                        max_error(realTest[_index_],
+                                  predTest[_index_])
 
                 # Create the list with errors
                 new_row = [modelName]
