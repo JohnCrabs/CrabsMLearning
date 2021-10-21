@@ -562,3 +562,8 @@ class MachineLearningRegression:
                     ws = wb.active
                     ws.append(headers_row)
                     wb.save(workbookFilePath)
+
+                ws.append(new_row)
+                wb.save(workbookFilePath)
+
+        return listStr_ModelPaths, exportTrainedModelsPath, workbookDirPath

@@ -42,7 +42,6 @@ import lib.core.machineLearningRegression as mlr
 from lib.gui.guiStyle import setStyle_
 import lib.gui.commonFunctions as coFunc
 
-
 # *************************************************************************************************** #
 
 matplotlib.use("Agg")  # Set matplotlib to use non-interface (don't plot figures)
@@ -978,10 +977,11 @@ class WidgetMachineLearningMainWidget(QWidget):
                  dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_OUTPUT],
                  dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS_FOR_ML],
                  dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]) = \
-                    self.BE_setTrainValTestArrays(dictDataInput=dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_INPUT],
-                                                  dictDataOutput=dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_OUTPUT],
-                                                  inputHeaders=dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS],
-                                                  outputHeaders=dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS])
+                    self.BE_setTrainValTestArrays(
+                        dictDataInput=dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_INPUT],
+                        dictDataOutput=dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_OUTPUT],
+                        inputHeaders=dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS],
+                        outputHeaders=dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS])
 
                 tmp_input_header_arr = ['Event']
                 tmp_input_header_arr.extend(dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS_FOR_ML])
@@ -1028,17 +1028,20 @@ class WidgetMachineLearningMainWidget(QWidget):
 
                 # 02 - Run Machine Learning Process
                 # ******** THIS CODE MAY BE EDITED WITH THREADING ****
-                X_TrainVal = self.BE_getArrayFromDictList(dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_INPUT])
-                y_TrainVal = self.BE_getArrayFromDictList(dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_OUTPUT])
+                X_TrainVal = self.BE_getArrayFromDictList(
+                    dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_INPUT])
+                y_TrainVal = self.BE_getArrayFromDictList(
+                    dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_OUTPUT])
                 X_Test = self.BE_getArrayFromDictList(dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_INPUT])
                 y_Test = self.BE_getArrayFromDictList(dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_OUTPUT])
                 exportFolder = os.path.normpath(self.dict_machineLearningParameters[self.dkey_mlpExportFolder()]
                                                 + '/' + fileName)
-                self.mlr_Regression.fit(X_TrainVal=X_TrainVal,
-                                        y_TrainVal=y_TrainVal,
-                                        X_Test=X_Test,
-                                        y_Test=y_Test,
-                                        exportFolder=exportFolder)
+                listStr_ModelPaths, exportTrainedModelsPath, workbookDirPath = \
+                    self.mlr_Regression.fit(X_TrainVal=X_TrainVal,
+                                            y_TrainVal=y_TrainVal,
+                                            X_Test=X_Test,
+                                            y_Test=y_Test,
+                                            exportFolder=exportFolder)
 
     def actionFileListRowChanged_event(self):
         self.listWidget_ColumnList.clear()  # Clear Column Widget
@@ -2543,6 +2546,7 @@ class WidgetRidgeML(QWidget):
         for _item_ in self.listWidget_SolverSelectedList.selectedItems():
             if self.checkIfItemAlreadyInList_Solver(_item_.text()) and self.listWidget_SolverSelectedList.count() > 1:
                 self.listWidget_SolverSelectedList.takeItem(self.listWidget_SolverSelectedList.row(_item_))
+
 
 # *                                              * #
 # ************************************************ #
