@@ -94,11 +94,11 @@ ML_SOLVER_OPTIONS = [
     ML_SOLVER_AUTO,
     ML_SOLVER_SVD,
     ML_SOLVER_CHOLESKY,
-    ML_SOLVER_LSQR,
+    # ML_SOLVER_LSQR,
     ML_SOLVER_SPARSE_CG,
-    ML_SOLVER_SAG,
-    ML_SOLVER_SAGA,
-    ML_SOLVER_LBFGS
+    # ML_SOLVER_SAG,
+    # ML_SOLVER_SAGA,
+    # ML_SOLVER_LBFGS
 ]
 
 ML_KEY_METHOD = 'Method'
@@ -346,6 +346,9 @@ class MachineLearningRegression:
             tabValue.append(_value_)
         self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_PARAM_GRID][ML_KEY_ALPHA] = tabValue
 
+    def getRidge_Alpha(self):
+        return self._MLR_dictMethods[ML_REG_RIDGE][ML_KEY_PARAM_GRID][ML_KEY_ALPHA]
+
     def getRidge_alphaMin_Default(self):
         return self._MLR_RIDGE_ALPHA_DEFAULT_VALUE
 
@@ -386,42 +389,45 @@ class MachineLearningRegression:
             X_Test: np.ndarray, y_Test: np.ndarray, exportFolder=PATH_DEFAULT_EXPORT_DATA,
             validationPercentage: float = 0.25):
         # Set variables
-        currentDatetime = dt.datetime.now().strftime("%d%m%Y_%H%M%S")  # take the current datetime (for folder creation)
-        errorFileName = 'PerformanceScores.xlsx'  # fileName for exporting the Performance Scores of all methods
-        listStr_ModelPaths = []  # a list to store the paths of the models and return it later
+        currentDatetime = dt.datetime.now().strftime("%d%m%Y_%H%M%S")  # Find Current Datetime
+        errorFileName = 'PerformanceScores.xlsx'  # The file name to store the Performance Scores
+        listStr_ModelPaths = []  # List to store the paths of the models (return it later)
+        # The path to to the folder which we will export the models
         exportTrainedModelsPath = os.path.normpath(exportFolder + '/' +
                                                    currentDatetime + '/TrainedModels') + '/'
-        workbookFilePath = os.path.normpath(exportFolder + '/' +
+        # The path the folder which we will export the performance scores
+        workbookDirPath = os.path.normpath(exportFolder + '/' +
                                             currentDatetime) + '/'
 
-        inputData_TrainVal = X_TrainVal
-        outputData_TrainVal = y_TrainVal
+        inputData_TrainVal = X_TrainVal  # store X_TrainVal to a new variable
+        outputData_TrainVal = y_TrainVal  # store y_TrainVal to a new variable
+        inputData_Test = X_Test  # store X_Test to a new variable
+        outputData_Test = y_Test  # store y_Test to a new variable
 
-        inputData_Test = X_Test
-        outputData_Test = y_Test
-
-        inputData_TrainVal_Shape = inputData_TrainVal.shape
-        outputData_TrainVal_Shape = outputData_TrainVal.shape
-
-        inputData_Test_Shape = inputData_Test.shape
-        outputData_Test_Shape = outputData_Test.shape
+        inputData_TrainVal_Shape = inputData_TrainVal.shape  # take the shape of inputTrainVal
+        outputData_TrainVal_Shape = outputData_TrainVal.shape  # take the shape of outputTrainVal
+        inputData_Test_Shape = inputData_Test.shape  # take the shape of inputTest
+        outputData_Test_Shape = outputData_Test.shape  # take the shape of outputTest
 
         # Check if the exportFolder exists and if not create it
-        file_manip.checkAndCreateFolders(os.path.normpath(exportFolder))
-        file_manip.checkAndCreateFolders(exportTrainedModelsPath)
+        file_manip.checkAndCreateFolders(os.path.normpath(exportFolder))  # exportFolder
+        file_manip.checkAndCreateFolders(workbookDirPath)  # workbookDirPath
+        file_manip.checkAndCreateFolders(exportTrainedModelsPath)  # exportTrainedModelsPath
 
-        # create train, validation and test sets indexes
-        randomIndexes = np.random.permutation(inputData_TrainVal_Shape[0])
-        # Create the training and validation indexes
+        # Create the Train and Validation Indexes
+        randomIndexes = np.random.permutation(inputData_TrainVal_Shape[0])  # random permutation
+        # Train Indexes
         trainIdxs = np.sort(randomIndexes[int(np.round(validationPercentage * len(randomIndexes))) + 1:])
+        # Test Indexes
         valIdxs = np.sort(randomIndexes[:int(np.round(validationPercentage * len(randomIndexes)))])
 
-        # Debug Messages
+        # ****************************************************************** #
+        # ************************* DEBUG MESSAGES ************************* #
         if DEBUG_MESSAGES:
             print("CurrentDatetime = ", currentDatetime)
             print("ErrorFileName = ", errorFileName)
             print("ExportTrainedModelPaths = ", exportTrainedModelsPath)
-            print("WorkbookFilePath = ", workbookFilePath)
+            print("WorkbookFilePath = ", workbookDirPath)
             print("InputData_TrainVal_Shape = ", inputData_TrainVal_Shape)
             print("OutputData_TrainVal_Shape = ", outputData_TrainVal_Shape)
             print("InputData_Test_Shape = ", inputData_Test_Shape)
@@ -429,26 +435,30 @@ class MachineLearningRegression:
             print("Random_Indexes_Length = ", randomIndexes.__len__())
             print("Train_Indexes_Length = ", trainIdxs.__len__())
             print("Validation_Indexes_Length = ", valIdxs.__len__())
+        # ****************************************************************** #
 
-        for _methodKey_ in self._MLR_dictMethods.keys():
-            if _methodKey_ in _ML_NO_TUNING_LIST:
+        for _methodKey_ in self._MLR_dictMethods.keys():  # for each method
+            model = None
+            if _methodKey_ in _ML_NO_TUNING_LIST:  # if method cannot be tuning (e.g. LinearRegression)
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
-                    print('Training ' + _methodKey_ + '...')
-                    self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD].fit(inputData_TrainVal[trainIdxs],
-                                                                          outputData_TrainVal[trainIdxs])
-                    print('...COMPLETED!')
-            elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:
-                if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
-                    print('Training ' + _methodKey_ + '...')
-                    model = GridSearchCV(self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD],
-                                         self._MLR_dictMethods[_methodKey_][ML_KEY_PARAM_GRID])
+                    print('Training ' + _methodKey_ + '...')  # console message
+                    model = self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD]
                     model.fit(inputData_TrainVal[trainIdxs],
                               outputData_TrainVal[trainIdxs])
-                    print('...COMPLETED!')
-                    print(model.score(inputData_Test,
-                                      outputData_Test))
-                    print(model.best_estimator_)
-            elif _methodKey_ in _ML_TUNING_DEEP_METHODS:
+                    print('...COMPLETED!')  # console message
+            elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:  # elif method is not a tf.keras
+                if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
+                    print('Training ' + _methodKey_ + '...')  # console message
+                    model = GridSearchCV(self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD],
+                                         self._MLR_dictMethods[_methodKey_][ML_KEY_PARAM_GRID],
+                                         n_jobs=-1)
+                    model.fit(inputData_TrainVal[trainIdxs],
+                              outputData_TrainVal[trainIdxs])
+                    print('...COMPLETED!')  # console message
+            elif _methodKey_ in _ML_TUNING_DEEP_METHODS:  # elif method is keras
                 pass
-            else:
+            else:  # else for security reasons only
                 pass
+
+            if model is not None:
+                print(model.best_estimator_)

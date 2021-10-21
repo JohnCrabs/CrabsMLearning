@@ -1197,7 +1197,7 @@ class WidgetMachineLearningMainWidget(QWidget):
                 self.resetPrimEventColumn(fileName)  # remove PRIMARY_EVENT from the list
             self.updatePrimaryEventList()  # update PRIMARY_EVENT widget
 
-    # ***** SET SETTINGS GENERAL EVENTS ACTIONS *** #
+    # ***** SET SETTINGS GENERAL EVENTS ACTIONS ***** #
     def actionExperimentResultChange(self):
         self.dict_machineLearningParameters[self.dkey_mlpExperimentNumber()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.spinBox_ExperimentNumber.value()
@@ -1263,7 +1263,7 @@ class WidgetMachineLearningMainWidget(QWidget):
             print(self.dict_machineLearningParameters[self.dkey_mlpHoldoutPercentageDistribution()])
 
     # ***** SET SETTINGS MACHINE LEARNING REGRESSION METHODS *** #
-    # _____ CheckBox State Change Event _____ *
+    # _____ CHECK BOX STATE CHANGE EVENT _____ *
     def actionStateChangeLinearRegression(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_LinearRegression()
         print(state)
@@ -1326,7 +1326,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_GradientBoostingRegressor()
         print(state)
 
-    # _____ Button Clicked Event _____ *
+    # _____ BUTTON CLICKED EVENT _____ #
     def actionButtonClickedRidge(self):
         self.widgetOptions_Ridge.show()
 
@@ -1370,7 +1370,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         pass
 
     # ***** MACHINE LEARNING WIDGET OPTIONS EVENTS *** #
-    # _____ RIDGE _____ *
+    # _____ RIDGE _____ #
     def actionButtonClicked_TolAdd(self):
         _items_ = self.widgetOptions_Ridge.getListOptionSelectedItems_Tol()
         for _it_ in _items_:
@@ -2440,12 +2440,19 @@ class WidgetRidgeML(QWidget):
     def getAlphaStep(self):
         return self.doubleSpinBox_AlphaStep.value()
 
+    def sortOptionList_Tol(self):
+        self.listWidget_TolOptionsList.sortItems(Qt.AscendingOrder)
+
     def setOptionList_Tol(self, listValue: []):
         self.listWidget_TolOptionsList.clear()
         for _item_ in listValue:
-            self.listWidget_TolOptionsList.addItem(str(_item_))
+            self.listWidget_TolOptionsList.addItem("{:.0e}".format(_item_))
         if self.listWidget_TolOptionsList.item(0):
             self.listWidget_TolOptionsList.setCurrentRow(0)
+        self.sortOptionList_Tol()
+
+    def sortOptionList_Solver(self):
+        self.listWidget_SolverOptionsList.sortItems(Qt.AscendingOrder)
 
     def setOptionList_Solver(self, listValue: []):
         self.listWidget_SolverOptionsList.clear()
@@ -2453,14 +2460,18 @@ class WidgetRidgeML(QWidget):
             self.listWidget_SolverOptionsList.addItem(str(_item_))
         if self.listWidget_SolverOptionsList.item(0):
             self.listWidget_SolverOptionsList.setCurrentRow(0)
+        self.sortOptionList_Solver()
+
+    def sortSelectedList_Tol(self):
+        self.listWidget_TolSelectedList.sortItems(Qt.AscendingOrder)
 
     def setSelectedList_Tol(self, listValue: []):
         self.listWidget_TolSelectedList.clear()
         for _item_ in listValue:
-            self.listWidget_TolSelectedList.addItem(str(_item_))
+            self.listWidget_TolSelectedList.addItem("{:.0e}".format(_item_))
         if self.listWidget_TolSelectedList.item(0):
             self.listWidget_TolSelectedList.setCurrentRow(0)
-        self.listWidget_SolverOptionsList.sortItems(Qt.AscendingOrder)
+        self.sortSelectedList_Tol()
 
     def getSelectedList_Tol(self):
         valueList = []
@@ -2468,13 +2479,16 @@ class WidgetRidgeML(QWidget):
             valueList.append(self.listWidget_TolSelectedList.item(_index_).text())
         return valueList
 
+    def sortSelectedList_Solver(self):
+        self.listWidget_SolverSelectedList.sortItems(Qt.AscendingOrder)
+
     def setSelectedList_Solver(self, listValue: []):
         self.listWidget_SolverSelectedList.clear()
         for _item_ in listValue:
             self.listWidget_SolverSelectedList.addItem(str(_item_))
         if self.listWidget_SolverSelectedList.item(0):
             self.listWidget_SolverSelectedList.setCurrentRow(0)
-        self.listWidget_SolverOptionsList.sortItems(Qt.AscendingOrder)
+        self.sortSelectedList_Solver()
 
     def getSelectedList_Solver(self):
         valueList = []
@@ -2484,19 +2498,19 @@ class WidgetRidgeML(QWidget):
 
     def addToOptionList_Tol(self, value):
         self.listWidget_TolOptionsList.addItem(str(value))
-        self.listWidget_TolOptionsList.sortItems(Qt.DescendingOrder)
+        self.sortOptionList_Tol()
 
     def addToOptionList_Solver(self, value):
         self.listWidget_SolverOptionsList.addItem(str(value))
-        self.listWidget_SolverOptionsList.sortItems(Qt.AscendingOrder)
+        self.sortOptionList_Solver()
 
     def addToSelectedList_Tol(self, value):
         self.listWidget_TolSelectedList.addItem(str(value))
-        self.listWidget_TolSelectedList.sortItems(Qt.DescendingOrder)
+        self.sortSelectedList_Tol()
 
     def addToSelectedList_Solver(self, value):
         self.listWidget_SolverSelectedList.addItem(str(value))
-        self.listWidget_SolverSelectedList.sortItems(Qt.AscendingOrder)
+        self.sortSelectedList_Solver()
 
     def getListOptionSelectedItems_Tol(self):
         return [_item_.text() for _item_ in self.listWidget_TolOptionsList.selectedItems()]
