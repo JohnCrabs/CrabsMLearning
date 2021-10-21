@@ -1,8 +1,11 @@
 import os
 import datetime as dt
 import numpy as np
+import openpyxl as op
 
 import lib.core.file_manipulation as file_manip
+
+from sklearn.metrics import mean_absolute_error, mean_squared_error, max_error
 
 from sklearn.linear_model import (
     LinearRegression,
@@ -399,6 +402,8 @@ class MachineLearningRegression:
         workbookDirPath = os.path.normpath(exportFolder + '/' +
                                             currentDatetime) + '/'
 
+        workbookFilePath = workbookDirPath + errorFileName
+
         inputData_TrainVal = X_TrainVal  # store X_TrainVal to a new variable
         outputData_TrainVal = y_TrainVal  # store y_TrainVal to a new variable
         inputData_Test = X_Test  # store X_Test to a new variable
@@ -438,23 +443,37 @@ class MachineLearningRegression:
         # ****************************************************************** #
 
         for _methodKey_ in self._MLR_dictMethods.keys():  # for each method
-            model = None
+            model = None  # a parameter to store the model
+            modelName = _methodKey_  # store the methodKey to modelName
+            predTrain = None  # a parameter to store the predicted y_Train values
+            predTest = None  # a parameter to store the predicted y_Test values
             if _methodKey_ in _ML_NO_TUNING_LIST:  # if method cannot be tuning (e.g. LinearRegression)
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
                     print('Training ' + _methodKey_ + '...')  # console message
                     model = self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD]
-                    model.fit(inputData_TrainVal[trainIdxs],
-                              outputData_TrainVal[trainIdxs])
+                    model.fit(inputData_TrainVal[trainIdxs, :],
+                              outputData_TrainVal[trainIdxs, :])  # model.fit()
                     print('...COMPLETED!')  # console message
+                    predTrain = model.predict(inputData_TrainVal[trainIdxs, :])  # make predictions (train)
+                    predTest = model.predict(inputData_Test[:, :])  # make predictions (test)
+                    predTrain = np.expand_dims(predTrain, axis=1)  # expand dimensions
+                    predTest = np.expand_dims(predTest, axis=1)  # expand dimensions
+
             elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:  # elif method is not a tf.keras
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
                     print('Training ' + _methodKey_ + '...')  # console message
+                    # run Grid Search CV
                     model = GridSearchCV(self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD],
                                          self._MLR_dictMethods[_methodKey_][ML_KEY_PARAM_GRID],
                                          n_jobs=-1)
-                    model.fit(inputData_TrainVal[trainIdxs],
-                              outputData_TrainVal[trainIdxs])
+                    model.fit(inputData_TrainVal[trainIdxs, :],
+                              outputData_TrainVal[trainIdxs, :])  # model.fit()
                     print('...COMPLETED!')  # console message
+                    predTrain = model.predict(inputData_TrainVal[trainIdxs, :])  # make predictions (train)
+                    predTest = model.predict(inputData_Test[:, :])  # make predictions (test)
+                    predTrain = np.expand_dims(predTrain, axis=1)  # expand dimensions
+                    predTest = np.expand_dims(predTest, axis=1)  # expand dimensions
+
             elif _methodKey_ in _ML_TUNING_DEEP_METHODS:  # elif method is keras
                 pass
             else:  # else for security reasons only
@@ -462,3 +481,69 @@ class MachineLearningRegression:
 
             if model is not None:
                 print(model.best_estimator_)
+
+                # pre-allocating results array for raw predicted values
+                # PerObservationPoint
+                errorMAE_Train = np.zeros(outputData_TrainVal_Shape[1])
+                errorMSE_Train = np.zeros(outputData_TrainVal_Shape[1])
+                errorMaxError_Train = np.zeros(outputData_TrainVal_Shape[1])
+                errorMAE_Test = np.zeros(outputData_Test_Shape[1])
+                errorMSE_Test = np.zeros(outputData_Test_Shape[1])
+                errorMaxError_Test = np.zeros(outputData_Test_Shape[1])
+
+                for _index_ in range(0, outputData_TrainVal_Shape[1]):
+                    # normalized first
+                    errorMAE_Train[_index_] = \
+                        mean_absolute_error(outputData_TrainVal[trainIdxs, _index_],
+                                            predTrain[:, _index_])
+                    errorMSE_Train[_index_] = \
+                        mean_squared_error(outputData_TrainVal[trainIdxs, _index_],
+                                           predTrain[:, _index_])
+                    errorMaxError_Train[_index_] = \
+                        max_error(outputData_TrainVal[trainIdxs, _index_],
+                                  predTrain[:, _index_])
+                    errorMAE_Test[_index_] = \
+                        mean_absolute_error(outputData_Test[:, _index_],
+                                            predTest[:, _index_])
+                    errorMSE_Test[_index_] = \
+                        mean_squared_error(outputData_Test[:, _index_],
+                                           predTest[:, _index_])
+                    errorMaxError_Test[_index_] = \
+                        max_error(outputData_Test[:, _index_],
+                                  predTest[:, _index_])
+
+                # Create the list with errors
+                new_row = [modelName]
+                scoresList = [list(map(float, errorMAE_Train)),
+                              list(map(float, errorMSE_Train)),
+                              list(map(float, errorMaxError_Train)),
+                              list(map(float, errorMAE_Test)),
+                              list(map(float, errorMSE_Test)),
+                              list(map(float, errorMaxError_Test)),
+                              ]
+                scoresList = [item for sublist in scoresList for item in sublist]  # map sublists to fat list
+                new_row = new_row + scoresList
+
+                # Confirm file exists.
+                # If not, create it, add headers, then append new data
+                try:
+                    wb = op.load_workbook(workbookFilePath)  # load the xlsx file
+                    ws = wb.worksheets[0]  # select first worksheet
+                except FileNotFoundError:
+                    headers_row = ['Technique']
+                    for i in range(0, outputData_TrainVal_Shape[1]):
+                        headers_row.append('MAE-Tr-P' + str(i + 1))
+                    for i in range(0, outputData_TrainVal_Shape[1]):
+                        headers_row.append('MSE-Tr-P' + str(i + 1))
+                    for i in range(0, outputData_TrainVal_Shape[1]):
+                        headers_row.append('maxError-Tr-P' + str(i + 1))
+                    for i in range(0, outputData_TrainVal_Shape[1]):
+                        headers_row.append('MAE-Te-P' + str(i + 1))
+                    for i in range(0, outputData_TrainVal_Shape[1]):
+                        headers_row.append('MSE-Te-P' + str(i + 1))
+                    for i in range(0, outputData_TrainVal_Shape[1]):
+                        headers_row.append('maxError-Te-P' + str(i + 1))
+                    wb = op.Workbook()
+                    ws = wb.active
+                    ws.append(headers_row)
+                    wb.save(workbookFilePath)

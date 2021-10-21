@@ -30,8 +30,7 @@ try:
     import joblib
 
     # now import the regression related metric scores
-    from sklearn.metrics import mean_absolute_error, mean_squared_error, \
-        max_error
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, max_error
 
     # load the mat file loader
     from scipy.io import loadmat, savemat
@@ -469,7 +468,10 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
         if modelName is FLAG_LSTM:
             estimator.fit(np.expand_dims(tmpInputs_train_val[trainIdxs, :], axis=2),
                           np.expand_dims(tmpOutputs_train_val[trainIdxs, :], axis=2),
-                          batch_size=batch_size, shuffle=True, epochs=deepModelsTrainingEpochs, verbose=1,
+                          batch_size=batch_size,
+                          shuffle=True,
+                          epochs=deepModelsTrainingEpochs,
+                          verbose=1,
                           callbacks=callbacksOptions,
                           validation_data=(np.expand_dims(tmpInputs_train_val[valIdxs, :], axis=2),
                                            np.expand_dims(tmpOutputs_train_val[valIdxs, :], axis=2)))
@@ -482,7 +484,10 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
 
         elif modelName is FLAG_DNN:
             estimator.fit(tmpInputs_train_val[trainIdxs, :], tmpOutputs_train_val[trainIdxs, :],
-                          batch_size=batch_size, shuffle=True, epochs=deepModelsTrainingEpochs, verbose=1,
+                          batch_size=batch_size,
+                          shuffle=True,
+                          epochs=deepModelsTrainingEpochs,
+                          verbose=1,
                           callbacks=callbacksOptions,
                           validation_data=(tmpInputs_train_val[valIdxs, :], tmpOutputs_train_val[valIdxs, :]))
             print(' ... training completed.')
@@ -493,7 +498,10 @@ def MachineLearning_Sequential(input_data_train_val, output_data_train_val, inpu
         elif modelName is FLAG_S2S_LSTM:
             estimator.fit(inputSeqData_train_val[trainIdxs, :, :],
                           outputSeqData_train_val[trainIdxs, :, :],
-                          batch_size=batch_size, shuffle=True, epochs=deepModelsTrainingEpochs, verbose=1,
+                          batch_size=batch_size,
+                          shuffle=True,
+                          epochs=deepModelsTrainingEpochs,
+                          verbose=1,
                           callbacks=callbacksOptions,
                           validation_data=(inputSeqData_train_val[valIdxs, :, :],
                                            outputSeqData_train_val[valIdxs, :, :]))
