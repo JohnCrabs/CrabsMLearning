@@ -462,6 +462,7 @@ class MachineLearningRegression:
                     predTrain = np.expand_dims(predTrain, axis=1)  # expand dimensions
                     predTest = np.expand_dims(predTest, axis=1)  # expand dimensions
 
+                    # Export model
                     modelExportPath = exportTrainedModelsPath + modelName + '_' + \
                                       currentDatetime + H5_SUFFIX
                     listStr_ModelPaths.append(modelExportPath)
@@ -482,6 +483,7 @@ class MachineLearningRegression:
                     predTrain = np.expand_dims(predTrain, axis=1)  # expand dimensions
                     predTest = np.expand_dims(predTest, axis=1)  # expand dimensions
 
+                    # Export model
                     modelExportPath = exportTrainedModelsPath + modelName + '_' + \
                                       currentDatetime + H5_SUFFIX
                     listStr_ModelPaths.append(modelExportPath)
