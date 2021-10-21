@@ -1,5 +1,7 @@
 import os
 import datetime as dt
+
+import joblib
 import numpy as np
 import openpyxl as op
 
@@ -45,6 +47,7 @@ from sklearn.model_selection import (
 
 PATH_DEFAULT_EXPORT_DATA = os.path.normpath(file_manip.PATH_DOCUMENTS + '/MachineLearningRegression')
 DEBUG_MESSAGES = True
+H5_SUFFIX = '.h5'
 
 ML_REG_LINEAR_REGRESSION = 'LinearRegression'
 ML_REG_RIDGE = 'Ridge'
@@ -459,6 +462,11 @@ class MachineLearningRegression:
                     predTrain = np.expand_dims(predTrain, axis=1)  # expand dimensions
                     predTest = np.expand_dims(predTest, axis=1)  # expand dimensions
 
+                    modelExportPath = exportTrainedModelsPath + modelName + '_' + \
+                                      currentDatetime + H5_SUFFIX
+                    listStr_ModelPaths.append(modelExportPath)
+                    joblib.dump(model, modelExportPath)
+
             elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:  # elif method is not a tf.keras
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
                     print('Training ' + _methodKey_ + '...')  # console message
@@ -473,6 +481,11 @@ class MachineLearningRegression:
                     predTest = model.predict(inputData_Test[:, :])  # make predictions (test)
                     predTrain = np.expand_dims(predTrain, axis=1)  # expand dimensions
                     predTest = np.expand_dims(predTest, axis=1)  # expand dimensions
+
+                    modelExportPath = exportTrainedModelsPath + modelName + '_' + \
+                                      currentDatetime + H5_SUFFIX
+                    listStr_ModelPaths.append(modelExportPath)
+                    joblib.dump(model, modelExportPath)
 
             elif _methodKey_ in _ML_TUNING_DEEP_METHODS:  # elif method is keras
                 pass
