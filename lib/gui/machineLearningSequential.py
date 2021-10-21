@@ -706,6 +706,7 @@ class WidgetMachineLearningSequential(QWidget):
                             batch_size=100,
                             min_lr=0.001, dropout_percentage=0.1)
 
+                        # ------------------------------------------------------------------------ #
                         workbook_path = workbook_dirpath + '/' + dict_store_folderFileNames[fileName] + '_Errors.xlsx'
                         for uniq_event in unique_list_of_common_primary_events:
                             size_of_list = dict_sequential_dataset[fileName][DKEY_DATA][uniq_event][

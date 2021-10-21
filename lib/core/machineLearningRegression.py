@@ -457,16 +457,13 @@ class MachineLearningRegression:
                     model.fit(inputData_TrainVal[trainIdxs, :],
                               outputData_TrainVal[trainIdxs, :])  # model.fit()
                     print('...COMPLETED!')  # console message
-                    predTrain = model.predict(inputData_TrainVal[trainIdxs, :])  # make predictions (train)
-                    predTest = model.predict(inputData_Test[:, :])  # make predictions (test)
-                    predTrain = np.expand_dims(predTrain, axis=1)  # expand dimensions
-                    predTest = np.expand_dims(predTest, axis=1)  # expand dimensions
-
                     # Export model
                     modelExportPath = exportTrainedModelsPath + modelName + '_' + \
                                       currentDatetime + H5_SUFFIX
                     listStr_ModelPaths.append(modelExportPath)
                     joblib.dump(model, modelExportPath)
+                    print('Model exported at: ', modelExportPath)
+                    # print("Test Score = ", model.score(inputData_Test, outputData_Test))
 
             elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:  # elif method is not a tf.keras
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
@@ -478,16 +475,16 @@ class MachineLearningRegression:
                     model.fit(inputData_TrainVal[trainIdxs, :],
                               outputData_TrainVal[trainIdxs, :])  # model.fit()
                     print('...COMPLETED!')  # console message
-                    predTrain = model.predict(inputData_TrainVal[trainIdxs, :])  # make predictions (train)
-                    predTest = model.predict(inputData_Test[:, :])  # make predictions (test)
-                    predTrain = np.expand_dims(predTrain, axis=1)  # expand dimensions
-                    predTest = np.expand_dims(predTest, axis=1)  # expand dimensions
 
                     # Export model
                     modelExportPath = exportTrainedModelsPath + modelName + '_' + \
                                       currentDatetime + H5_SUFFIX
                     listStr_ModelPaths.append(modelExportPath)
                     joblib.dump(model, modelExportPath)
+                    print('Model exported at: ', modelExportPath)
+                    print("Best Estimator = ", model.best_estimator_)
+                    print("Best Score = ", model.best_score_)
+                    # print("Test Score = ", model.score(inputData_Test, outputData_Test))
 
             elif _methodKey_ in _ML_TUNING_DEEP_METHODS:  # elif method is keras
                 pass
@@ -495,10 +492,14 @@ class MachineLearningRegression:
                 pass
 
             if model is not None:
-                print(model.best_estimator_)
-
                 # pre-allocating results array for raw predicted values
                 # PerObservationPoint
+                if model not in _ML_NO_TUNING_LIST:
+                    predTrain = model.predict(inputData_TrainVal[:, :])  # make predictions (train)
+                    predTest = model.predict(inputData_Test[:, :])  # make predictions (test)
+                    predTrain = np.expand_dims(predTrain, axis=1)  # expand dimensions
+                    predTest = np.expand_dims(predTest, axis=1)  # expand dimensions
+
                 errorMAE_Train = np.zeros(outputData_TrainVal_Shape[1])
                 errorMSE_Train = np.zeros(outputData_TrainVal_Shape[1])
                 errorMaxError_Train = np.zeros(outputData_TrainVal_Shape[1])
@@ -509,13 +510,13 @@ class MachineLearningRegression:
                 for _index_ in range(0, outputData_TrainVal_Shape[1]):
                     # normalized first
                     errorMAE_Train[_index_] = \
-                        mean_absolute_error(outputData_TrainVal[trainIdxs, _index_],
+                        mean_absolute_error(outputData_TrainVal[:, _index_],
                                             predTrain[:, _index_])
                     errorMSE_Train[_index_] = \
-                        mean_squared_error(outputData_TrainVal[trainIdxs, _index_],
+                        mean_squared_error(outputData_TrainVal[:, _index_],
                                            predTrain[:, _index_])
                     errorMaxError_Train[_index_] = \
-                        max_error(outputData_TrainVal[trainIdxs, _index_],
+                        max_error(outputData_TrainVal[:, _index_],
                                   predTrain[:, _index_])
                     errorMAE_Test[_index_] = \
                         mean_absolute_error(outputData_Test[:, _index_],

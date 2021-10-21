@@ -1035,7 +1035,7 @@ class WidgetMachineLearningMainWidget(QWidget):
                 X_Test = self.BE_getArrayFromDictList(dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_INPUT])
                 y_Test = self.BE_getArrayFromDictList(dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_OUTPUT])
                 exportFolder = os.path.normpath(self.dict_machineLearningParameters[self.dkey_mlpExportFolder()]
-                                                + '/' + fileName)
+                                                + '/' + os.path.basename(fileName))
                 listStr_ModelPaths, exportTrainedModelsPath, workbookDirPath = \
                     self.mlr_Regression.fit(X_TrainVal=X_TrainVal,
                                             y_TrainVal=y_TrainVal,
