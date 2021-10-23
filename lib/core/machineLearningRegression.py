@@ -110,6 +110,7 @@ ML_SOLVER_OPTIONS = [
 ML_KEY_METHOD = 'Method'
 ML_KEY_CUSTOM_PARAM = 'Custom Parameters'
 ML_KEY_PARAM_GRID = 'Grid Parameter'
+ML_KEY_TRAINED_MODEL = 'Trained Model'
 
 ML_KEY_ALPHA = 'alpha'
 ML_KEY_TOL = 'tol'
@@ -399,11 +400,12 @@ class MachineLearningRegression:
         errorFileName = 'PerformanceScores.xlsx'  # The file name to store the Performance Scores
         listStr_ModelPaths = []  # List to store the paths of the models (return it later)
         # The path to to the folder which we will export the models
+        exportBaseDir = os.path.normpath(exportFolder + '/' + currentDatetime)
         exportTrainedModelsPath = os.path.normpath(exportFolder + '/' +
                                                    currentDatetime + '/TrainedModels') + '/'
         # The path the folder which we will export the performance scores
         workbookDirPath = os.path.normpath(exportFolder + '/' +
-                                            currentDatetime) + '/'
+                                           currentDatetime) + '/'
 
         workbookFilePath = workbookDirPath + errorFileName
 
@@ -460,11 +462,12 @@ class MachineLearningRegression:
                               outputData_TrainVal)  # model.fit()
                     print('...COMPLETED!')  # console message
                     # Export model
-                    modelExportPath = exportTrainedModelsPath + modelName + '_' + \
-                                      currentDatetime + H5_SUFFIX
+                    modelExportPath = os.path.normpath(exportTrainedModelsPath + modelName + '_' +
+                                                       currentDatetime + H5_SUFFIX)
                     listStr_ModelPaths.append(modelExportPath)
                     joblib.dump(model, modelExportPath)
                     print('Model exported at: ', modelExportPath)
+                    self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL] = model
 
             elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:  # elif method is not a tf.keras
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
@@ -476,10 +479,11 @@ class MachineLearningRegression:
                     model.fit(inputData_TrainVal,
                               outputData_TrainVal)  # model.fit()
                     print('...COMPLETED!')  # console message
+                    self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL] = model.best_estimator_
 
                     # Export model
-                    modelExportPath = exportTrainedModelsPath + modelName + '_' + \
-                                      currentDatetime + H5_SUFFIX
+                    modelExportPath = os.path.normpath(exportTrainedModelsPath + modelName + '_' +
+                                                       currentDatetime + H5_SUFFIX)
                     listStr_ModelPaths.append(modelExportPath)
                     joblib.dump(model, modelExportPath)
                     print('Model exported at: ', modelExportPath)
@@ -503,10 +507,10 @@ class MachineLearningRegression:
                     predTrain = np.array(predTrain).T
                     predTest = np.array(predTest).T
 
-                    print(realTest.shape)
-                    print(realTrain.shape)
-                    print(predTest.shape)
-                    print(predTrain.shape)
+                    # print(realTest.shape)
+                    # print(realTrain.shape)
+                    # print(predTest.shape)
+                    # print(predTrain.shape)
 
                 else:
                     pass
@@ -551,7 +555,7 @@ class MachineLearningRegression:
                               list(map(float, errorMSE_Test)),
                               list(map(float, errorMaxError_Test)),
                               ]
-                scoresList = [item for sublist in scoresList for item in sublist]  # map sublists to fat list
+                scoresList = [item for sublist in scoresList for item in sublist]  # map sublist to fat list
                 new_row = new_row + scoresList
 
                 # Confirm file exists.
@@ -581,4 +585,20 @@ class MachineLearningRegression:
                 ws.append(new_row)
                 wb.save(workbookFilePath)
 
-        return listStr_ModelPaths, exportTrainedModelsPath, workbookDirPath
+        print("Training Finished Successfully!")
+        return listStr_ModelPaths, exportBaseDir, workbookDirPath
+
+    def openModel(self, modelPath):
+        pass
+
+    def predict(self, x, y):
+        dictModelPredictions = {}
+        for _methodKey_ in self._MLR_dictMethods.keys():
+            if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
+                print(_methodKey_ + ' predicts...')
+                if _methodKey_ not in _ML_TUNING_DEEP_METHODS:
+                    dictModelPredictions[_methodKey_] = {}
+                    dictModelPredictions[_methodKey_]['real'] = y
+                    dictModelPredictions[_methodKey_]['pred'] = np.array(
+                        self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL].predict(x))
+        return dictModelPredictions

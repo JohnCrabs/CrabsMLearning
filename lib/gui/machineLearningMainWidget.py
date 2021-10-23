@@ -3,6 +3,10 @@ import sys
 import matplotlib
 import pandas as pd
 import numpy as np
+import openpyxl as op
+import matplotlib.pyplot as plt
+import sklearn
+import datetime as dt
 
 from PySide2.QtCore import (
     Qt
@@ -614,6 +618,7 @@ class WidgetMachineLearningMainWidget(QWidget):
             y_train_val_ = []
             X_test_ = []
             y_test_ = []
+            testTrainIndex = None
 
             if self.dict_machineLearningParameters[
                 self.dkey_mlpTestPercentageDistribution()] == MLPF_PERCENTAGE_DISTRIBUTION_RANDOM_FROM_START:
@@ -658,6 +663,7 @@ class WidgetMachineLearningMainWidget(QWidget):
                 datasetIndexes = list(range(datasetSize))
                 trainIdxs = datasetIndexes[int(testPercentage * datasetSize):]
                 testIdxs = datasetIndexes[:int(testPercentage * datasetSize)]
+                testTrainIndex = [testPercentage * datasetSize]
 
                 X_train_val_ = np.array(inputArr)[trainIdxs]
                 y_train_val_ = np.array(outputArr)[trainIdxs]
@@ -671,6 +677,7 @@ class WidgetMachineLearningMainWidget(QWidget):
                 sliceSize = testPercentage * datasetSize
                 startIndex = int(midIndex - sliceSize / 2)
                 endIndex = int(midIndex - sliceSize / 2)
+                testTrainIndex = [startIndex, endIndex]
 
                 trainIdxs = datasetIndexes[:startIndex] + datasetIndexes[-endIndex:]
                 testIdxs = datasetIndexes[startIndex:-endIndex]
@@ -685,22 +692,24 @@ class WidgetMachineLearningMainWidget(QWidget):
                 datasetIndexes = np.array(list(range(datasetSize)))
                 trainIdxs = datasetIndexes[:-int(testPercentage * datasetSize)]
                 testIdxs = datasetIndexes[-int(testPercentage * datasetSize):]
+                testTrainIndex = [datasetSize - (testPercentage * datasetSize)]
 
                 X_train_val_ = np.array(inputArr)[trainIdxs]
                 y_train_val_ = np.array(outputArr)[trainIdxs]
                 X_test_ = np.array(inputArr)[testIdxs]
                 y_test_ = np.array(outputArr)[testIdxs]
 
-            return X_train_val_, y_train_val_, X_test_, y_test_
+            return X_train_val_, y_train_val_, X_test_, y_test_, testTrainIndex
 
-        # X_full = {}  # Create an input dict to store the values of train_val + test lists
-        # y_full = {}  # Create an output dict to store the values of train_val + test lists
+        X_full = {}  # Create an input dict to store the values of train_val + test lists
+        y_full = {}  # Create an output dict to store the values of train_val + test lists
         X_train_val = {}  # Create an input dict to store the values of train_val lists
         y_train_val = {}  # Create an output dict to store the values of train_val lists
         X_test = {}  # Create an input dict to store the values of test lists
         y_test = {}  # Create an output dict to store the values of test lists
         # Shorten the name of methodIndex
         methodIndex = self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()]
+        dict_test_train_index = {}
 
         inputHeaderColumnsForML = []
         outputHeaderColumnsForML = []
@@ -708,12 +717,13 @@ class WidgetMachineLearningMainWidget(QWidget):
         # Check if the user selected Sequential method
         if self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL:
             for _event_ in dictDataInput.keys():
-                # X_full[_event_] = []
-                # y_full[_event_] = []
+                X_full[_event_] = []
+                y_full[_event_] = []
                 X_train_val[_event_] = []
                 y_train_val[_event_] = []
                 X_test[_event_] = []
                 y_test[_event_] = []
+                dict_test_train_index[_event_] = []
 
                 tmp_event_arr_input = []
                 tmp_event_arr_output = []
@@ -725,16 +735,20 @@ class WidgetMachineLearningMainWidget(QWidget):
                         tmp_arr_output.extend(dictDataOutput[_event_][_index2_ + methodIndex])
                     tmp_event_arr_input.append(tmp_arr_input)
                     tmp_event_arr_output.append(tmp_arr_output)
-                    # X_full[_event_].append(tmp_arr_input)
-                    # y_full[_event_].append(tmp_arr_output)
+                    X_full[_event_].append(tmp_arr_input)
+                    y_full[_event_].append(tmp_arr_output)
+
                 # print("Event: ", _event_)
                 # print("InputShape: ", np.array(tmp_event_arr_input).shape)
                 # print("OutputShape: ", np.array(tmp_event_arr_output).shape)
                 # print()
 
-                X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[_event_] = getTrainValTest(
+                X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[
+                    _event_], dict_test_train_index[_event_] = getTrainValTest(
                     tmp_event_arr_input,
                     tmp_event_arr_output)
+                X_full[_event_] = np.array(X_full[_event_])
+                y_full[_event_] = np.array(y_full[_event_])
 
             for _index_ in range(0, methodIndex):
                 for columnName in inputHeaders:
@@ -746,12 +760,13 @@ class WidgetMachineLearningMainWidget(QWidget):
         # Else if the user selected Average method
         elif self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_AVERAGE:
             for _event_ in dictDataInput.keys():
-                # X_full[_event_] = []
-                # y_full[_event_] = []
+                X_full[_event_] = []
+                y_full[_event_] = []
                 X_train_val[_event_] = []
                 y_train_val[_event_] = []
                 X_test[_event_] = []
                 y_test[_event_] = []
+                dict_test_train_index[_event_] = []
 
                 tmp_event_arr_input = []
                 tmp_event_arr_output = []
@@ -766,16 +781,20 @@ class WidgetMachineLearningMainWidget(QWidget):
 
                     tmp_event_arr_input.append(tmp_arr_input.tolist())
                     tmp_event_arr_output.append(tmp_arr_output.tolist())
-                    # X_full[_event_].append(tmp_arr_input.tolist())
-                    # y_full[_event_].append(tmp_arr_output.tolist())
+                    X_full[_event_].append(tmp_arr_input.tolist())
+                    y_full[_event_].append(tmp_arr_output.tolist())
+
                 # print("Event: ", _event_)
                 # print("InputShape: ", np.array(tmp_event_arr_input).shape)
                 # print("OutputShape: ", np.array(tmp_event_arr_output).shape)
                 # print()
 
-                X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[_event_] = getTrainValTest(
+                X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[
+                    _event_], dict_test_train_index[_event_] = getTrainValTest(
                     tmp_event_arr_input,
                     tmp_event_arr_output)
+                X_full[_event_] = np.array(X_full[_event_])
+                y_full[_event_] = np.array(y_full[_event_])
 
             inputHeaderColumnsForML = inputHeaders
             outputHeaderColumnsForML = outputHeaders
@@ -783,12 +802,13 @@ class WidgetMachineLearningMainWidget(QWidget):
         # Check if the user selected Sequential Average method
         elif self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL_AVERAGE:
             for _event_ in dictDataInput.keys():
-                # X_full[_event_] = []
-                # y_full[_event_] = []
+                X_full[_event_] = []
+                y_full[_event_] = []
                 X_train_val[_event_] = []
                 y_train_val[_event_] = []
                 X_test[_event_] = []
                 y_test[_event_] = []
+                dict_test_train_index[_event_] = []
 
                 tmp_event_arr_input = []
                 tmp_event_arr_output = []
@@ -811,16 +831,20 @@ class WidgetMachineLearningMainWidget(QWidget):
 
                     tmp_event_arr_input.append(tmp_arr_input)
                     tmp_event_arr_output.append(tmp_arr_output)
-                    # X_full[_event_].append(tmp_arr_input)
-                    # y_full[_event_].append(tmp_arr_output)
+                    X_full[_event_].append(tmp_arr_input)
+                    y_full[_event_].append(tmp_arr_output)
+
                 # print("Event: ", _event_)
                 # print("InputShape: ", np.array(tmp_event_arr_input).shape)
                 # print("OutputShape: ", np.array(tmp_event_arr_output).shape)
                 # print()
 
-                X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[_event_] = getTrainValTest(
+                X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[
+                    _event_], dict_test_train_index[_event_] = getTrainValTest(
                     tmp_event_arr_input,
                     tmp_event_arr_output)
+                X_full[_event_] = np.array(X_full[_event_])
+                y_full[_event_] = np.array(y_full[_event_])
 
             for _index_ in range(0, methodIndex):
                 for columnName in inputHeaders:
@@ -832,7 +856,8 @@ class WidgetMachineLearningMainWidget(QWidget):
         else:
             pass
 
-        return X_train_val, y_train_val, X_test, y_test, inputHeaderColumnsForML, outputHeaderColumnsForML
+        return X_train_val, y_train_val, X_test, y_test, X_full, y_full, \
+               inputHeaderColumnsForML, outputHeaderColumnsForML, dict_test_train_index
 
     @staticmethod
     def BE_getArrayFromDictList(inputDictList: dict):
@@ -841,6 +866,33 @@ class WidgetMachineLearningMainWidget(QWidget):
             for value in inputDictList[key]:
                 tmpOutput.append(value)
         return np.array(tmpOutput)
+
+    @staticmethod
+    def BE_saveRealPredictedOutputFigure(y_Real: pd.DataFrame, y_Pred: pd.DataFrame, exportPath: str, y_max=None,
+                                         trainTestSplit=None, title='Figure: Real-Predicted Values',
+                                         yLabel='', xLabel=''):
+        y_Real.plot(style=['bs-'])
+        y_Pred.plot(style=['go-'])
+        plt.gcf().set_size_inches(24.8, 12.4)
+        plt.gcf().subplots_adjust(bottom=0.25)
+        plt.title(title, fontsize=25)
+        plt.legend(fontsize=20, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=False, ncol=2)
+        plt.yticks(fontsize=20)
+        plt.ylabel(yLabel,
+                   fontsize=22.5)
+        plt.xticks(fontsize=20)
+        plt.xlabel(xLabel,
+                   fontsize=22.5)
+
+        if y_max is not None:
+            y_bottom, y_top = plt.ylim(0, y_max)
+        else:
+            y_bottom, y_top = plt.ylim(0)
+        if trainTestSplit is not None:
+            for _vxLine_ in trainTestSplit:
+                plt.vlines(_vxLine_, y_bottom, y_top, colors='r', linestyles='dashed')
+        plt.savefig(exportPath, bbox_inches='tight', dpi=100)
+        plt.close()
 
     # *                                                         * #
     # *********************************************************** #
@@ -860,8 +912,10 @@ class WidgetMachineLearningMainWidget(QWidget):
         _FF_KEY_OUT_COL_DENORM_VAL = 'Denormalize Output Values'
         _FF_KEY_TRAIN_VAL_ARRAY = 'Training Validation Array'
         _FF_KEY_TEST_ARRAY = 'Test Array'
+        _FF_KEY_FULL_ARRAY = 'Full Array'
         _FF_KEY_INPUT = 'Input Array'
         _FF_KEY_OUTPUT = 'Output Array'
+        _FF_KEY_TRAIN_TEST_SPLIT_INDEX = 'Train-Test Split Index'
         dict_fileData = {}
 
         # If true run the main pipeline
@@ -896,9 +950,10 @@ class WidgetMachineLearningMainWidget(QWidget):
                     dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL][_value_] = tmp_col_max_value
 
                 # Set a path for exporting the input-output data
-
+                currentFileName = os.path.splitext(fileName)[0]
+                currentDatetime = file_manip.getCurrentDatetimeForPath()  # Find Current Datetime
                 exportPrimaryDir = self.dict_machineLearningParameters[self.dkey_mlpExportFolder()] + \
-                                   '/' + os.path.splitext(fileName)[0]
+                                   '/' + currentFileName + '/' + currentDatetime
                 exportDataFolder = os.path.normpath(exportPrimaryDir + '/Data')
                 file_manip.checkAndCreateFolders(exportDataFolder)  # check if path exists and if not create it
                 # Export the input values
@@ -969,15 +1024,20 @@ class WidgetMachineLearningMainWidget(QWidget):
 
                 dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY] = {}
                 dict_fileData[fileName][_FF_KEY_TEST_ARRAY] = {}
+                dict_fileData[fileName][_FF_KEY_FULL_ARRAY] = {}
                 dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS_FOR_ML] = []
                 dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML] = []
+                dict_fileData[fileName][_FF_KEY_TRAIN_TEST_SPLIT_INDEX] = {}
 
                 (dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_INPUT],
                  dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_OUTPUT],
                  dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_INPUT],
                  dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_OUTPUT],
+                 dict_fileData[fileName][_FF_KEY_FULL_ARRAY][_FF_KEY_INPUT],
+                 dict_fileData[fileName][_FF_KEY_FULL_ARRAY][_FF_KEY_OUTPUT],
                  dict_fileData[fileName][_FF_KEY_INPUT_COLUMNS_FOR_ML],
-                 dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]) = \
+                 dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML],
+                 dict_fileData[fileName][_FF_KEY_TRAIN_TEST_SPLIT_INDEX]) = \
                     self.BE_setTrainValTestArrays(
                         dictDataInput=dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_INPUT],
                         dictDataOutput=dict_fileData[fileName][_FF_KEY_COLUMN_PRIMARY_EVENT_DATA][_FF_KEY_OUTPUT],
@@ -989,28 +1049,28 @@ class WidgetMachineLearningMainWidget(QWidget):
                 tmp_output_header_arr = ['Event']
                 tmp_output_header_arr.extend(dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML])
 
-                print("Export INPUT training array...")
+                print(file_manip.getCurrentDatetimeForConsole() + "::Export INPUT training array...")
                 file_manip.exportDictionaryList(
                     dictForExport=dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_INPUT],
                     exportPath=os.path.normpath(
                         exportDataFolder + '/InputTrainingValidation.csv'),
                     headerLine=tmp_input_header_arr)
 
-                print("Export OUTPUT training array...")
+                print(file_manip.getCurrentDatetimeForConsole() + "::Export OUTPUT training array...")
                 file_manip.exportDictionaryList(
                     dictForExport=dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_OUTPUT],
                     exportPath=os.path.normpath(
                         exportDataFolder + '/OutputTrainingValidation.csv'),
                     headerLine=tmp_output_header_arr)
 
-                print("Export INPUT testing array...")
+                print(file_manip.getCurrentDatetimeForConsole() + "::Export INPUT testing array...")
                 file_manip.exportDictionaryList(
                     dictForExport=dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_INPUT],
                     exportPath=os.path.normpath(
                         exportDataFolder + '/InputTest.csv'),
                     headerLine=tmp_input_header_arr)
 
-                print("Export OUTPUT testing array...")
+                print(file_manip.getCurrentDatetimeForConsole() + "::Export OUTPUT testing array...")
                 file_manip.exportDictionaryList(
                     dictForExport=dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_OUTPUT],
                     exportPath=os.path.normpath(
@@ -1027,7 +1087,13 @@ class WidgetMachineLearningMainWidget(QWidget):
 
                 # print(dict_fileData[fileName])
 
+                headerCorrelation = ['Method']
+                for column_name in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]:
+                    headerCorrelation.append(column_name)
+                dirExportPlot = 'ExportPlots'
+
                 # 02 - Run Machine Learning Process
+                print(file_manip.getCurrentDatetimeForConsole() + "::Start Machine Learning Process")
                 # ******** THIS CODE MAY BE EDITED WITH THREADING ****
                 X_TrainVal = self.BE_getArrayFromDictList(
                     dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_INPUT])
@@ -1037,12 +1103,191 @@ class WidgetMachineLearningMainWidget(QWidget):
                     dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_INPUT])
                 y_Test = self.BE_getArrayFromDictList(
                     dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_OUTPUT])
-                listStr_ModelPaths, exportTrainedModelsPath, workbookDirPath = \
+                listStr_ModelPaths, exportBaseDirPath, workbookDirPath = \
                     self.mlr_Regression.fit(X_TrainVal=X_TrainVal,
                                             y_TrainVal=y_TrainVal,
                                             X_Test=X_Test,
                                             y_Test=y_Test,
                                             exportFolder=exportPrimaryDir)
+                # Create a workbook for storing the Errors for each unique event
+                workbookPath = workbookDirPath + '/' + currentFileName + '_Errors.xlsx'
+
+                # for each uniqueEvent
+                uniqueEventCounter = 0
+                uniqueEventSize = dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES].__len__()
+                for _uniqueEvent_ in dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES]:
+                    print('\n' + file_manip.getCurrentDatetimeForConsole() + '::(' + str(uniqueEventCounter+1) +
+                          ' / ' + str(uniqueEventSize) + ') Event: ', _uniqueEvent_)
+                    uniqueEventCounter += 1
+                    # Shorten the variable name of trainTestSplitIndex
+                    trainTestSplitIndex = dict_fileData[fileName][_FF_KEY_TRAIN_TEST_SPLIT_INDEX][_uniqueEvent_]
+
+                    # try to load the workbook for storing the errors
+                    try:
+                        wb = op.load_workbook(workbookPath)  # load workbook
+                        ws = wb.worksheets[0]  # select first worksheet
+                    except FileNotFoundError:  # exception: Create the workbook
+                        # Create the header row
+                        headers_row = ['Event', 'Technique']
+                        for _header_ in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]:
+                            headers_row.append(_header_)
+
+                        wb = op.Workbook()  # open a workbook
+                        ws = wb.active  # set a worksheet active
+                        ws.append(headers_row)  # append to worksheet the header row
+                        wb.save(workbookPath)  # save the workbook
+
+                    # Store the INPUT and OUTPUT of current event to shortened named variables
+                    df_x = dict_fileData[fileName][_FF_KEY_FULL_ARRAY][_FF_KEY_INPUT][_uniqueEvent_]
+                    df_y = dict_fileData[fileName][_FF_KEY_FULL_ARRAY][_FF_KEY_OUTPUT][_uniqueEvent_]
+
+                    dict_Y = self.mlr_Regression.predict(df_x, df_y)  # make predictions for all models
+
+                    # cor_CSV = [headerCorrelation]  # create a CSV list and add the header row
+                    for _modelName_ in dict_Y:  # for each modelName in dict_Y
+                        # Create an append row (for workbook) and add the uniqueEvent and modelName
+                        tmpAppendRow = [_uniqueEvent_, _modelName_]
+                        # Create an append row (for cor_CSV) and add the modelName
+                        # tmpCorRow_CSV = [_modelName_]
+
+                        # Store the normalized values (real, predicted) to shortened variables
+                        df_Y_realNorm = pd.DataFrame(dict_Y[_modelName_]['real'],
+                                                     columns=dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL])
+                        df_Y_predNorm = pd.DataFrame(dict_Y[_modelName_]['pred'],
+                                                     columns=dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_PRED])
+
+                        # Copy the normalized values to denormalized variables
+                        df_Y_realDenorm = df_Y_realNorm.copy()
+                        df_Y_predDenorm = df_Y_predNorm.copy()
+
+                        # Create the paths for exporting data
+                        # Main Directory
+                        o_dir_Model = os.path.normpath(exportBaseDirPath + '/' + dirExportPlot + '/' +
+                                                       _uniqueEvent_ + '/' + _modelName_) + '/'
+                        file_manip.checkAndCreateFolders(o_dir_Model)
+                        # Directory to Export the Signal Comparison
+                        o_dir_SignalCompare = os.path.normpath(o_dir_Model + 'SignalCompare') + '/'
+                        file_manip.checkAndCreateFolders(o_dir_SignalCompare)
+                        # Directory to Export the Real and Predicted Plots
+                        o_dir_RealPredictPlots = os.path.normpath(o_dir_Model + 'RealPredictPlots') + '/'
+                        file_manip.checkAndCreateFolders(o_dir_RealPredictPlots)
+                        # Directory to Export the Real and Predicted CSV normalized/denormalized values
+                        o_dir_RealPredictCSV = os.path.normpath(o_dir_Model + 'RealPredictCSV') + '/'
+                        file_manip.checkAndCreateFolders(o_dir_RealPredictCSV)
+
+                        for _index_ in range(0, dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL].__len__()):
+                            mul_ind = 1.0  # set multiply index to 1
+                            # get current row
+                            currColumn_real = dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL][_index_]
+                            currColumn_pred = dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_PRED][_index_]
+                            currColumn = dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML][_index_]
+
+                            for _oColumn_ in dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL]:
+                                if currColumn_real.__contains__(_oColumn_):
+                                    mul_ind = dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL][_oColumn_]
+
+                            df_Y_realDenorm[currColumn_real] *= mul_ind
+                            df_Y_predDenorm[currColumn_pred] *= mul_ind
+
+                            print(file_manip.getCurrentDatetimeForConsole() +
+                                  "::Plot normalized figure for column: " + currColumn)
+                            y_max = df_Y_realNorm[currColumn_real].max()
+                            if df_Y_predNorm[currColumn_pred].max() > y_max:
+                                y_max = df_Y_predNorm[currColumn_pred].max()
+                            exportFigPath = o_dir_RealPredictPlots + 'Normalized_' + _uniqueEvent_ + '_' + currColumn + '.png'
+                            figTitle = _uniqueEvent_ + ': ' + currColumn
+                            self.BE_saveRealPredictedOutputFigure(y_Real=df_Y_realNorm[currColumn_real],
+                                                                  y_Pred=df_Y_predNorm[currColumn_pred],
+                                                                  exportPath=exportFigPath,
+                                                                  # y_max=y_max,
+                                                                  trainTestSplit=trainTestSplitIndex,
+                                                                  title=figTitle,
+                                                                  yLabel=currColumn + ' (x' + str(mul_ind) + ')',
+                                                                  xLabel='')
+
+                            print(file_manip.getCurrentDatetimeForConsole() +
+                                  "::Plot normalized figure for column: " + currColumn)
+                            exportFigPath = o_dir_RealPredictPlots + 'Denormalized_' + _uniqueEvent_ + '_' + currColumn + '.png'
+                            figTitle = _uniqueEvent_ + ': ' + currColumn
+                            y_max *= mul_ind
+                            self.BE_saveRealPredictedOutputFigure(y_Real=df_Y_realDenorm[currColumn_real],
+                                                                  y_Pred=df_Y_predDenorm[currColumn_pred],
+                                                                  exportPath=exportFigPath,
+                                                                  # y_max=y_max,
+                                                                  trainTestSplit=trainTestSplitIndex,
+                                                                  title=figTitle,
+                                                                  yLabel=currColumn,
+                                                                  xLabel='')
+
+                            print(file_manip.getCurrentDatetimeForConsole() + "::Calculate the Errors")
+                            # Calculate the Errors
+                            normList_yReal = df_Y_realNorm[currColumn_real].to_numpy()
+                            normList_yPred = df_Y_predNorm[currColumn_pred].to_numpy()
+
+                            denormList_yReal = df_Y_realDenorm[currColumn_real].to_numpy()
+                            denormList_yPred = df_Y_predDenorm[currColumn_pred].to_numpy()
+
+                            norm_err_max = np.abs(normList_yReal - normList_yPred).max()
+                            denorm_err_max = np.abs(denormList_yReal - denormList_yPred).max()
+
+                            norm_err_min = np.abs(normList_yReal - normList_yPred).min()
+                            denorm_err_min = np.abs(denormList_yReal - denormList_yPred).min()
+
+                            norm_err_mse = sklearn.metrics.mean_squared_error(normList_yReal, normList_yPred)
+                            denorm_err_mse = sklearn.metrics.mean_squared_error(denormList_yReal,
+                                                                                denormList_yPred)
+
+                            norm_err_rmse = np.sqrt(norm_err_mse)
+                            denorm_err_rmse = np.sqrt(denorm_err_mse)
+
+                            norm_err_mae = sklearn.metrics.mean_absolute_error(normList_yReal, normList_yPred)
+                            denorm_err_mae = sklearn.metrics.mean_absolute_error(denormList_yReal,
+                                                                                 denormList_yPred)
+
+                            tmpAppendRow.append(norm_err_max)
+                            tmpAppendRow.append(denorm_err_max)
+                            tmpAppendRow.append(norm_err_min)
+                            tmpAppendRow.append(denorm_err_min)
+                            tmpAppendRow.append(norm_err_mse)
+                            tmpAppendRow.append(denorm_err_mse)
+                            tmpAppendRow.append(norm_err_rmse)
+                            tmpAppendRow.append(denorm_err_rmse)
+                            tmpAppendRow.append(norm_err_mae)
+                            tmpAppendRow.append(denorm_err_mae)
+
+                            # d_cor = pd.DataFrame(np.array([tmp_d1.values, tmp_d2.values]).T,
+                            #                      columns=[dataset_real, dataset_pred])
+                            # (d_cor_r, d_cor_R2, d_cor_p,
+                            #  d_cor_overall_pearson_r, d_cor_overall_pearson_R2, d_cor_rolling_r_min,
+                            #  d_cor_rolling_r_max, d_cor_offset,
+                            #  d_cor_alignment_distance) = \
+                            #     signcomp.RunAllCorrelationMethods(dataArr=d_cor,
+                            #                                       baseIndex=dataset_real,
+                            #                                       corrIndex=dataset_pred,
+                            #                                       baseIndex_Label='Real - Pearson r',
+                            #                                       corrIndex_Label='Predicted - Pearson r',
+                            #                                       r_window_size=r_window_size,
+                            #                                       time_step=time_step,
+                            #                                       fps=fps,
+                            #                                       no_splits=no_splits,
+                            #                                       bool_plt_show=False,
+                            #                                       bool_plt_save=True,
+                            #                                       str_plt_save_dir_path=o_dir_Corr,
+                            #                                       str_plt_save_name=model_name + '_' + dataset + '_PRED_Corr')
+                            #
+                            # cor_CSV.append(tmp_cor_csv)
+                            print(file_manip.getCurrentDatetimeForConsole() + "::Append them to files")
+                            ws.append(tmpAppendRow)
+                            wb.save(workbookPath)
+                        print(file_manip.getCurrentDatetimeForConsole() + "::CSV export")
+                        df_Y_realNorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_OutputReal_Normalized.csv')
+                        df_Y_predNorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_OutputPred_Normalized.csv')
+                        df_Y_realDenorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_OutputReal_Denormalized.csv')
+                        df_Y_predDenorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_OutputPred_Denormalized.csv')
+
+                    # o_file = os.path.normpath(dir_path + "/../") + '/Correlation_R2.csv'
+                    # my_cal_v2.write_csv(o_file, cor_CSV)
+        print(file_manip.getCurrentDatetimeForConsole() + "::Execution Finished Successfully!!!")
 
     def actionFileListRowChanged_event(self):
         self.listWidget_ColumnList.clear()  # Clear Column Widget

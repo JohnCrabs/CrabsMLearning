@@ -4,6 +4,7 @@ import warnings
 import pandas as pd
 import numpy as np
 from shutil import copyfile
+import datetime as dt
 
 PATH_NORM_SLASH = os.path.normpath('/')
 PATH_HOME = os.path.expanduser('~')
@@ -14,6 +15,14 @@ SIZE_KB = 'kb'
 SIZE_MB = 'mb'
 SIZE_GB = 'gb'
 SIZE_TB = 'tb'
+
+
+def getCurrentDatetimeForPath():
+    return dt.datetime.now().strftime("%d%m%Y_%H%M%S")
+
+
+def getCurrentDatetimeForConsole():
+    return dt.datetime.now().strftime("%d/%m/%Y_%H:%M:%S")
 
 
 def checkAndCreateFolder(path):
