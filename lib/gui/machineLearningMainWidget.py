@@ -41,6 +41,7 @@ from PySide2.QtGui import (
 # import lib.core.my_calendar_v2 as my_cal_v2
 from lib.core.project_flags import *
 import lib.core.machineLearningRegression as mlr
+import lib.core.signalCompare as signComp
 
 from lib.gui.guiStyle import setStyle_
 import lib.gui.commonFunctions as coFunc
@@ -171,6 +172,9 @@ class WidgetMachineLearningMainWidget(QWidget):
 
         self.mlr_Regression = mlr.MachineLearningRegression()
         self.mlr_Regression.setML_dict()
+
+        self.signComp_Methods = signComp.SignalCompare()
+        self.signComp_Methods.setSC_dict()
 
     # DICTIONARY FILE PARAMETERS
     def dkeyFileName(self):
@@ -461,6 +465,18 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetTabMachineLearningSettings.tabRegressionMethods.button_GradientBoostingRegressor.clicked.connect(
             self.actionButtonClickedGradientBoostingRegressor)
 
+    def setTabSettingsSignalCompareEvents_(self):
+        self.widgetTabMachineLearningSettings.tabSignalCompare.checkbox_PearsonCorr.stateChanged.connect(
+            self.actionStateChangePearsonCorr)
+        self.widgetTabMachineLearningSettings.tabSignalCompare.checkbox_TimeLaggedCrossCorrelation.stateChanged.connect(
+            self.actionStateChangeTimeLagCrossCorrelation)
+        self.widgetTabMachineLearningSettings.tabSignalCompare.checkbox_TimeLaggedCrossCorrelationNoSplits.stateChanged.connect(
+            self.actionStateChangeTimeLagCrossCorrelationNoSplits)
+        self.widgetTabMachineLearningSettings.tabSignalCompare.checkbox_RollingWindowTimeLaggedCrossCorrelation.stateChanged.connect(
+            self.actionStateChangeRollingWindowTimeLagCrossCorrelation)
+        self.widgetTabMachineLearningSettings.tabSignalCompare.checkbox_DynamicTimeWarping.stateChanged.connect(
+            self.actionStateChangeDynamicTimeWarping)
+
     # Set event for RidgeOptions
     def setWidgetRidgeEvents_(self):
         # Set Button Events
@@ -496,6 +512,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.setEvents_()  # set the user specified event (inherited)
         self.setTabSettingsGeneralEvents_()  # set the tab settings GENERAL events
         self.setTabSettingsRegressionMethodsEvents_()  # set the tab settings REGRESSION METHODS events
+        self.setTabSettingsSignalCompareEvents_()  # set the tab settings SIGNAL COMPARE events
 
         self.setWidgetRidgeEvents_()  # set the events of Ridge Options
 
@@ -1260,27 +1277,9 @@ class WidgetMachineLearningMainWidget(QWidget):
                             tmpAppendRow.append(norm_err_mae)
                             tmpAppendRow.append(denorm_err_mae)
 
-                            # d_cor = pd.DataFrame(np.array([tmp_d1.values, tmp_d2.values]).T,
-                            #                      columns=[dataset_real, dataset_pred])
-                            # (d_cor_r, d_cor_R2, d_cor_p,
-                            #  d_cor_overall_pearson_r, d_cor_overall_pearson_R2, d_cor_rolling_r_min,
-                            #  d_cor_rolling_r_max, d_cor_offset,
-                            #  d_cor_alignment_distance) = \
-                            #     signcomp.RunAllCorrelationMethods(dataArr=d_cor,
-                            #                                       baseIndex=dataset_real,
-                            #                                       corrIndex=dataset_pred,
-                            #                                       baseIndex_Label='Real - Pearson r',
-                            #                                       corrIndex_Label='Predicted - Pearson r',
-                            #                                       r_window_size=r_window_size,
-                            #                                       time_step=time_step,
-                            #                                       fps=fps,
-                            #                                       no_splits=no_splits,
-                            #                                       bool_plt_show=False,
-                            #                                       bool_plt_save=True,
-                            #                                       str_plt_save_dir_path=o_dir_Corr,
-                            #                                       str_plt_save_name=model_name + '_' + dataset + '_PRED_Corr')
-                            #
-                            # cor_CSV.append(tmp_cor_csv)
+                            self.signComp_Methods.signComp_exec_(arrData1=df_Y_realNorm.to_numpy(),
+                                                                 arrData2=df_Y_predNorm.to_numpy(),
+                                                                 exportFigDirPath=o_dir_SignalCompare)
 
                         print(file_manip.getCurrentDatetimeForConsole() + "::Export Files")
                         ws.append(tmpAppendRow)
@@ -1623,6 +1622,28 @@ class WidgetMachineLearningMainWidget(QWidget):
     def actionButtonClickedGradientBoostingRegressor(self):
         pass
 
+    # ***** SET SETTINGS SIGNAL COMPARE METHODS *** #
+    # _____ CHECK BOX STATE CHANGE EVENT _____ *
+    def actionStateChangePearsonCorr(self):
+        state = self.widgetTabMachineLearningSettings.tabSignalCompare.getCheckState_PearsonCorr()
+        self.signComp_Methods.setPearsonCorr_state(state)
+
+    def actionStateChangeTimeLagCrossCorrelation(self):
+        state = self.widgetTabMachineLearningSettings.tabSignalCompare.getCheckState_TimeLaggedCrossCorrelation()
+        self.signComp_Methods.setTimeLaggedCrossCorrelation_state(state)
+
+    def actionStateChangeTimeLagCrossCorrelationNoSplits(self):
+        state = self.widgetTabMachineLearningSettings.tabSignalCompare.getCheckState_TimeLaggedCrossCorrelationNoSplits()
+        self.signComp_Methods.setTimeLaggedCrossCorrelationNoSplits_state(state)
+
+    def actionStateChangeRollingWindowTimeLagCrossCorrelation(self):
+        state = self.widgetTabMachineLearningSettings.tabSignalCompare.getCheckState_RollingWindowTimeLaggedCrossCorrelation()
+        self.signComp_Methods.setRollingWindowTimeLaggedCrossCorrelation_state(state)
+
+    def actionStateChangeDynamicTimeWarping(self):
+        state = self.widgetTabMachineLearningSettings.tabSignalCompare.getCheckState_DynamicTimeWarping()
+        self.signComp_Methods.setDynamicTimeWarping_state(state)
+
     # ***** MACHINE LEARNING WIDGET OPTIONS EVENTS *** #
     # _____ RIDGE _____ #
     def actionButtonClicked_TolAdd(self):
@@ -1802,6 +1823,7 @@ class WidgetTabMachineLearningSettings(QWidget):
 
         self.tabGeneral = WidgetTabMachineLearningSettingsGeneral()  # create a tab for General (info)
         self.tabRegressionMethods = WidgetTabMachineLearningSettingsRegressionMethods()
+        self.tabSignalCompare = WidgetTabMachineLearningSettingsSignalCompareMethods()
 
     def setWidget(self):
         """
@@ -1810,8 +1832,10 @@ class WidgetTabMachineLearningSettings(QWidget):
         """
         self.tabGeneral.setWidget()  # set tab General (info)
         self.tabRegressionMethods.setWidget()  # set tab Regression methods
+        self.tabSignalCompare.setWidget()  # set tab Signal Compare methods
         self.mainTabWidget.addTab(self.tabGeneral, "General")  # add tab to mainTabWidget
         self.mainTabWidget.addTab(self.tabRegressionMethods, "Regression Methods")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabSignalCompare, "Signal Compare Methods")
         self.vbox_main_layout.addWidget(self.mainTabWidget)  # add tabWidget to main layout
 
 
@@ -2179,22 +2203,6 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         label_AdaBoostRegressor = QLabel(mlr.ML_REG_ADA_BOOST_REGRESSOR)
         label_GradientBoostingRegressor = QLabel(mlr.ML_REG_GRADIENT_BOOSTING_REGRESSOR)
 
-        # label_LinearRegression.setMinimumWidth(label_min_width)
-        # label_Ridge.setMinimumWidth(label_min_width)
-        # label_BayesianRidge.setMinimumWidth(label_min_width)
-        # label_Lasso.setMinimumWidth(label_min_width)
-        # label_LassoLars.setMinimumWidth(label_min_width)
-        # label_TweedieRegressor.setMinimumWidth(label_min_width)
-        # label_SGDRegressor.setMinimumWidth(label_min_width)
-        # label_SVR.setMinimumWidth(label_min_width)
-        # label_LinearSVR.setMinimumWidth(label_min_width)
-        # label_NearestNeighbor.setMinimumWidth(label_min_width)
-        # label_KNeighborsRegressor.setMinimumWidth(label_min_width)
-        # label_DecisionTreeRegressor.setMinimumWidth(label_min_width)
-        # label_RandomForestRegressor.setMinimumWidth(label_min_width)
-        # label_AdaBoostRegressor.setMinimumWidth(label_min_width)
-        # label_GradientBoostingRegressor.setMinimumWidth(label_min_width)
-
         # Set layout
         scrollAreaWidget = QWidget()
         scrollAreaWidget.setMaximumWidth(840)
@@ -2514,6 +2522,117 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
     def getCheckState_GradientBoostingRegressor(self):
         return self.checkbox_GradientBoostingRegressor.isChecked()
 
+
+# *********** Machine Learning Settings --> SignalCompare Methods *********** #
+class WidgetTabMachineLearningSettingsSignalCompareMethods(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+        # ---------------------- #
+        # ----- CheckBoxes ----- #
+        # ---------------------- #
+        self.checkbox_PearsonCorr = QCheckBox()
+        self.checkbox_TimeLaggedCrossCorrelation = QCheckBox()
+        self.checkbox_TimeLaggedCrossCorrelationNoSplits = QCheckBox()
+        self.checkbox_RollingWindowTimeLaggedCrossCorrelation = QCheckBox()
+        self.checkbox_DynamicTimeWarping = QCheckBox()
+
+        # ---------------------- #
+        # ----- ScrollArea ----- #
+        # ---------------------- #
+        self.scrollArea_compMethods = QScrollArea()
+
+    # --------------------------- #
+    # ----- Reuse Functions ----- #
+    # --------------------------- #
+    def setWidget(self):
+        """
+            A function to create the widget components into the main QWidget
+            :return: Nothing
+        """
+        self.scrollArea_compMethods.setWidgetResizable(True)
+        self.scrollArea_compMethods.setWidget(self._setGridLayout())
+        self.vbox_main_layout.addWidget(self.scrollArea_compMethods)
+
+    def _setGridLayout(self):
+        # label_min_width = 200
+
+        # Set Label
+        label_Method = QLabel('<b><u>Method<\\u><\\b>')
+        # label_Method.setMaximumHeight(30)
+
+        label_State = QLabel('<b><u>State<\\u><\\b>')
+        # label_State.setMaximumHeight(30)
+
+        label_PearsonCorr = QLabel(signComp.SC_PEARSON_CORRELATION)
+        label_TimeLaggedCrossCorrelation = QLabel(signComp.SC_TIME_LAGGED_CROSS_CORRELATION)
+        label_TimeLaggedCrossCorrelationNoSplits = QLabel(signComp.SC_TIME_LAGGED_CROSS_CORRELATION_NO_SPLITS)
+        label_RollingWindowTimeLaggedCrossCorrelation = QLabel(signComp.SC_ROLLING_WINDOW_TIME_LAGGED_CROSS_CORRELATION)
+        label_DynamicTimeWarping = QLabel(signComp.SC_DYNAMIC_TIME_WARPING)
+
+        # Set layout
+        scrollAreaWidget = QWidget()
+        scrollAreaWidget.setMaximumWidth(480)
+        scrollAreaWidget.setMaximumHeight(200)
+        gridBox_Methods = QGridLayout(scrollAreaWidget)
+
+        gridBox_Methods.addWidget(label_Method, 0, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(label_State, 0, 1, alignment=Qt.AlignCenter)
+
+        gridBox_Methods.addWidget(label_PearsonCorr, 1, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_PearsonCorr, 1, 1, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_TimeLaggedCrossCorrelation, 2, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_TimeLaggedCrossCorrelation, 2, 1, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_TimeLaggedCrossCorrelationNoSplits, 3, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_TimeLaggedCrossCorrelationNoSplits, 3, 1, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_RollingWindowTimeLaggedCrossCorrelation, 4, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_RollingWindowTimeLaggedCrossCorrelation, 4, 1, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_DynamicTimeWarping, 5, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_DynamicTimeWarping, 5, 1, alignment=Qt.AlignHCenter)
+
+        return scrollAreaWidget
+
+    # ------------------------------ #
+    # ----- Change Check State ----- #
+    # ------------------------------ #
+    def setCheckState_PearsonCorr(self, state: bool):
+        self.checkbox_PearsonCorr.setCheckState(state)
+
+    def setCheckState_TimeLaggedCrossCorrelation(self, state: bool):
+        self.checkbox_TimeLaggedCrossCorrelation.setCheckState(state)
+
+    def setCheckState_TimeLaggedCrossCorrelationNoSplits(self, state: bool):
+        self.checkbox_TimeLaggedCrossCorrelationNoSplits.setCheckState(state)
+
+    def setCheckState_RollingWindowTimeLaggedCrossCorrelation(self, state: bool):
+        self.checkbox_RollingWindowTimeLaggedCrossCorrelation.setCheckState(state)
+
+    def setCheckState_DynamicTimeWarping(self, state: bool):
+        self.checkbox_DynamicTimeWarping.setCheckState(state)
+
+    def getCheckState_PearsonCorr(self):
+        return self.checkbox_PearsonCorr.checkState()
+
+    def getCheckState_TimeLaggedCrossCorrelation(self):
+        return self.checkbox_TimeLaggedCrossCorrelation.checkState()
+
+    def getCheckState_TimeLaggedCrossCorrelationNoSplits(self):
+        return self.checkbox_TimeLaggedCrossCorrelationNoSplits.checkState()
+
+    def getCheckState_RollingWindowTimeLaggedCrossCorrelation(self):
+        return self.checkbox_RollingWindowTimeLaggedCrossCorrelation.checkState()
+
+    def getCheckState_DynamicTimeWarping(self):
+        return self.checkbox_DynamicTimeWarping.checkState()
 
 # *                                 * #
 # *********************************** #
