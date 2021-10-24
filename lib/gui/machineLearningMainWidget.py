@@ -6,7 +6,6 @@ import numpy as np
 import openpyxl as op
 import matplotlib.pyplot as plt
 import sklearn
-import datetime as dt
 
 from PySide2.QtCore import (
     Qt
@@ -1129,8 +1128,14 @@ class WidgetMachineLearningMainWidget(QWidget):
                     except FileNotFoundError:  # exception: Create the workbook
                         # Create the header row
                         headers_row = ['Event', 'Technique']
+                        headers_errors = ['_MAX_NORM', '_MAX_DENORM',
+                                          '_MIN_NORM', '_MIN_DENORM',
+                                          '_MSE_NORM', '_MSE_DENORM',
+                                          '_RMSE_NORM', '_RMSE_DENORM',
+                                          '_MAE_NORM', '_MAE_DENORM']
                         for _header_ in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]:
-                            headers_row.append(_header_)
+                            for _headerError_ in headers_errors:
+                                headers_row.append(_header_ + _headerError_)
 
                         wb = op.Workbook()  # open a workbook
                         ws = wb.active  # set a worksheet active
@@ -1276,14 +1281,14 @@ class WidgetMachineLearningMainWidget(QWidget):
                             #                                       str_plt_save_name=model_name + '_' + dataset + '_PRED_Corr')
                             #
                             # cor_CSV.append(tmp_cor_csv)
-                            print(file_manip.getCurrentDatetimeForConsole() + "::Append them to files")
-                            ws.append(tmpAppendRow)
-                            wb.save(workbookPath)
-                        print(file_manip.getCurrentDatetimeForConsole() + "::CSV export")
-                        df_Y_realNorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_OutputReal_Normalized.csv')
-                        df_Y_predNorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_OutputPred_Normalized.csv')
-                        df_Y_realDenorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_OutputReal_Denormalized.csv')
-                        df_Y_predDenorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_OutputPred_Denormalized.csv')
+
+                        print(file_manip.getCurrentDatetimeForConsole() + "::Export Files")
+                        ws.append(tmpAppendRow)
+                        wb.save(workbookPath)
+                        df_Y_realNorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputReal_Normalized.csv')
+                        df_Y_predNorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputPred_Normalized.csv')
+                        df_Y_realDenorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputReal_Denormalized.csv')
+                        df_Y_predDenorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputPred_Denormalized.csv')
 
                     # o_file = os.path.normpath(dir_path + "/../") + '/Correlation_R2.csv'
                     # my_cal_v2.write_csv(o_file, cor_CSV)

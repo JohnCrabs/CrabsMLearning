@@ -175,21 +175,24 @@ class MachineLearningRegression:
         # for _method_ in ML_REG_METHODS:
         #     self._ML_dictMethods[_method_] = {}
 
-        self._MLR_dictMethods[ML_REG_LINEAR_REGRESSION] = {}
-        self._MLR_dictMethods[ML_REG_RIDGE] = {}
-        self._MLR_dictMethods[ML_REG_BAYESIAN_RIDGE] = {}
-        self._MLR_dictMethods[ML_REG_LASSO] = {}
-        self._MLR_dictMethods[ML_REG_LASSO_LARS] = {}
-        self._MLR_dictMethods[ML_REG_TWEEDIE_REGRESSOR] = {}
-        self._MLR_dictMethods[ML_REG_SGD_REGRESSOR] = {}
-        self._MLR_dictMethods[ML_REG_SVR] = {}
-        self._MLR_dictMethods[ML_REG_LINEAR_SVR] = {}
-        self._MLR_dictMethods[ML_REG_NEAREST_NEIGHBORS] = {}
-        self._MLR_dictMethods[ML_REG_K_NEIGHBORS_REGRESSOR] = {}
-        self._MLR_dictMethods[ML_REG_DECISION_TREE_REGRESSOR] = {}
-        self._MLR_dictMethods[ML_REG_RANDOM_FOREST_REGRESSOR] = {}
-        self._MLR_dictMethods[ML_REG_ADA_BOOST_REGRESSOR] = {}
-        self._MLR_dictMethods[ML_REG_GRADIENT_BOOSTING_REGRESSOR] = {}
+        # self._MLR_dictMethods[ML_REG_LINEAR_REGRESSION] = {}
+        # self._MLR_dictMethods[ML_REG_RIDGE] = {}
+        # self._MLR_dictMethods[ML_REG_BAYESIAN_RIDGE] = {}
+        # self._MLR_dictMethods[ML_REG_LASSO] = {}
+        # self._MLR_dictMethods[ML_REG_LASSO_LARS] = {}
+        # self._MLR_dictMethods[ML_REG_TWEEDIE_REGRESSOR] = {}
+        # self._MLR_dictMethods[ML_REG_SGD_REGRESSOR] = {}
+        # self._MLR_dictMethods[ML_REG_SVR] = {}
+        # self._MLR_dictMethods[ML_REG_LINEAR_SVR] = {}
+        # self._MLR_dictMethods[ML_REG_NEAREST_NEIGHBORS] = {}
+        # self._MLR_dictMethods[ML_REG_K_NEIGHBORS_REGRESSOR] = {}
+        # self._MLR_dictMethods[ML_REG_DECISION_TREE_REGRESSOR] = {}
+        # self._MLR_dictMethods[ML_REG_RANDOM_FOREST_REGRESSOR] = {}
+        # self._MLR_dictMethods[ML_REG_ADA_BOOST_REGRESSOR] = {}
+        # self._MLR_dictMethods[ML_REG_GRADIENT_BOOSTING_REGRESSOR] = {}
+
+        for _method_ in ML_REG_METHODS:
+            self._MLR_dictMethods[_method_] = {}
 
         self.restore_LinearRegression_Defaults()
         self.restore_Ridge_Defaults()
@@ -456,29 +459,29 @@ class MachineLearningRegression:
             predTest = None  # a parameter to store the predicted y_Test values
             if _methodKey_ in _ML_NO_TUNING_LIST:  # if method cannot be tuning (e.g. LinearRegression)
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
-                    print('Training ' + _methodKey_ + '...')  # console message
+                    print(file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "...")  # console message
                     model = self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD]
                     model.fit(inputData_TrainVal,
                               outputData_TrainVal)  # model.fit()
-                    print('...COMPLETED!')  # console message
+                    print(file_manip.getCurrentDatetimeForConsole() + "::...COMPLETED!")  # console message
                     # Export model
                     modelExportPath = os.path.normpath(exportTrainedModelsPath + modelName + '_' +
                                                        currentDatetime + H5_SUFFIX)
                     listStr_ModelPaths.append(modelExportPath)
                     joblib.dump(model, modelExportPath)
-                    print('Model exported at: ', modelExportPath)
+                    print(file_manip.getCurrentDatetimeForConsole() + "::Model exported at: ", modelExportPath)
                     self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL] = model
 
             elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:  # elif method is not a tf.keras
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
-                    print('Training ' + _methodKey_ + '...')  # console message
+                    print(file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "..")  # console message
                     # run Grid Search CV
                     model = GridSearchCV(self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD],
                                          self._MLR_dictMethods[_methodKey_][ML_KEY_PARAM_GRID],
                                          n_jobs=-1)
                     model.fit(inputData_TrainVal,
                               outputData_TrainVal)  # model.fit()
-                    print('...COMPLETED!')  # console message
+                    print(file_manip.getCurrentDatetimeForConsole() + "::...COMPLETED!")  # console message
                     self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL] = model.best_estimator_
 
                     # Export model
@@ -486,9 +489,9 @@ class MachineLearningRegression:
                                                        currentDatetime + H5_SUFFIX)
                     listStr_ModelPaths.append(modelExportPath)
                     joblib.dump(model, modelExportPath)
-                    print('Model exported at: ', modelExportPath)
-                    print("Best Estimator = ", model.best_estimator_)
-                    print("Best Score = ", model.best_score_)
+                    print(file_manip.getCurrentDatetimeForConsole() + "::Model exported at: ", modelExportPath)
+                    print(file_manip.getCurrentDatetimeForConsole() + "::Best Estimator = ", model.best_estimator_)
+                    print(file_manip.getCurrentDatetimeForConsole() + "::Best Score = ", model.best_score_)
 
             elif _methodKey_ in _ML_TUNING_DEEP_METHODS:  # elif method is keras
                 pass
@@ -524,7 +527,7 @@ class MachineLearningRegression:
                 errorMSE_Test = np.zeros(outputData_Test_Shape[1])
                 errorMaxError_Test = np.zeros(outputData_Test_Shape[1])
 
-                print(outputData_TrainVal_Shape[1])
+                # print(outputData_TrainVal_Shape[1])
                 for _index_ in range(0, outputData_TrainVal_Shape[1]):
                     # normalized first
                     errorMAE_Train[_index_] = \
@@ -585,7 +588,7 @@ class MachineLearningRegression:
                 ws.append(new_row)
                 wb.save(workbookFilePath)
 
-        print("Training Finished Successfully!")
+        print(file_manip.getCurrentDatetimeForConsole() + "::Training Finished Successfully!")
         return listStr_ModelPaths, exportBaseDir, workbookDirPath
 
     def openModel(self, modelPath):
