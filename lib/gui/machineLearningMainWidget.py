@@ -59,7 +59,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.iconPath = iconPath
 
         # Set this flag to True to show debugging messages to console
-        self.debugMessageFlag = True
+        self.debugMessageFlag = False
 
         # -------------------------------- #
         # ----- Private QTabWidget ------- #
@@ -1277,9 +1277,11 @@ class WidgetMachineLearningMainWidget(QWidget):
                             tmpAppendRow.append(norm_err_mae)
                             tmpAppendRow.append(denorm_err_mae)
 
-                            self.signComp_Methods.signComp_exec_(arrData1=df_Y_realNorm.to_numpy(),
-                                                                 arrData2=df_Y_predNorm.to_numpy(),
-                                                                 exportFigDirPath=o_dir_SignalCompare)
+                            corrFileName = _uniqueEvent_ + '_' + currColumn
+                            self.signComp_Methods.signComp_exec_(arrData1=df_Y_realNorm[currColumn_real].to_numpy(),
+                                                                 arrData2=df_Y_predNorm[currColumn_pred].to_numpy(),
+                                                                 exportFigDirPath=o_dir_SignalCompare,
+                                                                 exportFigFileName=corrFileName)
 
                         print(file_manip.getCurrentDatetimeForConsole() + "::Export Files")
                         ws.append(tmpAppendRow)
@@ -1519,12 +1521,12 @@ class WidgetMachineLearningMainWidget(QWidget):
     # _____ CHECK BOX STATE CHANGE EVENT _____ *
     def actionStateChangeLinearRegression(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_LinearRegression()
-        print(state)
+        # print(state)
         self.mlr_Regression.setLinearRegression_sate(state)
 
     def actionStateChangeRidge(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_Ridge()
-        print(state)
+        # print(state)
         self.mlr_Regression.setRidge_state(state)
 
     def actionStateChangeBayesianRidge(self):
