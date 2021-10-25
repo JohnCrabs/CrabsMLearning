@@ -41,6 +41,11 @@ SC_PEARSON_LABEL_TITLE = 'Pearson Label Title'
 SC_PEARSON_LABEL_X_AXIS = 'Pearson Label X Axis'
 
 SC_TIME_LAGGED_CROSS_CORRELATION_OFFSET = 'Offset'
+SC_TIME_LAGGED_CROSS_CORRELATION_LABEL_TITLE = 'Title Lagged Cross Correlation Title'
+
+SC_TIME_LAGGED_CROSS_CORRELATION_NO_SPLITS_LABEL_TITLE = 'Title Lagged Cross Correlation No Splits Title'
+
+SC_DYNAMIC_TIME_WARPING_ALIGNMENT_DISTANCE = 'Alignment Distance'
 
 
 def crosscorr(datax, datay, lag=0, wrap=False):
@@ -85,20 +90,26 @@ class SignalCompare:
         self._SC_dictMethods[SC_TIME_LAGGED_CROSS_CORRELATION] = {
             SC_EXEC_STATE: False,
             SC_EXEC_FUNC: self.method_TimeLaggedCrossCorrelation,
-            SC_TIME_LAGGED_CROSS_CORRELATION: np.nan
+            SC_TIME_LAGGED_CROSS_CORRELATION: np.nan,
+            SC_TIME_LAGGED_CROSS_CORRELATION_LABEL_TITLE: 'Time Lagged Cross Correlation'
         }
 
         self._SC_dictMethods[SC_TIME_LAGGED_CROSS_CORRELATION_NO_SPLITS] = {
             SC_EXEC_STATE: False,
-            SC_EXEC_FUNC: self.method_TimeLaggedCrossCorrelationNoSplits}
+            SC_EXEC_FUNC: self.method_TimeLaggedCrossCorrelationNoSplits,
+            SC_TIME_LAGGED_CROSS_CORRELATION_NO_SPLITS_LABEL_TITLE: 'Time Lagged Cross Correlation No Splits'
+        }
 
         self._SC_dictMethods[SC_ROLLING_WINDOW_TIME_LAGGED_CROSS_CORRELATION] = {
             SC_EXEC_STATE: False,
-            SC_EXEC_FUNC: self.method_RollingWindowTimeLaggedCrossCorrelation}
+            SC_EXEC_FUNC: self.method_RollingWindowTimeLaggedCrossCorrelation
+        }
 
         self._SC_dictMethods[SC_DYNAMIC_TIME_WARPING] = {
             SC_EXEC_STATE: False,
-            SC_EXEC_FUNC: self.method_DynamicTimeWarping}
+            SC_EXEC_FUNC: self.method_DynamicTimeWarping,
+            SC_DYNAMIC_TIME_WARPING_ALIGNMENT_DISTANCE:  np.nan
+        }
 
     # ***************************** #
     # ***** SETTERS / GETTERS ***** #
@@ -158,7 +169,7 @@ class SignalCompare:
         if r_window < 3:
             r_window = 3
 
-        df_arrData = pd.DataFrame({labelYaxis_1: arrData1, labelYaxis_2:arrData2})
+        df_arrData = pd.DataFrame({labelYaxis_1: arrData1, labelYaxis_2: arrData2})
 
         df_arrData = df_arrData.dropna()  # Remove na values if exist
 
@@ -215,9 +226,13 @@ class SignalCompare:
         plt.close()
 
     def method_TimeLaggedCrossCorrelation(self, arrData1: np.ndarray, arrData2: np.ndarray, exportFigDirPath: str, exportFigFileName: str):
-        d1 = arrData1
-        d2 = arrData2
+        labelYaxis_1 = 'Signal-1'
+        labelYaxis_2 = 'Signal-2'
+        title = self._SC_dictMethods[SC_TIME_LAGGED_CROSS_CORRELATION][SC_TIME_LAGGED_CROSS_CORRELATION_LABEL_TITLE]
 
+        df_arrData = pd.DataFrame({labelYaxis_1: arrData1, labelYaxis_2: arrData2})
+        d1 = df_arrData[labelYaxis_1]
+        d2 = df_arrData[labelYaxis_2]
         timeStep_mul_FPS = int(0.2 * arrData1.shape[0])
         rs = [crosscorr(d1, d2, lag) for lag in range(-timeStep_mul_FPS, timeStep_mul_FPS + 1)]
 
@@ -234,30 +249,121 @@ class SignalCompare:
 
         offset = np.ceil(len(rs) / 2) - np.argmax(rs)
         self._SC_dictMethods[SC_TIME_LAGGED_CROSS_CORRELATION][SC_TIME_LAGGED_CROSS_CORRELATION] = offset
-        _, ax = plt.subplots(figsize=(14, 5))
+        _, ax = plt.subplots(figsize=(10.24, 8.4))
         ax.plot(rs)
         ax.axvline(np.ceil(len(rs) / 2), color='k', linestyle='--', label='Center')
         ax.axvline(np.argmax(rs), color='r', linestyle='--', label='Peak synchrony')
-        ax.set(title=f'Offset = {offset} frames\nS1 leads <> S2 leads', ylim=[-1.0, 1.0], xlim=[0, data_size],
+        ax.set(ylim=[-1.0, 1.0], xlim=[0, data_size],
                xlabel='Offset', ylabel='Pearson r')
+        str_title = title + \
+                    '\n' f'Offset = {offset} frames' \
+                    f'\nS1 leads <> S2 leads'
+        ax.set(title=str_title)
         ax.set_xticks(data_ticks)
         ax.set_xticklabels(data_labels)
         plt.legend()
-
         final_export_path = os.path.normpath(exportFigDirPath) + '/' + 'FigNo02_' + exportFigFileName + \
                             '_TimeLaggedCrossCorrelation.png'
         plt.savefig(final_export_path)
-
         plt.close()
 
     def method_TimeLaggedCrossCorrelationNoSplits(self, arrData1: np.ndarray, arrData2: np.ndarray, exportFigDirPath: str, exportFigFileName: str):
-        pass
+        labelYaxis_1 = 'Signal-1'
+        labelYaxis_2 = 'Signal-2'
+        title = self._SC_dictMethods[SC_TIME_LAGGED_CROSS_CORRELATION_NO_SPLITS][SC_TIME_LAGGED_CROSS_CORRELATION_NO_SPLITS_LABEL_TITLE]
+
+        df_arrData = pd.DataFrame({labelYaxis_1: arrData1, labelYaxis_2: arrData2})
+        d1 = df_arrData[labelYaxis_1]
+        d2 = df_arrData[labelYaxis_2]
+        timeStep_mul_FPS = int(0.1 * arrData1.shape[0])
+        no_splits = int(0.1*timeStep_mul_FPS)
+        samples_per_split = df_arrData.shape[0] / no_splits
+
+        rs = [crosscorr(d1, d2, lag) for lag in range(-timeStep_mul_FPS, timeStep_mul_FPS + 1)]
+
+        data_size = timeStep_mul_FPS * 2
+        data_ticks = []
+        data_labels = []
+        for i in range(0, 7):
+            if i == 0:
+                data_ticks.append(int(0))
+                data_labels.append(int(-data_size / 2))
+            else:
+                data_ticks.append(int(data_ticks[i - 1] + (data_size / 6)))
+                data_labels.append(int(data_labels[i - 1] + (data_size / 6)))
+
+        offset = np.ceil(len(rs) / 2) - np.argmax(rs)
+        print(offset)
+        rss = []
+        for t in range(0, no_splits):
+            d1 = df_arrData[labelYaxis_1].loc[t * samples_per_split:(t + 1) * samples_per_split]
+            d2 = df_arrData[labelYaxis_2].loc[t * samples_per_split:(t + 1) * samples_per_split]
+            rs = [crosscorr(d1, d2, lag) for lag in range(timeStep_mul_FPS, timeStep_mul_FPS + 1)]
+            rss.append(rs)
+        rss = pd.DataFrame(rss)
+
+        data_size = timeStep_mul_FPS * 2
+        data_ticks = []
+        data_labels = []
+        for i in range(0, int(offset)):
+            if i == 0:
+                data_ticks.append(int(0))
+                data_labels.append(int(-data_size / 2))
+            else:
+                data_ticks.append(int(data_ticks[i - 1] + (data_size / 6)))
+                data_labels.append(int(data_labels[i - 1] + (data_size / 6)))
+
+        f, ax = plt.subplots(figsize=(10.24, 8.40))
+        sns.heatmap(rss, cmap='RdBu_r', ax=ax)
+        ax.set(title=title, xlim=[0, data_size],
+               xlabel='Offset', ylabel='Window epochs')
+        ax.set_xticks(data_ticks)
+
+        ax.set_xticklabels(data_labels)
+        plt.tight_layout()
+        final_export_path = os.path.normpath(exportFigDirPath) + '/' + 'FigNo03_' + exportFigFileName + \
+                            '_TimeLaggedCrossCorrelationNoSplits.png'
+        plt.savefig(final_export_path)
+        plt.close()
 
     def method_RollingWindowTimeLaggedCrossCorrelation(self, arrData1: np.ndarray, arrData2: np.ndarray, exportFigDirPath: str, exportFigFileName: str):
-        pass
+        labelYaxis_1 = 'Signal-1'
+        labelYaxis_2 = 'Signal-2'
+        title = self._SC_dictMethods[SC_TIME_LAGGED_CROSS_CORRELATION][SC_TIME_LAGGED_CROSS_CORRELATION_LABEL_TITLE]
+
+        df_arrData = pd.DataFrame({labelYaxis_1: arrData1, labelYaxis_2: arrData2})
 
     def method_DynamicTimeWarping(self, arrData1: np.ndarray, arrData2: np.ndarray, exportFigDirPath: str, exportFigFileName: str):
-        pass
+        labelYaxis_1 = 'Signal-1'
+        labelYaxis_2 = 'Signal-2'
+        df_arrData = pd.DataFrame({labelYaxis_1: arrData1, labelYaxis_2: arrData2})
+
+        d1 = df_arrData[labelYaxis_1].interpolate().values
+        d2 = df_arrData[labelYaxis_2].interpolate().values
+
+        alignment = dtw.dtw(d1, d2, keep_internals=True)
+
+        # Display the warping curve, i.e. the alignment curve
+        alignment.plot(type="threeway")
+        final_export_path = os.path.normpath(exportFigDirPath) + '/' + 'FigNo05_' + exportFigFileName + \
+                            '_DynamicTimeWrappingThreewayAlignment.png'
+        plt.savefig(final_export_path)
+
+        # Align and plot with the Rabiner-Juang type VI-c unsmoothed recursion
+        dtw.dtw(d1, d2, keep_internals=True,
+                step_pattern=dtw.rabinerJuangStepPattern(6, "c")).plot(type="twoway", offset=-2)
+        final_export_path = os.path.normpath(exportFigDirPath) + '/' + 'FigNo06_' + exportFigFileName + \
+                            '_DynamicTimeWrappingTwowayRabinerJuangStepPattern.png'
+        plt.savefig(final_export_path)
+
+        # See the recursion relation, as formula and diagram
+        print(dtw.rabinerJuangStepPattern(6, "c"))
+        dtw.rabinerJuangStepPattern(6, "c").plot()
+        final_export_path = os.path.normpath(exportFigDirPath) + '/' + 'FigNo07_' + exportFigFileName + \
+                            '_DynamicTimeWrappingRabinerPlotCJuangStepPattern.png'
+        plt.savefig(final_export_path)
+
+        self._SC_dictMethods[SC_DYNAMIC_TIME_WARPING][SC_DYNAMIC_TIME_WARPING_ALIGNMENT_DISTANCE] = alignment.distance
 
     def signComp_exec_(self, arrData1: np.ndarray, arrData2: np.ndarray, exportFigDirPath: str, exportFigFileName: str):
         for _method_ in self._SC_dictMethods.keys():

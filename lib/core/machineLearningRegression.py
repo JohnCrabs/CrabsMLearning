@@ -45,6 +45,8 @@ from sklearn.model_selection import (
     # cross_val_score
 )
 
+import tensorflow.keras as keras
+
 PATH_DEFAULT_EXPORT_DATA = os.path.normpath(file_manip.PATH_DOCUMENTS + '/MachineLearningRegression')
 DEBUG_MESSAGES = True
 H5_SUFFIX = '.h5'
@@ -68,6 +70,11 @@ ML_REG_DECISION_TREE_REGRESSOR = 'DecisionTreeRegressor'
 ML_REG_RANDOM_FOREST_REGRESSOR = 'RandomForestRegressor'
 ML_REG_ADA_BOOST_REGRESSOR = 'AdaBoostRegressor'
 ML_REG_GRADIENT_BOOSTING_REGRESSOR = 'GradientBoostingRegressor'
+
+ML_REG_DNN = 'DeepNeuralNetwork'
+ML_REG_LSTM = 'LongShortTermMemoryNetwork'
+ML_REG_CNN = 'ConvolutionalNeuralNetwork'
+ML_REG_CUSTOM = 'CustomNeuralNetwork'
 
 ML_REG_METHODS = [
     ML_REG_LINEAR_REGRESSION,
@@ -153,6 +160,10 @@ _ML_TUNING_NON_DEEP_METHODS = [
 ]
 
 _ML_TUNING_DEEP_METHODS = [
+    # ML_REG_DNN,
+    # ML_REG_LSTM,
+    # ML_REG_CNN,
+    # ML_REG_CUSTOM
 ]
 
 
