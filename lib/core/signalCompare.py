@@ -154,6 +154,12 @@ class SignalCompare:
     def getPearson_P(self):
         return self._SC_dictMethods[SC_PEARSON_CORRELATION][SC_PEARSON_P]
 
+    def getTimeLaggedCrossCorrelation_Offset(self):
+        return self._SC_dictMethods[SC_TIME_LAGGED_CROSS_CORRELATION][SC_TIME_LAGGED_CROSS_CORRELATION_OFFSET]
+
+    def getDynamicTimeWarping_AlignmentDistance(self):
+        return self._SC_dictMethods[SC_DYNAMIC_TIME_WARPING][SC_DYNAMIC_TIME_WARPING_ALIGNMENT_DISTANCE]
+
     # *************************** #
     # ***** METHODS EXECUTE ***** #
     # *************************** #
@@ -326,12 +332,48 @@ class SignalCompare:
         plt.savefig(final_export_path)
         plt.close()
 
-    def method_RollingWindowTimeLaggedCrossCorrelation(self, arrData1: np.ndarray, arrData2: np.ndarray, exportFigDirPath: str, exportFigFileName: str):
+    @staticmethod
+    def method_RollingWindowTimeLaggedCrossCorrelation(arrData1: np.ndarray, arrData2: np.ndarray, exportFigDirPath: str, exportFigFileName: str):
         labelYaxis_1 = 'Signal-1'
         labelYaxis_2 = 'Signal-2'
-        title = self._SC_dictMethods[SC_TIME_LAGGED_CROSS_CORRELATION][SC_TIME_LAGGED_CROSS_CORRELATION_LABEL_TITLE]
-
         df_arrData = pd.DataFrame({labelYaxis_1: arrData1, labelYaxis_2: arrData2})
+
+        # frequency = 5400
+        frequency = 500
+        t_start = 0
+        timeStep_mul_FPS = int(0.2 * arrData1.shape[0])
+        t_end = t_start + (timeStep_mul_FPS * 2)
+        rss = []
+        while t_end < frequency:
+            d1 = df_arrData[labelYaxis_1].iloc[t_start:t_end]
+            d2 = df_arrData[labelYaxis_2].iloc[t_start:t_end]
+            rs = [crosscorr(d1, d2, lag, wrap=False) for lag in range(timeStep_mul_FPS, timeStep_mul_FPS)]
+            rss.append(rs)
+            t_start = t_start + 1
+            t_end = t_end + 1
+        rss = pd.DataFrame(rss)
+
+        data_size = timeStep_mul_FPS * 2
+        data_ticks = []
+        data_labels = []
+        for i in range(0, 7):
+            if i == 0:
+                data_ticks.append(int(0))
+                data_labels.append(int(-data_size / 2))
+            else:
+                data_ticks.append(int(data_ticks[i - 1] + (data_size / 6)))
+                data_labels.append(int(data_labels[i - 1] + (data_size / 6)))
+
+        f, ax = plt.subplots(figsize=(10, 10))
+        sns.heatmap(rss, cmap='RdBu_r', ax=ax)
+        ax.set(title=f'Rolling Windowed Time Lagged Cross Correlation', xlim=[0, data_size],
+               xlabel='Offset', ylabel='Epochs')
+        ax.set_xticks(data_ticks)
+        ax.set_xticklabels(data_labels)
+
+        final_export_path = os.path.normpath(exportFigDirPath) + '/' + 'FigNo07_' + exportFigFileName + \
+                            '_RollingWindowTimeLaggedCrossCorrelation.png'
+        plt.savefig(final_export_path)
 
     def method_DynamicTimeWarping(self, arrData1: np.ndarray, arrData2: np.ndarray, exportFigDirPath: str, exportFigFileName: str):
         labelYaxis_1 = 'Signal-1'
