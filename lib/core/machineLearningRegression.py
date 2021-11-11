@@ -46,6 +46,7 @@ from sklearn.model_selection import (
 )
 
 import tensorflow.keras as keras
+import keras_tuner as kt
 
 PATH_DEFAULT_EXPORT_DATA = os.path.normpath(file_manip.PATH_DOCUMENTS + '/MachineLearningRegression')
 DEBUG_MESSAGES = True
@@ -71,7 +72,7 @@ ML_REG_RANDOM_FOREST_REGRESSOR = 'RandomForestRegressor'
 ML_REG_ADA_BOOST_REGRESSOR = 'AdaBoostRegressor'
 ML_REG_GRADIENT_BOOSTING_REGRESSOR = 'GradientBoostingRegressor'
 
-ML_REG_DNN = 'DeepNeuralNetwork'
+ML_COVID_REG_DNN = 'Covid_DeepNeuralNetwork'
 ML_REG_LSTM = 'LongShortTermMemoryNetwork'
 ML_REG_CNN = 'ConvolutionalNeuralNetwork'
 ML_REG_CUSTOM = 'CustomNeuralNetwork'
@@ -160,10 +161,10 @@ _ML_TUNING_NON_DEEP_METHODS = [
 ]
 
 _ML_TUNING_DEEP_METHODS = [
-    # ML_REG_DNN,
-    # ML_REG_LSTM,
-    # ML_REG_CNN,
-    # ML_REG_CUSTOM
+    ML_COVID_REG_DNN,
+    ML_REG_LSTM,
+    ML_REG_CNN,
+    ML_REG_CUSTOM
 ]
 
 

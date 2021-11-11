@@ -1825,6 +1825,7 @@ class WidgetTabMachineLearningSettings(QWidget):
 
         self.tabGeneral = WidgetTabMachineLearningSettingsGeneral()  # create a tab for General (info)
         self.tabRegressionMethods = WidgetTabMachineLearningSettingsRegressionMethods()
+        self.tabDeepRegressionMethods = WidgetTabMachineLearningSettingsDeepRegressionMethods()
         self.tabSignalCompare = WidgetTabMachineLearningSettingsSignalCompareMethods()
 
     def setWidget(self):
@@ -1834,10 +1835,12 @@ class WidgetTabMachineLearningSettings(QWidget):
         """
         self.tabGeneral.setWidget()  # set tab General (info)
         self.tabRegressionMethods.setWidget()  # set tab Regression methods
+        self.tabDeepRegressionMethods.setWidget()  # set tab Deep Regression methods
         self.tabSignalCompare.setWidget()  # set tab Signal Compare methods
         self.mainTabWidget.addTab(self.tabGeneral, "General")  # add tab to mainTabWidget
         self.mainTabWidget.addTab(self.tabRegressionMethods, "Regression Methods")  # add tab to mainTabWidget
-        self.mainTabWidget.addTab(self.tabSignalCompare, "Signal Compare Methods")
+        self.mainTabWidget.addTab(self.tabDeepRegressionMethods, "Deep Regression Methods")
+        self.mainTabWidget.addTab(self.tabSignalCompare, "Signal Compare Methods")  # add tab to mainTabWidget
         self.vbox_main_layout.addWidget(self.mainTabWidget)  # add tabWidget to main layout
 
 
@@ -2523,6 +2526,88 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
 
     def getCheckState_GradientBoostingRegressor(self):
         return self.checkbox_GradientBoostingRegressor.isChecked()
+
+
+# *********** Machine Learning Settings --> Deep Regression Methods *********** #
+class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet(setStyle_())  # set the tab style
+
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+        # ----------------------- #
+        # ----- PushButtons ----- #
+        # ----------------------- #
+        _icon = QIcon(QPixmap(ICON_OPTION_SETTINGS))
+        self.button_Covid_DeepNeuralNetwork = QPushButton()
+
+        self.button_Covid_DeepNeuralNetwork.setIcon(_icon)
+
+        # ---------------------- #
+        # ----- CheckBoxes ----- #
+        # ---------------------- #
+        self.checkbox_Covid_DeepNeuralNetwork = QCheckBox()
+
+        # ---------------------- #
+        # ----- ScrollArea ----- #
+        # ---------------------- #
+        self.scrollArea_regMethods = QScrollArea()
+
+    # --------------------------- #
+    # ----- Reuse Functions ----- #
+    # --------------------------- #
+    def setWidget(self):
+        """
+            A function to create the widget components into the main QWidget
+            :return: Nothing
+        """
+        self.scrollArea_regMethods.setWidgetResizable(True)
+        self.scrollArea_regMethods.setWidget(self._setGridLayout())
+        self.vbox_main_layout.addWidget(self.scrollArea_regMethods)
+
+    def _setGridLayout(self):
+        # label_min_width = 200
+
+        # Set Label
+        label_Method = QLabel('<b><u>Method<\\u><\\b>')
+        # label_Method.setMaximumHeight(30)
+
+        label_State = QLabel('<b><u>State<\\u><\\b>')
+        # label_State.setMaximumHeight(30)
+
+        label_Options = QLabel('<b><u>Options<\\u><\\b>')
+        # label_Options.setMaximumHeight(30)
+
+        label_Covid_DeepNeuralNetwork = QLabel(mlr.ML_COVID_REG_DNN)
+
+        # Set layout
+        scrollAreaWidget = QWidget()
+        scrollAreaWidget.setMaximumWidth(840)
+        scrollAreaWidget.setMaximumHeight(512)
+        gridBox_Methods = QGridLayout(scrollAreaWidget)
+
+        gridBox_Methods.addWidget(label_Method, 0, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(label_State, 0, 1, alignment=Qt.AlignCenter)
+        gridBox_Methods.addWidget(label_Options, 0, 2, alignment=Qt.AlignCenter)
+
+        gridBox_Methods.addWidget(label_Covid_DeepNeuralNetwork, 1, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_Covid_DeepNeuralNetwork, 1, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_Covid_DeepNeuralNetwork, 1, 2, alignment=Qt.AlignHCenter)
+
+        # gridBox_Methods.addWidget(label_Ridge, 2, 0, alignment=Qt.AlignLeft)
+        # gridBox_Methods.addWidget(self.checkbox_Ridge, 2, 1, alignment=Qt.AlignHCenter)
+        # gridBox_Methods.addWidget(self.button_Ridge, 2, 2, alignment=Qt.AlignHCenter)
+
+        return scrollAreaWidget
+
+    # ----------------------------- #
+    # ----- Setters / Getters ----- #
+    # ----------------------------- #
 
 
 # *********** Machine Learning Settings --> SignalCompare Methods *********** #
