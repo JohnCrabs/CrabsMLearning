@@ -72,7 +72,7 @@ ML_REG_RANDOM_FOREST_REGRESSOR = 'RandomForestRegressor'
 ML_REG_ADA_BOOST_REGRESSOR = 'AdaBoostRegressor'
 ML_REG_GRADIENT_BOOSTING_REGRESSOR = 'GradientBoostingRegressor'
 
-ML_COVID_REG_DNN = 'Covid_DeepNeuralNetwork'
+ML_REG_COVID_DNN = 'Covid_DeepNeuralNetwork'
 ML_REG_LSTM = 'LongShortTermMemoryNetwork'
 ML_REG_CNN = 'ConvolutionalNeuralNetwork'
 ML_REG_CUSTOM = 'CustomNeuralNetwork'
@@ -92,7 +92,8 @@ ML_REG_METHODS = [
     ML_REG_DECISION_TREE_REGRESSOR,
     ML_REG_RANDOM_FOREST_REGRESSOR,
     ML_REG_ADA_BOOST_REGRESSOR,
-    ML_REG_GRADIENT_BOOSTING_REGRESSOR
+    ML_REG_GRADIENT_BOOSTING_REGRESSOR,
+    ML_REG_COVID_DNN
 ]
 
 ML_SOLVER_AUTO = 'auto'
@@ -161,7 +162,7 @@ _ML_TUNING_NON_DEEP_METHODS = [
 ]
 
 _ML_TUNING_DEEP_METHODS = [
-    ML_COVID_REG_DNN,
+    ML_REG_COVID_DNN,
     ML_REG_LSTM,
     ML_REG_CNN,
     ML_REG_CUSTOM
@@ -184,25 +185,6 @@ class MachineLearningRegression:
         self._MLR_RIDGE_SOLVER_DEFAULT = [ML_SOLVER_AUTO]
 
     def setML_dict(self):
-        # for _method_ in ML_REG_METHODS:
-        #     self._ML_dictMethods[_method_] = {}
-
-        # self._MLR_dictMethods[ML_REG_LINEAR_REGRESSION] = {}
-        # self._MLR_dictMethods[ML_REG_RIDGE] = {}
-        # self._MLR_dictMethods[ML_REG_BAYESIAN_RIDGE] = {}
-        # self._MLR_dictMethods[ML_REG_LASSO] = {}
-        # self._MLR_dictMethods[ML_REG_LASSO_LARS] = {}
-        # self._MLR_dictMethods[ML_REG_TWEEDIE_REGRESSOR] = {}
-        # self._MLR_dictMethods[ML_REG_SGD_REGRESSOR] = {}
-        # self._MLR_dictMethods[ML_REG_SVR] = {}
-        # self._MLR_dictMethods[ML_REG_LINEAR_SVR] = {}
-        # self._MLR_dictMethods[ML_REG_NEAREST_NEIGHBORS] = {}
-        # self._MLR_dictMethods[ML_REG_K_NEIGHBORS_REGRESSOR] = {}
-        # self._MLR_dictMethods[ML_REG_DECISION_TREE_REGRESSOR] = {}
-        # self._MLR_dictMethods[ML_REG_RANDOM_FOREST_REGRESSOR] = {}
-        # self._MLR_dictMethods[ML_REG_ADA_BOOST_REGRESSOR] = {}
-        # self._MLR_dictMethods[ML_REG_GRADIENT_BOOSTING_REGRESSOR] = {}
-
         for _method_ in ML_REG_METHODS:
             self._MLR_dictMethods[_method_] = {}
 
@@ -221,6 +203,7 @@ class MachineLearningRegression:
         self.restore_RandomForestRegressor_Default()
         self.restore_AdaBoostRegressor_Default()
         self.restore_GradientBoostingRegressor_Default()
+        self.restore_Covid_DeepNeuralNetworkRegressor_Default()
 
     # ********************************** #
     # ***** RESTORE DEFAULT VALUES ***** #
@@ -326,6 +309,28 @@ class MachineLearningRegression:
                                                                      self._MLR_KEY_STATE: ML_EXEC_STATE,
                                                                      ML_KEY_PARAM_GRID: {}
                                                                      }
+
+    def restore_Covid_DeepNeuralNetworkRegressor_Default(self):
+        self._MLR_dictMethods[ML_REG_COVID_DNN] = {ML_KEY_METHOD: self.DeepLearning_Covid_DNN,
+                                                   self._MLR_KEY_STATE: ML_EXEC_STATE,
+                                                   ML_KEY_PARAM_GRID: {}
+                                                   }
+
+    # ********************************* #
+    # ***** DEEP LEARNING METHODS ***** #
+    # ********************************* #
+    @staticmethod
+    def DeepLearning_Covid_DNN(inputSize, outputSize):
+        # DNN model here
+        inputs = keras.Input(shape=(inputSize,))
+        lr1 = keras.layers.Dense(inputSize * 2, activation='selu')(inputs)  # <-----------
+        do1 = keras.layers.Dropout(0.2)(lr1)
+        lr2 = keras.layers.Dense(inputSize, activation='selu')(do1)  # decoder  # <-----------
+        lr3 = keras.layers.Dense(inputSize * 2, activation='selu')(lr2)  # <-----------
+        do2 = keras.layers.Dropout(0.2)(lr3)
+        outputs = keras.layers.Dense(outputSize, activation='sigmoid')(do2)  # <-----------
+        DNN = keras.models.Model(inputs, outputs)
+        DNN.compile(loss='mse', optimizer=keras.optimizers.RMSprop())  # <-----------
 
     # ***************************** #
     # ***** SETTERS / GETTERS ***** #

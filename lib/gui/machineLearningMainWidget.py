@@ -465,6 +465,11 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.widgetTabMachineLearningSettings.tabRegressionMethods.button_GradientBoostingRegressor.clicked.connect(
             self.actionButtonClickedGradientBoostingRegressor)
 
+    def setTabSettingsDeepRegressionMethodsEvents_(self):
+        # ChangeState -> Covid_DeepNeuralNetwork
+        self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.checkbox_Covid_DeepNeuralNetwork.stateChanged.connect(
+            self.actionStateChange_Covid_DeepNeuralNetwork)
+
     def setTabSettingsSignalCompareEvents_(self):
         self.widgetTabMachineLearningSettings.tabSignalCompare.checkbox_PearsonCorr.stateChanged.connect(
             self.actionStateChangePearsonCorr)
@@ -512,6 +517,7 @@ class WidgetMachineLearningMainWidget(QWidget):
         self.setEvents_()  # set the user specified event (inherited)
         self.setTabSettingsGeneralEvents_()  # set the tab settings GENERAL events
         self.setTabSettingsRegressionMethodsEvents_()  # set the tab settings REGRESSION METHODS events
+        self.setTabSettingsDeepRegressionMethodsEvents_()  # set the tab settings DEEP REGRESSION METHODS events
         self.setTabSettingsSignalCompareEvents_()  # set the tab settings SIGNAL COMPARE events
 
         self.setWidgetRidgeEvents_()  # set the events of Ridge Options
@@ -1624,6 +1630,13 @@ class WidgetMachineLearningMainWidget(QWidget):
     def actionButtonClickedGradientBoostingRegressor(self):
         pass
 
+    # ***** SET SETTINGS MACHINE DEEP LEARNING REGRESSION METHODS *** #
+    # _____ CHECK BOX STATE CHANGE EVENT _____ *
+    def actionStateChange_Covid_DeepNeuralNetwork(self):
+        state = self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.getCheckState_Covid_DeepNeuralNetwork()
+        print(state)
+        # self.mlr_Regression.
+
     # ***** SET SETTINGS SIGNAL COMPARE METHODS *** #
     # _____ CHECK BOX STATE CHANGE EVENT _____ *
     def actionStateChangePearsonCorr(self):
@@ -2583,7 +2596,7 @@ class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
         label_Options = QLabel('<b><u>Options<\\u><\\b>')
         # label_Options.setMaximumHeight(30)
 
-        label_Covid_DeepNeuralNetwork = QLabel(mlr.ML_COVID_REG_DNN)
+        label_Covid_DeepNeuralNetwork = QLabel(mlr.ML_REG_COVID_DNN)
 
         # Set layout
         scrollAreaWidget = QWidget()
@@ -2608,6 +2621,11 @@ class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
     # ----------------------------- #
     # ----- Setters / Getters ----- #
     # ----------------------------- #
+    def setCheckState_Covid_DeepNeuralNetwork(self, state: bool):
+        self.checkbox_Covid_DeepNeuralNetwork.setCheckState(state)
+
+    def getCheckState_Covid_DeepNeuralNetwork(self):
+        return self.checkbox_Covid_DeepNeuralNetwork.isChecked()
 
 
 # *********** Machine Learning Settings --> SignalCompare Methods *********** #
