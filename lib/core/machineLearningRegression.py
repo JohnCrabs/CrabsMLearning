@@ -320,17 +320,53 @@ class MachineLearningRegression:
     # ***** DEEP LEARNING METHODS ***** #
     # ********************************* #
     @staticmethod
-    def DeepLearning_Covid_DNN(inputSize, outputSize):
-        # DNN model here
-        inputs = keras.Input(shape=(inputSize,))
-        lr1 = keras.layers.Dense(inputSize * 2, activation='selu')(inputs)  # <-----------
-        do1 = keras.layers.Dropout(0.2)(lr1)
-        lr2 = keras.layers.Dense(inputSize, activation='selu')(do1)  # decoder  # <-----------
-        lr3 = keras.layers.Dense(inputSize * 2, activation='selu')(lr2)  # <-----------
-        do2 = keras.layers.Dropout(0.2)(lr3)
-        outputs = keras.layers.Dense(outputSize, activation='sigmoid')(do2)  # <-----------
-        DNN = keras.models.Model(inputs, outputs)
-        DNN.compile(loss='mse', optimizer=keras.optimizers.RMSprop())  # <-----------
+    def DeepLearning_Covid_DNN(train_x, train_y, text_x, text_y):
+        inputSize = train_x.shape[1]
+        outputSize = train_y.shape[1]
+
+        def ffunc_build_model(hp):
+            ffunc_model = keras.Sequential()
+            ffunc_model.add(keras.Input(shape=(inputSize,)))
+            ffunc_model.add(keras.layers.Dense(inputSize,
+                                               activation=hp.Choice('activation_l1',
+                                                                    values=["tanh", "sigmoid", "softmax"])))
+            ffunc_model.add(keras.layers.Dense(inputSize,
+                                               activation=hp.Choice('activation_l2',
+                                                                    values=["tanh", "sigmoid", "softmax"])))
+            ffunc_model.add(keras.layers.Dense(inputSize,
+                                               activation=hp.Choice('activation_l3',
+                                                                    values=["tanh", "sigmoid", "softmax"])))
+            ffunc_model.add(keras.layers.Dense(outputSize,
+                                               activation=hp.Choice('activation_lo',
+                                                                    values=["tanh", "sigmoid", "softmax"])))
+            ffunc_model.compile(loss='mse', optimizer=keras.optimizers.RMSprop())
+            ffunc_model.summary()
+
+            return ffunc_model
+        tuner = kt.Hyperband(ffunc_build_model,
+                             objective='val_accuracy',
+                             max_epochs=10,
+                             factor=3,
+                             directory='../../export_folder/test',
+                             project_name='DNN')
+        stop_early = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+        tuner.search(train_x, train_y, epochs=50, validation_split=0.2, callbacks=[stop_early])
+
+        # Get the optimal hyperparameters
+        best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+
+        model = tuner.hypermodel.build(best_hps)
+        history = model.fit(train_x, train_y, epochs=50, validation_split=0.2)
+        val_acc_per_epoch = history.history['val_accuracy']
+        best_epoch = val_acc_per_epoch.index(max(val_acc_per_epoch)) + 1
+
+        hypermodel = tuner.hypermodel.build(best_hps)
+
+        # Retrain the model
+        hypermodel.fit(train_x, train_y, epochs=best_epoch, validation_split=0.2)
+
+        eval_result = hypermodel.evaluate(text_x, text_y)
+        print("[test loss, test accuracy]:", eval_result)
 
     # ***************************** #
     # ***** SETTERS / GETTERS ***** #
@@ -476,7 +512,8 @@ class MachineLearningRegression:
             predTest = None  # a parameter to store the predicted y_Test values
             if _methodKey_ in _ML_NO_TUNING_LIST:  # if method cannot be tuning (e.g. LinearRegression)
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
-                    print(file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "...")  # console message
+                    print(
+                        file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "...")  # console message
                     model = self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD]
                     model.fit(inputData_TrainVal,
                               outputData_TrainVal)  # model.fit()
@@ -491,7 +528,8 @@ class MachineLearningRegression:
 
             elif _methodKey_ in _ML_TUNING_NON_DEEP_METHODS:  # elif method is not a tf.keras
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
-                    print(file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "..")  # console message
+                    print(
+                        file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "..")  # console message
                     # run Grid Search CV
                     model = GridSearchCV(self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD],
                                          self._MLR_dictMethods[_methodKey_][ML_KEY_PARAM_GRID],
