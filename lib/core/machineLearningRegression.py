@@ -73,6 +73,7 @@ ML_REG_ADA_BOOST_REGRESSOR = 'AdaBoostRegressor'
 ML_REG_GRADIENT_BOOSTING_REGRESSOR = 'GradientBoostingRegressor'
 
 ML_REG_COVID_DNN = 'Covid_DeepNeuralNetwork'
+ML_REG_COVID_LSTM = 'Covid_LongShortTermMemoryNeuralNetwork'
 ML_REG_LSTM = 'LongShortTermMemoryNetwork'
 ML_REG_CNN = 'ConvolutionalNeuralNetwork'
 ML_REG_CUSTOM = 'CustomNeuralNetwork'
@@ -163,6 +164,7 @@ _ML_TUNING_NON_DEEP_METHODS = [
 
 _ML_TUNING_DEEP_METHODS = [
     ML_REG_COVID_DNN,
+    ML_REG_COVID_LSTM,
     ML_REG_LSTM,
     ML_REG_CNN,
     ML_REG_CUSTOM
@@ -318,6 +320,12 @@ class MachineLearningRegression:
                                                    ML_KEY_PARAM_GRID: {}
                                                    }
 
+    def restore_Covid_LongShortTermMemoryNetworkRegressor_Default(self):
+        self._MLR_dictMethods[ML_REG_COVID_LSTM] = {ML_KEY_METHOD: self.DeepLearning_Covid_LSTM,
+                                                    self._MLR_KEY_STATE: ML_EXEC_STATE,
+                                                    ML_KEY_PARAM_GRID: {}
+                                                    }
+
     # ********************************* #
     # ***** DEEP LEARNING METHODS ***** #
     # ********************************* #
@@ -387,6 +395,58 @@ class MachineLearningRegression:
         print("[test loss, test accuracy]:", eval_result)
 
         return hypermodel
+
+    @staticmethod
+    def DeepLearning_Covid_LSTM(train_x, train_y, text_x, text_y):
+        inputSize = train_x.shape[1]
+        outputSize = train_y.shape[1]
+
+        def ffunc_build_model(hp):
+            # Create Model - Sequential
+            ffunc_model = keras.Sequential()
+            # Add Input Later
+            ffunc_model.add(keras.Input(shape=(inputSize,)))
+
+            # conv_size = 60
+            # hidden_units = 90
+            # Sequential = keras.models.Sequential()
+            # Sequential.add(keras.layers.InputLayer(input_shape=(input_seq_shape[1], input_seq_shape[2])))
+            # Sequential.add(keras.layers.Conv1D(conv_size, kernel_size, activation=css_LactFunc))  # convolutional layer
+            # Sequential.add((keras.layers.SimpleRNN(hidden_units, return_sequences=True)))
+            # Sequential.add(keras.layers.LSTM(hidden_units * 2, return_sequences=True))
+            # # Sequential.add(keras.layers.LSTM(hidden_units, return_sequences=True))
+            # Sequential.add((keras.layers.SimpleRNN(output_seq_shape[1], return_sequences=True)))
+            # Sequential.add(keras.layers.Dropout(dropout_percentage))
+            # Sequential.add(keras.layers.Reshape((output_seq_shape[1], -1)))
+            # Sequential.add(keras.layers.Dense(output_seq_shape[2], activation=lstm_LactFunc))
+            # Sequential.compile(loss='mean_absolute_error', optimizer=lstm_optimizer)
+            # print(Sequential.summary())
+
+
+        tuner = kt.Hyperband(ffunc_build_model,
+                             objective='val_accuracy',
+                             max_epochs=50,
+                             factor=5,
+                             directory='../../export_folder/test',
+                             project_name='DNN')
+        stop_early = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+        tuner.search(train_x, train_y, epochs=100, validation_split=0.2, callbacks=[stop_early])
+
+        # Get the optimal hyperparameters
+        best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+
+        model = tuner.hypermodel.build(best_hps)
+        history = model.fit(train_x, train_y, epochs=100, validation_split=0.2)
+        val_acc_per_epoch = history.history['val_accuracy']
+        best_epoch = val_acc_per_epoch.index(max(val_acc_per_epoch)) + 1
+
+        hypermodel = tuner.hypermodel.build(best_hps)
+
+        # Retrain the model
+        hypermodel.fit(train_x, train_y, epochs=best_epoch, validation_split=0.2)
+
+        eval_result = hypermodel.evaluate(text_x, text_y)
+        print("[test loss, test accuracy]:", eval_result)
 
     # ***************************** #
     # ***** SETTERS / GETTERS ***** #
@@ -471,6 +531,13 @@ class MachineLearningRegression:
 
     def getCovid_DNN_reg_state(self):
         return self._MLR_dictMethods[ML_REG_COVID_DNN][self._MLR_KEY_STATE]
+
+    # ****** Covid_LongShortTermMemoryNeuralNetworkRegressor ***** #
+    def setCovid_LSTM_reg_state(self, state: bool):
+        self._MLR_dictMethods[ML_REG_COVID_LSTM][self._MLR_KEY_STATE] = state
+
+    def getCovid_LSTM_reg_state(self):
+        return self._MLR_dictMethods[ML_REG_COVID_LSTM][self._MLR_KEY_STATE]
 
     # ************************ #
     # ***** MAIN EXECUTE ***** #
@@ -591,6 +658,7 @@ class MachineLearningRegression:
                     joblib.dump(model, modelExportPath)
                     print(file_manip.getCurrentDatetimeForConsole() + "::Model exported at: ", modelExportPath)
                     self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL] = model
+                    self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL].save(modelExportPath)
 
             else:  # else for security reasons only
                 pass
