@@ -1634,8 +1634,8 @@ class WidgetMachineLearningMainWidget(QWidget):
     # _____ CHECK BOX STATE CHANGE EVENT _____ *
     def actionStateChange_Covid_DeepNeuralNetwork(self):
         state = self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.getCheckState_Covid_DeepNeuralNetwork()
-        print(state)
-        # self.mlr_Regression.
+        # print(state)
+        self.mlr_Regression.setCovid_DNN_reg_state(state)
 
     # ***** SET SETTINGS SIGNAL COMPARE METHODS *** #
     # _____ CHECK BOX STATE CHANGE EVENT _____ *

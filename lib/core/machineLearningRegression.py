@@ -168,6 +168,8 @@ _ML_TUNING_DEEP_METHODS = [
     ML_REG_CUSTOM
 ]
 
+ACTIVATION_FUNCTIONS = ['relu', 'sigmoid', 'softmax', 'softplus', 'softsign', 'tanh', 'selu', 'elu', 'exponential']
+
 
 # A class to store the Machine Learning Regression algorithms
 class MachineLearningRegression:
@@ -325,38 +327,54 @@ class MachineLearningRegression:
         outputSize = train_y.shape[1]
 
         def ffunc_build_model(hp):
+            # Create Model - Sequential
             ffunc_model = keras.Sequential()
+            # Add Input Later
             ffunc_model.add(keras.Input(shape=(inputSize,)))
+            # Add First Hidden Layer - l1
             ffunc_model.add(keras.layers.Dense(inputSize,
                                                activation=hp.Choice('activation_l1',
-                                                                    values=["tanh", "sigmoid", "softmax"])))
+                                                                    values=ACTIVATION_FUNCTIONS)))
+            # Add Dropout Layer - d1
+            ffunc_model.add(keras.layers.Dropout(.2, input_shape=(2,)))
+            # Add Second Hidden Layer - l2
             ffunc_model.add(keras.layers.Dense(inputSize,
                                                activation=hp.Choice('activation_l2',
-                                                                    values=["tanh", "sigmoid", "softmax"])))
+                                                                    values=ACTIVATION_FUNCTIONS)))
+            # Add Dropout Layer - d2
+            ffunc_model.add(keras.layers.Dropout(.2, input_shape=(2,)))
+            # Add Third Hidden Layer - l3
             ffunc_model.add(keras.layers.Dense(inputSize,
                                                activation=hp.Choice('activation_l3',
-                                                                    values=["tanh", "sigmoid", "softmax"])))
+                                                                    values=ACTIVATION_FUNCTIONS)))
+            # Add Dropout Layer - d3
+            ffunc_model.add(keras.layers.Dropout(.2, input_shape=(2,)))
+            # Add Output Layer
             ffunc_model.add(keras.layers.Dense(outputSize,
                                                activation=hp.Choice('activation_lo',
-                                                                    values=["tanh", "sigmoid", "softmax"])))
-            ffunc_model.compile(loss='mse', optimizer=keras.optimizers.RMSprop())
+                                                                    values=ACTIVATION_FUNCTIONS)))
+            hp_learning_rate = hp.Choice('learning_rate', values=ML_TOL_LIST)
+            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
+                                loss='mae',
+                                metrics=['accuracy'])
             ffunc_model.summary()
 
             return ffunc_model
+
         tuner = kt.Hyperband(ffunc_build_model,
                              objective='val_accuracy',
-                             max_epochs=10,
-                             factor=3,
+                             max_epochs=50,
+                             factor=5,
                              directory='../../export_folder/test',
                              project_name='DNN')
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-        tuner.search(train_x, train_y, epochs=50, validation_split=0.2, callbacks=[stop_early])
+        tuner.search(train_x, train_y, epochs=100, validation_split=0.2, callbacks=[stop_early])
 
         # Get the optimal hyperparameters
         best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 
         model = tuner.hypermodel.build(best_hps)
-        history = model.fit(train_x, train_y, epochs=50, validation_split=0.2)
+        history = model.fit(train_x, train_y, epochs=100, validation_split=0.2)
         val_acc_per_epoch = history.history['val_accuracy']
         best_epoch = val_acc_per_epoch.index(max(val_acc_per_epoch)) + 1
 
@@ -367,6 +385,8 @@ class MachineLearningRegression:
 
         eval_result = hypermodel.evaluate(text_x, text_y)
         print("[test loss, test accuracy]:", eval_result)
+
+        return hypermodel
 
     # ***************************** #
     # ***** SETTERS / GETTERS ***** #
@@ -444,6 +464,13 @@ class MachineLearningRegression:
 
     def getRidge_state(self):
         return self._MLR_dictMethods[ML_REG_RIDGE][self._MLR_KEY_STATE]
+
+    # ****** Covid_DeepNeuralNetworkRegressor ***** #
+    def setCovid_DNN_reg_state(self, state: bool):
+        self._MLR_dictMethods[ML_REG_COVID_DNN][self._MLR_KEY_STATE] = state
+
+    def getCovid_DNN_reg_state(self):
+        return self._MLR_dictMethods[ML_REG_COVID_DNN][self._MLR_KEY_STATE]
 
     # ************************ #
     # ***** MAIN EXECUTE ***** #
@@ -549,7 +576,22 @@ class MachineLearningRegression:
                     print(file_manip.getCurrentDatetimeForConsole() + "::Best Score = ", model.best_score_)
 
             elif _methodKey_ in _ML_TUNING_DEEP_METHODS:  # elif method is keras
-                pass
+                if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
+                    print(
+                        file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "..")  # console message
+                    model = self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD](inputData_TrainVal,
+                                                                              outputData_TrainVal,
+                                                                              inputData_Test,
+                                                                              outputData_Test)
+                    print(file_manip.getCurrentDatetimeForConsole() + "::...COMPLETED!")  # console message
+                    # Export model
+                    modelExportPath = os.path.normpath(exportTrainedModelsPath + modelName + '_' +
+                                                       currentDatetime + H5_SUFFIX)
+                    listStr_ModelPaths.append(modelExportPath)
+                    joblib.dump(model, modelExportPath)
+                    print(file_manip.getCurrentDatetimeForConsole() + "::Model exported at: ", modelExportPath)
+                    self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL] = model
+
             else:  # else for security reasons only
                 pass
 
@@ -654,9 +696,17 @@ class MachineLearningRegression:
         for _methodKey_ in self._MLR_dictMethods.keys():
             if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
                 print(_methodKey_ + ' predicts...')
-                if _methodKey_ not in _ML_TUNING_DEEP_METHODS:
-                    dictModelPredictions[_methodKey_] = {}
-                    dictModelPredictions[_methodKey_]['real'] = y
-                    dictModelPredictions[_methodKey_]['pred'] = np.array(
-                        self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL].predict(x))
+
+                dictModelPredictions[_methodKey_] = {}
+                dictModelPredictions[_methodKey_]['real'] = y
+                dictModelPredictions[_methodKey_]['pred'] = np.array(
+                    self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL].predict(x))
+
+                # if _methodKey_ not in _ML_TUNING_DEEP_METHODS:
+                #     dictModelPredictions[_methodKey_] = {}
+                #     dictModelPredictions[_methodKey_]['real'] = y
+                #     dictModelPredictions[_methodKey_]['pred'] = np.array(
+                #         self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL].predict(x))
+                # else:
+                #     pass
         return dictModelPredictions
