@@ -74,6 +74,9 @@ ML_REG_GRADIENT_BOOSTING_REGRESSOR = 'GradientBoostingRegressor'
 
 ML_REG_COVID_DNN = 'Covid_DeepNeuralNetwork'
 ML_REG_COVID_LSTM = 'Covid_LongShortTermMemoryNeuralNetwork'
+ML_REG_COVID_RNN = 'Covid_RecurrentNeuralNetwork'
+ML_REG_COVID_SIMPLE_RNN = 'Covid_SimpleRecurrentNeuralNetwork'
+
 ML_REG_LSTM = 'LongShortTermMemoryNetwork'
 ML_REG_CNN = 'ConvolutionalNeuralNetwork'
 ML_REG_CUSTOM = 'CustomNeuralNetwork'
@@ -95,7 +98,9 @@ ML_REG_METHODS = [
     ML_REG_ADA_BOOST_REGRESSOR,
     ML_REG_GRADIENT_BOOSTING_REGRESSOR,
     ML_REG_COVID_DNN,
-    ML_REG_COVID_LSTM
+    ML_REG_COVID_LSTM,
+    ML_REG_COVID_RNN,
+    ML_REG_COVID_SIMPLE_RNN
 ]
 
 ML_SOLVER_AUTO = 'auto'
@@ -166,11 +171,13 @@ _ML_TUNING_NON_DEEP_METHODS = [
 
 _ML_TUNING_DEEP_METHODS = [
     ML_REG_COVID_DNN,
-    ML_REG_COVID_LSTM
+    ML_REG_COVID_LSTM,
+    ML_REG_COVID_RNN
 ]
 
 _ML_3RD_DIM_DEEP_METHODS = [
-    ML_REG_COVID_LSTM
+    ML_REG_COVID_LSTM,
+    ML_REG_COVID_RNN
 ]
 
 ACTIVATION_FUNCTIONS = ['relu', 'sigmoid', 'softmax', 'softplus', 'softsign', 'tanh', 'selu', 'elu', 'exponential']
@@ -335,6 +342,22 @@ class MachineLearningRegression:
                                                     ML_KEY_3RD_DIM_SIZE: 1
                                                     }
 
+    def restore_Covid_RecurrentNeuralNetworkRegressor_Default(self):
+        self._MLR_dictMethods[ML_REG_COVID_RNN] = {ML_KEY_METHOD: self.DeepLearning_Covid_RNN,
+                                                   self._MLR_KEY_STATE: ML_EXEC_STATE,
+                                                   ML_KEY_PARAM_GRID: {},
+                                                   ML_KEY_TRAINED_MODEL: None,
+                                                   ML_KEY_3RD_DIM_SIZE: 1
+                                                   }
+
+    def restore_Covid_SimpleRecurrentNeuralNetworkRegressor_Default(self):
+        self._MLR_dictMethods[ML_REG_COVID_SIMPLE_RNN] = {ML_KEY_METHOD: self.DeepLearning_Covid_SimpleRNN,
+                                                          self._MLR_KEY_STATE: ML_EXEC_STATE,
+                                                          ML_KEY_PARAM_GRID: {},
+                                                          ML_KEY_TRAINED_MODEL: None,
+                                                          ML_KEY_3RD_DIM_SIZE: 1
+                                                          }
+
     # ********************************* #
     # ***** DEEP LEARNING METHODS ***** #
     # ********************************* #
@@ -347,7 +370,6 @@ class MachineLearningRegression:
                              directory=directory,
                              project_name=name)
 
-        stop_early = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
         tuner.search(train_x, train_y, epochs=epochs, validation_split=0.2)
 
         # Get the optimal hyperparameters
@@ -469,6 +491,118 @@ class MachineLearningRegression:
 
         return model
 
+    def DeepLearning_Covid_RNN(self, train_x, train_y, test_x, test_y):
+        inputSize = train_x.shape[1]
+        outputSize = train_y.shape[1]
+        expandDimSize = self._MLR_dictMethods[ML_REG_COVID_LSTM][ML_KEY_3RD_DIM_SIZE]
+
+        def ffunc_build_model(hp):
+            # Create Model - Sequential
+            ffunc_model = keras.Sequential()
+            # Add Input Layer
+            ffunc_model.add(keras.Input(shape=(inputSize,)))
+            # Add Reshape Layer
+            ffunc_model.add(keras.layers.Reshape(target_shape=(expandDimSize, int(inputSize / expandDimSize),)))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(inputSize / expandDimSize), 1,
+                                    activation=hp.Choice('activation_l1',
+                                                         values=ACTIVATION_FUNCTIONS)
+                                    ))
+            # Add Hidden Layer - SimpleLSTM
+            ffunc_model.add(
+                keras.layers.RNN(int(inputSize / expandDimSize), return_sequences=True,
+                                 activation=hp.Choice('activation_l2',
+                                                      values=ACTIVATION_FUNCTIONS)
+                                 ))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
+                                    activation=hp.Choice('activation_l3',
+                                                         values=ACTIVATION_FUNCTIONS)
+                                    ))
+            # Add Hidden Layer - SimpleLSTM
+            ffunc_model.add(
+                keras.layers.RNN(int(outputSize / expandDimSize), return_sequences=True,
+                                 activation=hp.Choice('activation_l4',
+                                                      values=ACTIVATION_FUNCTIONS)
+                                 ))
+            # Add Reshape Layer
+            ffunc_model.add(keras.layers.Reshape(target_shape=(outputSize,)))
+            # Add Output Layer
+            ffunc_model.add(keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
+                                                                                values=ACTIVATION_FUNCTIONS)))
+
+            hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.001, 0.0001])
+            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
+                                loss='mae',
+                                metrics=['accuracy'])
+            ffunc_model.summary()
+
+            return ffunc_model
+
+        model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
+                                      '../../export_folder/test', 'RNN', epochs=200)
+        print(model)
+
+        return model
+
+    def DeepLearning_Covid_SimpleRNN(self, train_x, train_y, test_x, test_y):
+        inputSize = train_x.shape[1]
+        outputSize = train_y.shape[1]
+        expandDimSize = self._MLR_dictMethods[ML_REG_COVID_LSTM][ML_KEY_3RD_DIM_SIZE]
+
+        def ffunc_build_model(hp):
+            # Create Model - Sequential
+            ffunc_model = keras.Sequential()
+            # Add Input Layer
+            ffunc_model.add(keras.Input(shape=(inputSize,)))
+            # Add Reshape Layer
+            ffunc_model.add(keras.layers.Reshape(target_shape=(expandDimSize, int(inputSize / expandDimSize),)))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(inputSize / expandDimSize), 1,
+                                    activation=hp.Choice('activation_l1',
+                                                         values=ACTIVATION_FUNCTIONS)
+                                    ))
+            # Add Hidden Layer - SimpleLSTM
+            ffunc_model.add(
+                keras.layers.SimpleRNN(int(inputSize / expandDimSize), return_sequences=True,
+                                 activation=hp.Choice('activation_l2',
+                                                      values=ACTIVATION_FUNCTIONS)
+                                 ))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
+                                    activation=hp.Choice('activation_l3',
+                                                         values=ACTIVATION_FUNCTIONS)
+                                    ))
+            # Add Hidden Layer - SimpleLSTM
+            ffunc_model.add(
+                keras.layers.SimpleRNN(int(outputSize / expandDimSize), return_sequences=True,
+                                 activation=hp.Choice('activation_l4',
+                                                      values=ACTIVATION_FUNCTIONS)
+                                 ))
+            # Add Reshape Layer
+            ffunc_model.add(keras.layers.Reshape(target_shape=(outputSize,)))
+            # Add Output Layer
+            ffunc_model.add(keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
+                                                                                values=ACTIVATION_FUNCTIONS)))
+
+            hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.001, 0.0001])
+            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
+                                loss='mae',
+                                metrics=['accuracy'])
+            ffunc_model.summary()
+
+            return ffunc_model
+
+        model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
+                                      '../../export_folder/test', 'SimpleRNN', epochs=200)
+        print(model)
+
+        return model
+
     # ***************************** #
     # ***** SETTERS / GETTERS ***** #
     # ***************************** #
@@ -564,6 +698,20 @@ class MachineLearningRegression:
 
     def getCovid_LSTM_reg_state(self):
         return self._MLR_dictMethods[ML_REG_COVID_LSTM][self._MLR_KEY_STATE]
+
+    # ****** Covid_RecurrentNetworkRegressor ***** #
+    def setCovid_RNN_reg_state(self, state: bool):
+        self._MLR_dictMethods[ML_REG_COVID_RNN][self._MLR_KEY_STATE] = state
+
+    def getCovid_RNN_reg_state(self):
+        return self._MLR_dictMethods[ML_REG_COVID_RNN][self._MLR_KEY_STATE]
+
+    # ****** Covid_SimpleRecurrentNetworkRegressor ***** #
+    def setCovid_SimpleRNN_reg_state(self, state: bool):
+        self._MLR_dictMethods[ML_REG_COVID_RNN][self._MLR_KEY_STATE] = state
+
+    def getCovid_SimpleRNN_reg_state(self):
+        return self._MLR_dictMethods[ML_REG_COVID_RNN][self._MLR_KEY_STATE]
 
     # ************************ #
     # ***** MAIN EXECUTE ***** #
@@ -795,11 +943,4 @@ class MachineLearningRegression:
                 dictModelPredictions[_methodKey_]['pred'] = np.array(
                     self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL].predict(x))
 
-                # if _methodKey_ not in _ML_TUNING_DEEP_METHODS:
-                #     dictModelPredictions[_methodKey_] = {}
-                #     dictModelPredictions[_methodKey_]['real'] = y
-                #     dictModelPredictions[_methodKey_]['pred'] = np.array(
-                #         self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL].predict(x))
-                # else:
-                #     pass
         return dictModelPredictions
