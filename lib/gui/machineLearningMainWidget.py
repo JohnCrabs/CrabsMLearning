@@ -469,6 +469,9 @@ class WidgetMachineLearningMainWidget(QWidget):
         # ChangeState -> Covid_DeepNeuralNetwork
         self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.checkbox_Covid_DeepNeuralNetwork.stateChanged.connect(
             self.actionStateChange_Covid_DeepNeuralNetwork)
+        # ChangeState -> Covid_LongShortTermMemoryNeuralNetwork
+        self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.checkbox_Covid_LongShortTermMemoryNeuralNetwork.stateChanged.connect(
+            self.actionStateChange_Covid_LongShortTermMemoryNeuralNetwork)
 
     def setTabSettingsSignalCompareEvents_(self):
         self.widgetTabMachineLearningSettings.tabSignalCompare.checkbox_PearsonCorr.stateChanged.connect(
@@ -1502,6 +1505,7 @@ class WidgetMachineLearningMainWidget(QWidget):
     def actionMachineLearningMethodIndexChange(self):
         self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.spinBox_MachineLearningMethodsIndex.value()
+        self.mlr_Regression.set3rdDimensionSizeToDeepLearningMethods(self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
         if self.debugMessageFlag:
             print(self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
 

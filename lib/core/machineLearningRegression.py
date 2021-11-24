@@ -94,7 +94,8 @@ ML_REG_METHODS = [
     ML_REG_RANDOM_FOREST_REGRESSOR,
     ML_REG_ADA_BOOST_REGRESSOR,
     ML_REG_GRADIENT_BOOSTING_REGRESSOR,
-    ML_REG_COVID_DNN
+    ML_REG_COVID_DNN,
+    ML_REG_COVID_LSTM
 ]
 
 ML_SOLVER_AUTO = 'auto'
@@ -121,6 +122,7 @@ ML_KEY_METHOD = 'Method'
 ML_KEY_CUSTOM_PARAM = 'Custom Parameters'
 ML_KEY_PARAM_GRID = 'Grid Parameter'
 ML_KEY_TRAINED_MODEL = 'Trained Model'
+ML_KEY_3RD_DIM_SIZE = '3rd Dimension Size'
 
 ML_KEY_ALPHA = 'alpha'
 ML_KEY_TOL = 'tol'
@@ -164,10 +166,11 @@ _ML_TUNING_NON_DEEP_METHODS = [
 
 _ML_TUNING_DEEP_METHODS = [
     ML_REG_COVID_DNN,
-    ML_REG_COVID_LSTM,
-    ML_REG_LSTM,
-    ML_REG_CNN,
-    ML_REG_CUSTOM
+    ML_REG_COVID_LSTM
+]
+
+_ML_3RD_DIM_DEEP_METHODS = [
+    ML_REG_COVID_LSTM
 ]
 
 ACTIVATION_FUNCTIONS = ['relu', 'sigmoid', 'softmax', 'softplus', 'softsign', 'tanh', 'selu', 'elu', 'exponential']
@@ -208,6 +211,7 @@ class MachineLearningRegression:
         self.restore_AdaBoostRegressor_Default()
         self.restore_GradientBoostingRegressor_Default()
         self.restore_Covid_DeepNeuralNetworkRegressor_Default()
+        self.restore_Covid_LongShortTermMemoryNetworkRegressor_Default()
 
     # ********************************** #
     # ***** RESTORE DEFAULT VALUES ***** #
@@ -216,7 +220,8 @@ class MachineLearningRegression:
     def restore_LinearRegression_Defaults(self):
         self._MLR_dictMethods[ML_REG_LINEAR_REGRESSION] = {ML_KEY_METHOD: LinearRegression(),
                                                            self._MLR_KEY_STATE: ML_EXEC_STATE,
-                                                           ML_KEY_PARAM_GRID: {}
+                                                           ML_KEY_PARAM_GRID: {},
+                                                           ML_KEY_TRAINED_MODEL: None
                                                            }
 
     def restore_Ridge_Defaults(self):
@@ -233,7 +238,8 @@ class MachineLearningRegression:
                                                    ML_KEY_ALPHA: self._MLR_RIDGE_ALPHA_DEFAULT,
                                                    ML_KEY_TOL: self._MLR_RIDGE_TOL_DEFAULT,
                                                    ML_KEY_SOLVER: self._MLR_RIDGE_SOLVER_DEFAULT
-                                               }
+                                               },
+                                               ML_KEY_TRAINED_MODEL: None
                                                }
 
     def restore_BayesianRidge_Default(self):
@@ -317,20 +323,52 @@ class MachineLearningRegression:
     def restore_Covid_DeepNeuralNetworkRegressor_Default(self):
         self._MLR_dictMethods[ML_REG_COVID_DNN] = {ML_KEY_METHOD: self.DeepLearning_Covid_DNN,
                                                    self._MLR_KEY_STATE: ML_EXEC_STATE,
-                                                   ML_KEY_PARAM_GRID: {}
+                                                   ML_KEY_PARAM_GRID: {},
+                                                   ML_KEY_TRAINED_MODEL: None
                                                    }
 
     def restore_Covid_LongShortTermMemoryNetworkRegressor_Default(self):
         self._MLR_dictMethods[ML_REG_COVID_LSTM] = {ML_KEY_METHOD: self.DeepLearning_Covid_LSTM,
                                                     self._MLR_KEY_STATE: ML_EXEC_STATE,
-                                                    ML_KEY_PARAM_GRID: {}
+                                                    ML_KEY_PARAM_GRID: {},
+                                                    ML_KEY_TRAINED_MODEL: None,
+                                                    ML_KEY_3RD_DIM_SIZE: 1
                                                     }
 
     # ********************************* #
     # ***** DEEP LEARNING METHODS ***** #
     # ********************************* #
     @staticmethod
-    def DeepLearning_Covid_DNN(train_x, train_y, text_x, text_y):
+    def DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model, directory, name, epochs=100):
+        tuner = kt.Hyperband(ffunc_build_model,
+                             objective='val_accuracy',
+                             max_epochs=50,
+                             factor=5,
+                             directory=directory,
+                             project_name=name)
+
+        stop_early = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+        tuner.search(train_x, train_y, epochs=epochs, validation_split=0.2, callbacks=[stop_early])
+
+        # Get the optimal hyperparameters
+        best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+
+        model = tuner.hypermodel.build(best_hps)
+        history = model.fit(train_x, train_y, epochs=epochs, validation_split=0.2)
+        val_acc_per_epoch = history.history['val_accuracy']
+        best_epoch = val_acc_per_epoch.index(max(val_acc_per_epoch)) + 1
+
+        model = tuner.hypermodel.build(best_hps)
+
+        # Retrain the model
+        model.fit(train_x, train_y, epochs=best_epoch, validation_split=0.2)
+
+        eval_result = model.evaluate(test_x, test_y)
+        print("[test loss, test accuracy]:", eval_result)
+
+        return model
+
+    def DeepLearning_Covid_DNN(self, train_x, train_y, test_x, test_y):
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
 
@@ -361,7 +399,7 @@ class MachineLearningRegression:
             ffunc_model.add(keras.layers.Dense(outputSize,
                                                activation=hp.Choice('activation_lo',
                                                                     values=ACTIVATION_FUNCTIONS)))
-            hp_learning_rate = hp.Choice('learning_rate', values=ML_TOL_LIST)
+            hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.001, 0.0001])
             ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
                                 loss='mae',
                                 metrics=['accuracy'])
@@ -369,88 +407,76 @@ class MachineLearningRegression:
 
             return ffunc_model
 
-        tuner = kt.Hyperband(ffunc_build_model,
-                             objective='val_accuracy',
-                             max_epochs=50,
-                             factor=5,
-                             directory='../../export_folder/test',
-                             project_name='DNN')
-        stop_early = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-        tuner.search(train_x, train_y, epochs=100, validation_split=0.2, callbacks=[stop_early])
+        model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
+                                      '../../export_folder/test', 'DNN')
+        print(model)
 
-        # Get the optimal hyperparameters
-        best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+        return model
 
-        model = tuner.hypermodel.build(best_hps)
-        history = model.fit(train_x, train_y, epochs=100, validation_split=0.2)
-        val_acc_per_epoch = history.history['val_accuracy']
-        best_epoch = val_acc_per_epoch.index(max(val_acc_per_epoch)) + 1
-
-        hypermodel = tuner.hypermodel.build(best_hps)
-
-        # Retrain the model
-        hypermodel.fit(train_x, train_y, epochs=best_epoch, validation_split=0.2)
-
-        eval_result = hypermodel.evaluate(text_x, text_y)
-        print("[test loss, test accuracy]:", eval_result)
-
-        return hypermodel
-
-    @staticmethod
-    def DeepLearning_Covid_LSTM(train_x, train_y, text_x, text_y):
+    def DeepLearning_Covid_LSTM(self, train_x, train_y, test_x, test_y):
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
+        expandDimSize = self._MLR_dictMethods[ML_REG_COVID_LSTM][ML_KEY_3RD_DIM_SIZE]
 
         def ffunc_build_model(hp):
             # Create Model - Sequential
             ffunc_model = keras.Sequential()
-            # Add Input Later
+            # Add Input Layer
             ffunc_model.add(keras.Input(shape=(inputSize,)))
+            # Add Reshape Layer
+            ffunc_model.add(keras.layers.Reshape(target_shape=(expandDimSize, int(inputSize / expandDimSize),)))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(inputSize / expandDimSize), return_sequences=True,
+                                    activation=hp.Choice('activation_l1',
+                                                         values=ACTIVATION_FUNCTIONS)
+                                    ))
+            # Add Hidden Layer - SimpleLSTM
+            ffunc_model.add(
+                keras.layers.LSTM(int(inputSize / expandDimSize), return_sequences=True,
+                                  activation=hp.Choice('activation_l2',
+                                                       values=ACTIVATION_FUNCTIONS)
+                                  ))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(outputSize / expandDimSize), return_sequences=True,
+                                    activation=hp.Choice('activation_l3',
+                                                         values=ACTIVATION_FUNCTIONS)
+                                    ))
+            # Add Hidden Layer - SimpleLSTM
+            ffunc_model.add(
+                keras.layers.LSTM(int(outputSize / expandDimSize), return_sequences=True,
+                                  activation=hp.Choice('activation_l4',
+                                                       values=ACTIVATION_FUNCTIONS)
+                                  ))
+            # Add Reshape Layer
+            ffunc_model.add(keras.layers.Reshape(target_shape=(outputSize,)))
+            # Add Output Layer
+            ffunc_model.add(keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
+                                                                                values=ACTIVATION_FUNCTIONS)))
 
-            # conv_size = 60
-            # hidden_units = 90
-            # Sequential = keras.models.Sequential()
-            # Sequential.add(keras.layers.InputLayer(input_shape=(input_seq_shape[1], input_seq_shape[2])))
-            # Sequential.add(keras.layers.Conv1D(conv_size, kernel_size, activation=css_LactFunc))  # convolutional layer
-            # Sequential.add((keras.layers.SimpleRNN(hidden_units, return_sequences=True)))
-            # Sequential.add(keras.layers.LSTM(hidden_units * 2, return_sequences=True))
-            # # Sequential.add(keras.layers.LSTM(hidden_units, return_sequences=True))
-            # Sequential.add((keras.layers.SimpleRNN(output_seq_shape[1], return_sequences=True)))
-            # Sequential.add(keras.layers.Dropout(dropout_percentage))
-            # Sequential.add(keras.layers.Reshape((output_seq_shape[1], -1)))
-            # Sequential.add(keras.layers.Dense(output_seq_shape[2], activation=lstm_LactFunc))
-            # Sequential.compile(loss='mean_absolute_error', optimizer=lstm_optimizer)
-            # print(Sequential.summary())
+            hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.001, 0.0001])
+            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
+                                loss='mae',
+                                metrics=['accuracy'])
+            ffunc_model.summary()
 
+            return ffunc_model
 
-        tuner = kt.Hyperband(ffunc_build_model,
-                             objective='val_accuracy',
-                             max_epochs=50,
-                             factor=5,
-                             directory='../../export_folder/test',
-                             project_name='DNN')
-        stop_early = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-        tuner.search(train_x, train_y, epochs=100, validation_split=0.2, callbacks=[stop_early])
+        model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
+                                      '../../export_folder/test', 'LSTM', epochs=1000)
+        print(model)
 
-        # Get the optimal hyperparameters
-        best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-
-        model = tuner.hypermodel.build(best_hps)
-        history = model.fit(train_x, train_y, epochs=100, validation_split=0.2)
-        val_acc_per_epoch = history.history['val_accuracy']
-        best_epoch = val_acc_per_epoch.index(max(val_acc_per_epoch)) + 1
-
-        hypermodel = tuner.hypermodel.build(best_hps)
-
-        # Retrain the model
-        hypermodel.fit(train_x, train_y, epochs=best_epoch, validation_split=0.2)
-
-        eval_result = hypermodel.evaluate(text_x, text_y)
-        print("[test loss, test accuracy]:", eval_result)
+        return model
 
     # ***************************** #
     # ***** SETTERS / GETTERS ***** #
     # ***************************** #
+    # ****** GLOBAL SETTINGS ***** #
+    def set3rdDimensionSizeToDeepLearningMethods(self, dimSize: int):
+        for _method_ in _ML_3RD_DIM_DEEP_METHODS:
+            self._MLR_dictMethods[_method_][ML_KEY_3RD_DIM_SIZE] = dimSize
+
     # ****** LINEAR_REGRESSION ***** #
     def setLinearRegression_sate(self, state: bool):
         self._MLR_dictMethods[ML_REG_LINEAR_REGRESSION][self._MLR_KEY_STATE] = state
@@ -655,7 +681,6 @@ class MachineLearningRegression:
                     modelExportPath = os.path.normpath(exportTrainedModelsPath + modelName + '_' +
                                                        currentDatetime + H5_SUFFIX)
                     listStr_ModelPaths.append(modelExportPath)
-                    joblib.dump(model, modelExportPath)
                     print(file_manip.getCurrentDatetimeForConsole() + "::Model exported at: ", modelExportPath)
                     self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL] = model
                     self._MLR_dictMethods[_methodKey_][ML_KEY_TRAINED_MODEL].save(modelExportPath)
