@@ -2681,6 +2681,12 @@ class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
     def getCheckState_Covid_LongShortTermMemoryNeuralNetwork(self):
         return self.checkbox_Covid_LongShortTermMemoryNeuralNetwork.isChecked()
 
+    def getCheckState_Covid_RecurrentNeuralNetwork(self):
+        return self.checkbox_Covid_RecurrentNeuralNetwork.isChecked()
+
+    def getCheckState_Covid_SimpleRecurrentNeuralNetwork(self):
+        return self.checkbox_Covid_SimpleRecurrentNeuralNetwork.isChecked()
+
 
 # *********** Machine Learning Settings --> SignalCompare Methods *********** #
 class WidgetTabMachineLearningSettingsSignalCompareMethods(QWidget):

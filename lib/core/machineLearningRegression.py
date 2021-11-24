@@ -172,12 +172,14 @@ _ML_TUNING_NON_DEEP_METHODS = [
 _ML_TUNING_DEEP_METHODS = [
     ML_REG_COVID_DNN,
     ML_REG_COVID_LSTM,
-    ML_REG_COVID_RNN
+    ML_REG_COVID_RNN,
+    ML_REG_COVID_SIMPLE_RNN
 ]
 
 _ML_3RD_DIM_DEEP_METHODS = [
     ML_REG_COVID_LSTM,
-    ML_REG_COVID_RNN
+    ML_REG_COVID_RNN,
+    ML_REG_COVID_SIMPLE_RNN
 ]
 
 ACTIVATION_FUNCTIONS = ['relu', 'sigmoid', 'softmax', 'softplus', 'softsign', 'tanh', 'selu', 'elu', 'exponential']
@@ -219,6 +221,8 @@ class MachineLearningRegression:
         self.restore_GradientBoostingRegressor_Default()
         self.restore_Covid_DeepNeuralNetworkRegressor_Default()
         self.restore_Covid_LongShortTermMemoryNetworkRegressor_Default()
+        self.restore_Covid_RecurrentNeuralNetworkRegressor_Default()
+        self.restore_Covid_SimpleRecurrentNeuralNetworkRegressor_Default()
 
     # ********************************** #
     # ***** RESTORE DEFAULT VALUES ***** #
@@ -708,10 +712,10 @@ class MachineLearningRegression:
 
     # ****** Covid_SimpleRecurrentNetworkRegressor ***** #
     def setCovid_SimpleRNN_reg_state(self, state: bool):
-        self._MLR_dictMethods[ML_REG_COVID_RNN][self._MLR_KEY_STATE] = state
+        self._MLR_dictMethods[ML_REG_COVID_SIMPLE_RNN][self._MLR_KEY_STATE] = state
 
     def getCovid_SimpleRNN_reg_state(self):
-        return self._MLR_dictMethods[ML_REG_COVID_RNN][self._MLR_KEY_STATE]
+        return self._MLR_dictMethods[ML_REG_COVID_SIMPLE_RNN][self._MLR_KEY_STATE]
 
     # ************************ #
     # ***** MAIN EXECUTE ***** #
