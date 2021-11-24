@@ -408,7 +408,7 @@ class MachineLearningRegression:
             return ffunc_model
 
         model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      '../../export_folder/test', 'DNN')
+                                      '../../export_folder/test', 'DNN', epochs=200)
         print(model)
 
         return model
@@ -464,7 +464,7 @@ class MachineLearningRegression:
             return ffunc_model
 
         model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      '../../export_folder/test', 'LSTM', epochs=1000)
+                                      '../../export_folder/test', 'LSTM', epochs=200)
         print(model)
 
         return model
