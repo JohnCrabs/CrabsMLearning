@@ -341,14 +341,14 @@ class MachineLearningRegression:
     @staticmethod
     def DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model, directory, name, epochs=100):
         tuner = kt.Hyperband(ffunc_build_model,
-                             objective='val_accuracy',
+                             objective='accuracy',
                              max_epochs=50,
                              factor=5,
                              directory=directory,
                              project_name=name)
 
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-        tuner.search(train_x, train_y, epochs=epochs, validation_split=0.2, callbacks=[stop_early])
+        tuner.search(train_x, train_y, epochs=epochs, validation_split=0.2)
 
         # Get the optimal hyperparameters
         best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
@@ -427,7 +427,7 @@ class MachineLearningRegression:
             ffunc_model.add(keras.layers.Reshape(target_shape=(expandDimSize, int(inputSize / expandDimSize),)))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
-                keras.layers.Conv1D(int(inputSize / expandDimSize), return_sequences=True,
+                keras.layers.Conv1D(int(inputSize / expandDimSize), 1,
                                     activation=hp.Choice('activation_l1',
                                                          values=ACTIVATION_FUNCTIONS)
                                     ))
@@ -439,7 +439,7 @@ class MachineLearningRegression:
                                   ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
-                keras.layers.Conv1D(int(outputSize / expandDimSize), return_sequences=True,
+                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
                                     activation=hp.Choice('activation_l3',
                                                          values=ACTIVATION_FUNCTIONS)
                                     ))
