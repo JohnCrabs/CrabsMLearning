@@ -51,7 +51,7 @@ import lib.gui.commonFunctions as coFunc
 matplotlib.use("Agg")  # Set matplotlib to use non-interface (don't plot figures)
 
 
-class WidgetMachineLearningMainWidget(QWidget):
+class WidgetMachineLearningRegressionWidget(QWidget):
     def __init__(self, w=512, h=512, minW=256, minH=256, maxW=None, maxH=None,
                  winTitle='My Window', iconPath=None):
         super().__init__()
@@ -1147,7 +1147,7 @@ class WidgetMachineLearningMainWidget(QWidget):
                 uniqueEventCounter = 0
                 uniqueEventSize = dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES].__len__()
                 for _uniqueEvent_ in dict_fileData[fileName][_FF_KEY_PRIMARY_EVENT_UNIQUE_VALUES]:
-                    print('\n' + file_manip.getCurrentDatetimeForConsole() + '::(' + str(uniqueEventCounter+1) +
+                    print('\n' + file_manip.getCurrentDatetimeForConsole() + '::(' + str(uniqueEventCounter + 1) +
                           ' / ' + str(uniqueEventSize) + ') Event: ', _uniqueEvent_)
                     uniqueEventCounter += 1
                     # Shorten the variable name of trainTestSplitIndex
@@ -1301,10 +1301,14 @@ class WidgetMachineLearningMainWidget(QWidget):
                         print(file_manip.getCurrentDatetimeForConsole() + "::Export Files")
                         ws.append(tmpAppendRow)
                         wb.save(workbookPath)
-                        df_Y_realNorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputReal_Normalized.csv')
-                        df_Y_predNorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputPred_Normalized.csv')
-                        df_Y_realDenorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputReal_Denormalized.csv')
-                        df_Y_predDenorm.to_csv(o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputPred_Denormalized.csv')
+                        df_Y_realNorm.to_csv(
+                            o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputReal_Normalized.csv')
+                        df_Y_predNorm.to_csv(
+                            o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputPred_Normalized.csv')
+                        df_Y_realDenorm.to_csv(
+                            o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputReal_Denormalized.csv')
+                        df_Y_predDenorm.to_csv(
+                            o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputPred_Denormalized.csv')
 
                     # o_file = os.path.normpath(dir_path + "/../") + '/Correlation_R2.csv'
                     # my_cal_v2.write_csv(o_file, cor_CSV)
@@ -1511,7 +1515,8 @@ class WidgetMachineLearningMainWidget(QWidget):
     def actionMachineLearningMethodIndexChange(self):
         self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.spinBox_MachineLearningMethodsIndex.value()
-        self.mlr_Regression.set3rdDimensionSizeToDeepLearningMethods(self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
+        self.mlr_Regression.set3rdDimensionSizeToDeepLearningMethods(
+            self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
         if self.debugMessageFlag:
             print(self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
 
@@ -2798,7 +2803,8 @@ class WidgetTabMachineLearningSettingsSignalCompareMethods(QWidget):
         gridBox_Methods.addWidget(self.checkbox_TimeLaggedCrossCorrelationNoSplits, 3, 1, alignment=Qt.AlignHCenter)
 
         gridBox_Methods.addWidget(label_RollingWindowTimeLaggedCrossCorrelation, 4, 0, alignment=Qt.AlignLeft)
-        gridBox_Methods.addWidget(self.checkbox_RollingWindowTimeLaggedCrossCorrelation, 4, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.checkbox_RollingWindowTimeLaggedCrossCorrelation, 4, 1,
+                                  alignment=Qt.AlignHCenter)
 
         gridBox_Methods.addWidget(label_DynamicTimeWarping, 5, 0, alignment=Qt.AlignLeft)
         gridBox_Methods.addWidget(self.checkbox_DynamicTimeWarping, 5, 1, alignment=Qt.AlignHCenter)
@@ -2837,6 +2843,7 @@ class WidgetTabMachineLearningSettingsSignalCompareMethods(QWidget):
 
     def getCheckState_DynamicTimeWarping(self):
         return self.checkbox_DynamicTimeWarping.checkState()
+
 
 # *                                 * #
 # *********************************** #
@@ -3133,8 +3140,8 @@ class WidgetRidgeML(QWidget):
 
 def exec_app(w=512, h=512, minW=256, minH=256, maxW=512, maxH=512, winTitle='My Window', iconPath=''):
     myApp = QApplication(sys.argv)  # Set Up Application
-    widgetWin = WidgetMachineLearningMainWidget(w=w, h=h, minW=minW, minH=minH, maxW=maxW, maxH=maxH,
-                                                winTitle=winTitle, iconPath=iconPath)  # Create MainWindow
+    widgetWin = WidgetMachineLearningRegressionWidget(w=w, h=h, minW=minW, minH=minH, maxW=maxW, maxH=maxH,
+                                                      winTitle=winTitle, iconPath=iconPath)  # Create MainWindow
     widgetWin.show()  # Show Window
     myApp.exec_()  # Execute Application
     sys.exit(0)  # Exit Application

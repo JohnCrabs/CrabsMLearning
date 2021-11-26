@@ -8,10 +8,8 @@ from PySide2.QtGui import QIcon
 
 from lib.gui.mergeTableFiles_simple import WidgetMergeTableFilesSimple
 from lib.gui.mergeTableFiles_calendar import WidgetMergeTableFilesCalendar
-from lib.gui.machineLearningSequential import WidgetMachineLearningSequential
-from lib.gui.machineLearningMean import WidgetMachineLearningMean
 
-from lib.gui.machineLearningMainWidget import WidgetMachineLearningMainWidget
+from lib.gui.machineLearningRegressionWidget import WidgetMachineLearningRegressionWidget
 
 _STR_PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
@@ -57,27 +55,13 @@ class MainWindowCrabsMLearning(QMainWindow):
                                                                            iconPath=_ICON_PATH_LOGO_32x32)
         self.widgetMergeTableFilesCalendar.setWidget()
 
-        self.widgetMachineLearningSequential = WidgetMachineLearningSequential(w=1024, h=512,
-                                                                               minW=512, minH=256,
-                                                                               maxW=1280, maxH=840,
-                                                                               winTitle='Machine Learning Sequential',
-                                                                               iconPath=_ICON_PATH_LOGO_32x32)
-        self.widgetMachineLearningSequential.setWidget()
-
-        self.widgetMachineLearningMainWidget = WidgetMachineLearningMainWidget(w=1024, h=512,
-                                                                               minW=512, minH=256,
-                                                                               maxW=None,
-                                                                               maxH=None,
-                                                                               winTitle='Machine Learning',
-                                                                               iconPath=_ICON_PATH_LOGO_32x32)
-        self.widgetMachineLearningMainWidget.setWidget()
-
-        self.widgetMachineLearningMean = WidgetMachineLearningMean(w=1024, h=512,
-                                                                   minW=512, minH=256,
-                                                                   maxW=1280, maxH=840,
-                                                                   winTitle='Machine Learning Mean',
-                                                                   iconPath=_ICON_PATH_LOGO_32x32)
-        self.widgetMachineLearningMean.setWidget()
+        self.widgetMachineLearningRegressionWidget = WidgetMachineLearningRegressionWidget(w=1024, h=512,
+                                                                                           minW=512, minH=256,
+                                                                                           maxW=None,
+                                                                                           maxH=None,
+                                                                                           winTitle='Machine Learning',
+                                                                                           iconPath=_ICON_PATH_LOGO_32x32)
+        self.widgetMachineLearningRegressionWidget.setWidget()
 
         #                               #
         # ***************************** #
@@ -116,22 +100,9 @@ class MainWindowCrabsMLearning(QMainWindow):
         self.actionMergeTF_Calendar.setToolTip('Merge multiple table files using specific columns in one table file.' +
                                                ' One at least must be date column.')
 
-        # Action MachineLearningSequential
-        self.actionMachineLearningSequential = QAction('Machine Learning Sequential' +
-                                                       self.setSpaces(_INT_SPACES))  # MergeTableFiles
-        # self.actionMachineLearningSequential.setShortcut()
-        self.actionMachineLearningSequential.setToolTip('Create a sequential model using a variety of machine' +
-                                                        'learning tools')
-
-        # Action MachineLearningMean
-        self.actionMachineLearningMean = QAction('Machine Learning Mean' +
-                                                 self.setSpaces(_INT_SPACES))  # MergeTableFiles
-        # self.actionMachineLearningMean.setShortcut()
-        self.actionMachineLearningMean.setToolTip('Create a model from mean values using a variety of machine' +
-                                                  'learning tools')
-
-        self.actionMachineLearningSeq2 = QAction('Machine Learning Main' +
-                                                 self.setSpaces(_INT_SPACES))  # MergeTableFiles
+        # Action MachineLearningRegression - Α Machine Learning Regression Widget
+        self.actionMachineLearningRegression = QAction('Machine Learning Regression' +
+                                                       self.setSpaces(_INT_SPACES))
 
         # ******************* #
 
@@ -229,10 +200,7 @@ class MainWindowCrabsMLearning(QMainWindow):
         menuTools.addSeparator()
 
         menuMachineLearning = menuTools.addMenu("Machine Learning")
-        menuMachineLearning.addAction(self.actionMachineLearningSequential)
-        menuMachineLearning.addAction(self.actionMachineLearningMean)
-
-        menuMachineLearning.addAction(self.actionMachineLearningSeq2)
+        menuMachineLearning.addAction(self.actionMachineLearningRegression)
 
     # ------------------ #
     # ----- Events ----- #
@@ -257,11 +225,7 @@ class MainWindowCrabsMLearning(QMainWindow):
         self.actionMergeTF_Calendar.triggered.connect(self.actionMergeTF_Calendar_func_)  # actionMergeTF_Calendar
 
         # actionMachineLearningSequential
-        self.actionMachineLearningSequential.triggered.connect(self.actionMachineLearningSequential_func_)
-        # actionMachineLearningMean
-        self.actionMachineLearningMean.triggered.connect(self.actionMachineLearningMean_func_)
-
-        self.actionMachineLearningSeq2.triggered.connect(self.actionMachineLearningSeq2_func_)
+        self.actionMachineLearningRegression.triggered.connect(self.actionMachineLearningRegression_func_)
 
     # ************ #
     # *** File *** #
@@ -285,8 +249,9 @@ class MainWindowCrabsMLearning(QMainWindow):
     def actionMachineLearningMean_func_(self):
         self.widgetMachineLearningMean.show()
 
-    def actionMachineLearningSeq2_func_(self):
-        self.widgetMachineLearningMainWidget.show()
+    def actionMachineLearningRegression_func_(self):
+        self.widgetMachineLearningRegressionWidget.show()
+
 
 # ******************************************************* #
 # ********************   EXECUTION   ******************** #
