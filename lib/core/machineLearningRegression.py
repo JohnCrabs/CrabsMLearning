@@ -148,6 +148,22 @@ _MLR_3RD_DIM_DEEP_METHODS = [
 # ****** MACHINE LEARNING VARIABLES ****** #
 #                                          #
 
+MLR_KEY_METHOD = 'Method'
+MLR_KEY_CUSTOM_PARAM = 'Custom Parameters'
+MLR_KEY_PARAM_GRID = 'Grid Parameter'
+MLR_KEY_TRAINED_MODEL = 'Trained Model'
+MLR_KEY_3RD_DIM_SIZE = '3rd Dimension Size'
+
+MLR_KEY_ALPHA = 'alpha'
+MLR_KEY_TOL = 'tol'
+MLR_KEY_SOLVER = 'solver'
+MLR_KEY_KERNEL = 'kernel'
+MLR_KEY_DEGREE = 'degree'
+MLR_KEY_GAMMA = 'gamma'
+
+MLR_KEY_ACTIVATION_FUNCTION = 'activation_function'
+MLR_KEY_NUMBER_OF_EPOCHS = 'epochs'
+
 MLR_SOLVER_AUTO = 'auto'
 MLR_SOLVER_SVD = 'svd'
 MLR_SOLVER_CHOLESKY = 'cholesky'
@@ -168,22 +184,6 @@ MLR_SOLVER_OPTIONS = [
     # MLR_SOLVER_LBFGS
 ]
 
-MLR_KEY_METHOD = 'Method'
-MLR_KEY_CUSTOM_PARAM = 'Custom Parameters'
-MLR_KEY_PARAM_GRID = 'Grid Parameter'
-MLR_KEY_TRAINED_MODEL = 'Trained Model'
-MLR_KEY_3RD_DIM_SIZE = '3rd Dimension Size'
-
-MLR_KEY_ALPHA = 'alpha'
-MLR_KEY_TOL = 'tol'
-MLR_KEY_SOLVER = 'solver'
-MLR_KEY_KERNEL = 'kernel'
-MLR_KEY_DEGREE = 'degree'
-MLR_KEY_GAMMA = 'gamma'
-
-MLR_KEY_ACTIVATION_FUNCTION = 'activation_function'
-MLR_KEY_NUMBER_OF_EPOCHS = 'epochs'
-
 MLR_TOL_LIST = [
     1e-1,
     1e-2,
@@ -199,7 +199,13 @@ MLR_TOL_LIST = [
 
 MLR_EXEC_STATE = False
 
-MLR_KERNEL_LIST = [
+MLR_KERNEL_LINEAR = 'linear'
+MLR_KERNEL_POLY = 'poly'
+MLR_KERNEL_RBF = 'rbf'
+MLR_KERNEL_SIGMOID = 'sigmoid'
+MLR_KERNEL_PRECOMPUTED = 'precomputed'
+
+MLR_KERNEL_OPTIONS = [
     'linear',
     'poly',
     'rbf',
@@ -207,7 +213,10 @@ MLR_KERNEL_LIST = [
     'precomputed'
 ]
 
-MLR_GAMMA_LIST = [
+MLR_GAMMA_SCALE = 'scale'
+MLR_GAMMA_AUTO = 'auto'
+
+MLR_GAMMA_OPTIONS = [
     'scale',
     'auto'
 ]
@@ -254,7 +263,7 @@ class MachineLearningRegression:
         self._MLR_SVR_KERNEL_DEFAULT = ['rbf']
         self._MLR_SVR_DEGREE_DEFAULT = [3]
         self._MLR_SVR_GAMMA_DEFAULT = ['scale']
-        self._MLR_SVR_TOL_DEFAULT = [MLR_SOLVER_AUTO]
+        self._MLR_SVR_TOL_DEFAULT = [1e-3]
 
         #                                       #
         #########################################
@@ -781,11 +790,17 @@ class MachineLearningRegression:
     def getSVR_Kernel(self):
         return self._MLR_dictMethods[MLR_REG_SVR][MLR_KEY_PARAM_GRID][MLR_KEY_KERNEL]
 
+    def getSVR_Kernel_Default(self):
+        return self._MLR_SVR_KERNEL_DEFAULT
+
     def setSVR_Degree(self, value: []):
         self._MLR_dictMethods[MLR_REG_SVR][MLR_KEY_PARAM_GRID][MLR_KEY_DEGREE] = value
 
     def getSVR_Degree(self):
         return self._MLR_dictMethods[MLR_REG_SVR][MLR_KEY_PARAM_GRID][MLR_KEY_DEGREE]
+
+    def getSVR_Degree_Default(self):
+        return self._MLR_SVR_DEGREE_DEFAULT
 
     def setSVR_Gamma(self, value: []):
         self._MLR_dictMethods[MLR_REG_SVR][MLR_KEY_PARAM_GRID][MLR_KEY_GAMMA] = value
@@ -793,11 +808,23 @@ class MachineLearningRegression:
     def getSVR_Gamma(self):
         return self._MLR_dictMethods[MLR_REG_SVR][MLR_KEY_PARAM_GRID][MLR_KEY_GAMMA]
 
+    def getSVR_Gamma_Default(self):
+        return self._MLR_SVR_GAMMA_DEFAULT
+
     def setSVR_Tol(self, value: []):
         self._MLR_dictMethods[MLR_REG_SVR][MLR_KEY_PARAM_GRID][MLR_KEY_TOL] = value
 
     def getSVR_Tol(self):
         return self._MLR_dictMethods[MLR_REG_SVR][MLR_KEY_PARAM_GRID][MLR_KEY_TOL]
+
+    def getSVR_Tol_Default(self):
+        return self._MLR_SVR_TOL_DEFAULT
+
+    def setSVR_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_SVR][self._MLR_KEY_STATE] = state
+
+    def getSVR_state(self):
+        return self._MLR_dictMethods[MLR_REG_SVR][self._MLR_KEY_STATE]
 
     # ****** Covid_DeepNeuralNetworkRegressor ***** #
     def setCovid_DNN_reg_state(self, state: bool):
@@ -896,6 +923,7 @@ class MachineLearningRegression:
             realTest = None  # a parameter to store the real expanded y_Test values
             predTrain = None  # a parameter to store the predicted y_Train values
             predTest = None  # a parameter to store the predicted y_Test values
+
             if _methodKey_ in _MLR_NO_TUNING_LIST:  # if method cannot be tuning (e.g. LinearRegression)
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
                     print(
@@ -960,7 +988,7 @@ class MachineLearningRegression:
                     self._MLR_dictMethods[_methodKey_][MLR_KEY_TRAINED_MODEL] = model
                     self._MLR_dictMethods[_methodKey_][MLR_KEY_TRAINED_MODEL].save(modelExportPath)
 
-            else:  # else for security reasons only
+            else:
                 pass
 
             if model is not None:

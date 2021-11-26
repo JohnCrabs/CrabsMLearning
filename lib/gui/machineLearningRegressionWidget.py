@@ -96,10 +96,18 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         # ----- Set WidgetMethods ------- #
         # ------------------------------- #
         _WIDGET_OPTIONS_SIZE = 480
+
+        # ----- RIDGE ----- #
         self.widgetOptions_Ridge = WidgetRidgeML(w=_WIDGET_OPTIONS_SIZE, h=_WIDGET_OPTIONS_SIZE,
                                                  minW=_WIDGET_OPTIONS_SIZE, minH=_WIDGET_OPTIONS_SIZE,
                                                  maxW=_WIDGET_OPTIONS_SIZE, maxH=_WIDGET_OPTIONS_SIZE,
                                                  winTitle='Ridge Options', iconPath=self.iconPath)
+
+        # ----- SVR ----- #
+        self.widgetOptions_SVR = WidgetSVRML(w=_WIDGET_OPTIONS_SIZE, h=_WIDGET_OPTIONS_SIZE,
+                                             minW=_WIDGET_OPTIONS_SIZE, minH=_WIDGET_OPTIONS_SIZE,
+                                             maxW=_WIDGET_OPTIONS_SIZE, maxH=_WIDGET_OPTIONS_SIZE,
+                                             winTitle='SVR Options', iconPath=self.iconPath)
 
         # ---------------------- #
         # ----- Set Window ----- #
@@ -171,7 +179,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         }
 
         self.mlr_Regression = mlr.MachineLearningRegression()
-        self.mlr_Regression.setML_dict()
+        self.mlr_Regression.setMLR_dict()
 
         self.signComp_Methods = signComp.SignalCompare()
         self.signComp_Methods.setSC_dict()
@@ -235,6 +243,9 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         self.widgetOptions_Ridge.setWidget()
         self.setWidgetRidgeDefaultValues()
 
+        self.widgetOptions_SVR.setWidget()
+        self.setWidgetSVRDefaultValues()
+
     def setWidget(self):
         """
         A function to create the widget components into the main QWidget
@@ -283,13 +294,22 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         self.setMainEvents_()  # Set the events/actions of buttons, listWidgets, etc., components
 
     def setWidgetRidgeDefaultValues(self):
-        self.widgetOptions_Ridge.setOptionList_Tol(listValue=mlr.ML_TOL_LIST)
-        self.widgetOptions_Ridge.setOptionList_Solver(listValue=mlr.ML_SOLVER_OPTIONS)
+        self.widgetOptions_Ridge.setOptionList_Tol(listValue=mlr.MLR_TOL_LIST)
+        self.widgetOptions_Ridge.setOptionList_Solver(listValue=mlr.MLR_SOLVER_OPTIONS)
         self.widgetOptions_Ridge.setAlphaMin(value=self.mlr_Regression.getRidge_alphaMin_Default())
         self.widgetOptions_Ridge.setAlphaMax(value=self.mlr_Regression.getRidge_alphaMax_Default())
         self.widgetOptions_Ridge.setAlphaStep(value=self.mlr_Regression.getRidge_alphaStep_Default())
         self.widgetOptions_Ridge.setSelectedList_Tol(listValue=self.mlr_Regression.getRidge_Tol_Default())
         self.widgetOptions_Ridge.setSelectedList_Solver(listValue=self.mlr_Regression.getRidge_Solver_Default())
+
+    def setWidgetSVRDefaultValues(self):
+        self.widgetOptions_SVR.setOptionList_Kernel(listValue=mlr.MLR_KERNEL_OPTIONS)
+        self.widgetOptions_SVR.setOptionList_Gamma(listValue=mlr.MLR_GAMMA_OPTIONS)
+        self.widgetOptions_SVR.setOptionList_Tol(listValue=mlr.MLR_TOL_LIST)
+
+        self.widgetOptions_SVR.setSelectedList_Kernel(listValue=self.mlr_Regression.getSVR_Kernel_Default())
+        self.widgetOptions_SVR.setSelectedList_Gamma(listValue=self.mlr_Regression.getSVR_Gamma_Default())
+        self.widgetOptions_SVR.setSelectedList_Tol(listValue=self.mlr_Regression.getSVR_Tol_Default())
 
     # ---------------------------------- #
     # ----- Reuse Action Functions ----- #
@@ -494,26 +514,55 @@ class WidgetMachineLearningRegressionWidget(QWidget):
     # Set event for RidgeOptions
     def setWidgetRidgeEvents_(self):
         # Set Button Events
-        self.widgetOptions_Ridge.button_TollAdd.clicked.connect(self.actionButtonClicked_TolAdd)
-        self.widgetOptions_Ridge.button_SolverAdd.clicked.connect(self.actionButtonClicked_SolverAdd)
-        self.widgetOptions_Ridge.button_TollRemove.clicked.connect(
+        self.widgetOptions_Ridge.button_TolAdd.clicked.connect(self.actionButtonClicked_Ridge_TolAdd)
+        self.widgetOptions_Ridge.button_SolverAdd.clicked.connect(self.actionButtonClicked_Ridge_SolverAdd)
+        self.widgetOptions_Ridge.button_TolRemove.clicked.connect(
             self.widgetOptions_Ridge.removeItemFromList_TolSelected)
         self.widgetOptions_Ridge.button_SolverRemove.clicked.connect(
             self.widgetOptions_Ridge.removeItemFromList_SolverSelected)
         self.widgetOptions_Ridge.button_RestoreDefault.clicked.connect(self.setWidgetRidgeDefaultValues)
 
         # Set ChangeValue Events
-        self.widgetOptions_Ridge.doubleSpinBox_AlphaMin.valueChanged.connect(self.actionChange_AlphaMin)
-        self.widgetOptions_Ridge.doubleSpinBox_AlphaMax.valueChanged.connect(self.actionChange_AlphaMax)
-        self.widgetOptions_Ridge.doubleSpinBox_AlphaStep.valueChanged.connect(self.actionChange_AlphaStep)
+        self.widgetOptions_Ridge.doubleSpinBox_AlphaMin.valueChanged.connect(self.actionChange_Ridge_AlphaMin)
+        self.widgetOptions_Ridge.doubleSpinBox_AlphaMax.valueChanged.connect(self.actionChange_Ridge_AlphaMax)
+        self.widgetOptions_Ridge.doubleSpinBox_AlphaStep.valueChanged.connect(self.actionChange_Ridge_AlphaStep)
         self.widgetOptions_Ridge.listWidget_TolSelectedList.model().rowsInserted.connect(
-            self.actionChange_SelectedTol)
+            self.actionChange_Ridge_SelectedTol)
         self.widgetOptions_Ridge.listWidget_TolSelectedList.model().rowsRemoved.connect(
-            self.actionChange_SelectedTol)
+            self.actionChange_Ridge_SelectedTol)
         self.widgetOptions_Ridge.listWidget_SolverSelectedList.model().rowsInserted.connect(
-            self.actionChange_SelectedSolver)
+            self.actionChange_Ridge_SelectedSolver)
         self.widgetOptions_Ridge.listWidget_SolverSelectedList.model().rowsRemoved.connect(
-            self.actionChange_SelectedSolver)
+            self.actionChange_Ridge_SelectedSolver)
+
+    def setWidgetSVREvents_(self):
+        # Set Button Events
+        self.widgetOptions_SVR.button_KernelAdd.clicked.connect(self.actionButtonClicked_SVR_KernelAdd)
+        self.widgetOptions_SVR.button_GammaAdd.clicked.connect(self.actionButtonClicked_SVR_GammaAdd)
+        self.widgetOptions_SVR.button_TolAdd.clicked.connect(self.actionButtonClicked_SVR_TolAdd)
+
+        self.widgetOptions_SVR.button_KernelRemove.clicked.connect(
+            self.widgetOptions_SVR.removeItemFromList_KernelSelected)
+        self.widgetOptions_SVR.button_GammaRemove.clicked.connect(
+            self.widgetOptions_SVR.removeItemFromList_GammaSelected)
+        self.widgetOptions_SVR.button_TolRemove.clicked.connect(
+            self.widgetOptions_SVR.removeItemFromList_TolSelected)
+
+        self.widgetOptions_SVR.button_RestoreDefault.clicked.connect(self.setWidgetSVRDefaultValues)
+
+        # Set ChangeValue Events
+        self.widgetOptions_SVR.listWidget_KernelSelectedList.model().rowsInserted.connect(
+            self.actionChange_SVR_SelectedKernel)
+        self.widgetOptions_SVR.listWidget_KernelSelectedList.model().rowsRemoved.connect(
+            self.actionChange_SVR_SelectedKernel)
+        self.widgetOptions_SVR.listWidget_GammaSelectedList.model().rowsInserted.connect(
+            self.actionChange_SVR_SelectedGamma)
+        self.widgetOptions_SVR.listWidget_GammaSelectedList.model().rowsRemoved.connect(
+            self.actionChange_SVR_SelectedGamma)
+        self.widgetOptions_SVR.listWidget_TolSelectedList.model().rowsInserted.connect(
+            self.actionChange_SVR_SelectedTol)
+        self.widgetOptions_SVR.listWidget_TolSelectedList.model().rowsRemoved.connect(
+            self.actionChange_SVR_SelectedTol)
 
     def setMainEvents_(self):
         # Button Events
@@ -530,6 +579,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         self.setTabSettingsSignalCompareEvents_()  # set the tab settings SIGNAL COMPARE events
 
         self.setWidgetRidgeEvents_()  # set the events of Ridge Options
+        self.setWidgetSVREvents_()  # set the events of SVR Options
 
     # -------------------------- #
     # ----- Events Actions ----- #
@@ -1573,6 +1623,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
     def actionStateChangeSVR(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_SVR()
         print(state)
+        self.mlr_Regression.setSVR_state(state)
 
     def actionStateChangeLinearSVR(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_LinearSVR()
@@ -1622,7 +1673,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         pass
 
     def actionButtonClickedSVR(self):
-        pass
+        self.widgetOptions_SVR.show()
 
     def actionButtonClickedLinearSVR(self):
         pass
@@ -1691,44 +1742,81 @@ class WidgetMachineLearningRegressionWidget(QWidget):
 
     # ***** MACHINE LEARNING WIDGET OPTIONS EVENTS *** #
     # _____ RIDGE _____ #
-    def actionButtonClicked_TolAdd(self):
+    def actionButtonClicked_Ridge_TolAdd(self):
         _items_ = self.widgetOptions_Ridge.getListOptionSelectedItems_Tol()
         for _it_ in _items_:
             stateExist = self.widgetOptions_Ridge.checkIfItemAlreadyInList_Tol(_it_)
             if not stateExist:
                 self.widgetOptions_Ridge.addToSelectedList_Tol(_it_)
 
-    def actionButtonClicked_SolverAdd(self):
+    def actionButtonClicked_Ridge_SolverAdd(self):
         _items_ = self.widgetOptions_Ridge.getListOptionSelectedItems_Solver()
         for _it_ in _items_:
             stateExist = self.widgetOptions_Ridge.checkIfItemAlreadyInList_Solver(_it_)
             if not stateExist:
                 self.widgetOptions_Ridge.addToSelectedList_Solver(_it_)
 
-    def actionChange_AlphaMin(self):
+    def actionChange_Ridge_AlphaMin(self):
         value = round(self.widgetOptions_Ridge.getAlphaMin(), 3)
         # print(value)
         self.mlr_Regression.setRidge_alphaMin(value)
 
-    def actionChange_AlphaMax(self):
+    def actionChange_Ridge_AlphaMax(self):
         value = round(self.widgetOptions_Ridge.getAlphaMax(), 3)
         # print(value)
         self.mlr_Regression.setRidge_alphaMax(value)
 
-    def actionChange_AlphaStep(self):
+    def actionChange_Ridge_AlphaStep(self):
         value = round(self.widgetOptions_Ridge.getAlphaStep(), 3)
         # print(value)
         self.mlr_Regression.setRidge_alphaStep(value)
 
-    def actionChange_SelectedTol(self):
+    def actionChange_Ridge_SelectedTol(self):
         value = self.widgetOptions_Ridge.getSelectedList_Tol()
         # print(value)
         self.mlr_Regression.setRidge_Tol(value)
 
-    def actionChange_SelectedSolver(self):
+    def actionChange_Ridge_SelectedSolver(self):
         value = self.widgetOptions_Ridge.getSelectedList_Solver()
         # print(value)
         self.mlr_Regression.setRidge_Solver(value)
+
+    # _____ SVR _____ #
+    def actionButtonClicked_SVR_KernelAdd(self):
+        _items_ = self.widgetOptions_SVR.getListOptionSelectedItems_Kernel()
+        for _it_ in _items_:
+            stateExist = self.widgetOptions_SVR.checkIfItemAlreadyInList_Kernel(_it_)
+            if not stateExist:
+                self.widgetOptions_SVR.addToSelectedList_Kernel(_it_)
+
+    def actionButtonClicked_SVR_GammaAdd(self):
+        _items_ = self.widgetOptions_SVR.getListOptionSelectedItems_Gamma()
+        for _it_ in _items_:
+            stateExist = self.widgetOptions_SVR.checkIfItemAlreadyInList_Gamma(_it_)
+            if not stateExist:
+                self.widgetOptions_SVR.addToSelectedList_Gamma(_it_)
+
+    def actionButtonClicked_SVR_TolAdd(self):
+        _items_ = self.widgetOptions_SVR.getListOptionSelectedItems_Tol()
+        for _it_ in _items_:
+            stateExist = self.widgetOptions_SVR.checkIfItemAlreadyInList_Tol(_it_)
+            if not stateExist:
+                self.widgetOptions_SVR.addToSelectedList_Tol(_it_)
+
+    def actionChange_SVR_SelectedKernel(self):
+        value = self.widgetOptions_SVR.getSelectedList_Kernel()
+        # print(value)
+        self.mlr_Regression.setSVR_Kernel(value)
+
+    def actionChange_SVR_SelectedGamma(self):
+        value = self.widgetOptions_SVR.getSelectedList_Gamma()
+        # print(value)
+        self.mlr_Regression.setSVR_Gamma(value)
+
+    def actionChange_SVR_SelectedTol(self):
+        value = self.widgetOptions_SVR.getSelectedList_Tol()
+        # print(value)
+        self.mlr_Regression.setSVR_Tol(value)
 
 
 # *********************************** #
@@ -2162,7 +2250,6 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.button_SGDRegressor = QPushButton()
         self.button_SVR = QPushButton()
         self.button_LinearSVR = QPushButton()
-        self.button_SVR = QPushButton()
         self.button_NearestNeighbor = QPushButton()
         self.button_KNeighborsRegressor = QPushButton()
         self.button_DecisionTreeRegressor = QPushButton()
@@ -2178,7 +2265,6 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.button_SGDRegressor.setIcon(_icon)
         self.button_SVR.setIcon(_icon)
         self.button_LinearSVR.setIcon(_icon)
-        self.button_SVR.setIcon(_icon)
         self.button_NearestNeighbor.setIcon(_icon)
         self.button_KNeighborsRegressor.setIcon(_icon)
         self.button_DecisionTreeRegressor.setIcon(_icon)
@@ -2191,9 +2277,7 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.button_LassoLars.setEnabled(False)
         self.button_TweedieRegressor.setEnabled(False)
         self.button_SGDRegressor.setEnabled(False)
-        self.button_SVR.setEnabled(False)
         self.button_LinearSVR.setEnabled(False)
-        self.button_SVR.setEnabled(False)
         self.button_NearestNeighbor.setEnabled(False)
         self.button_KNeighborsRegressor.setEnabled(False)
         self.button_DecisionTreeRegressor.setEnabled(False)
@@ -2225,7 +2309,6 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.checkbox_LassoLars.setEnabled(False)
         self.checkbox_TweedieRegressor.setEnabled(False)
         self.checkbox_SGDRegressor.setEnabled(False)
-        self.checkbox_SVR.setEnabled(False)
         self.checkbox_LinearSVR.setEnabled(False)
         self.checkbox_NearestNeighbor.setEnabled(False)
         self.checkbox_KNeighborsRegressor.setEnabled(False)
@@ -2265,20 +2348,20 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         # label_Options.setMaximumHeight(30)
 
         label_LinearRegression = QLabel(mlr.MLR_REG_LINEAR_REGRESSION)
-        label_Ridge = QLabel(mlr.ML_REG_RIDGE)
-        label_BayesianRidge = QLabel(mlr.ML_REG_BAYESIAN_RIDGE)
-        label_Lasso = QLabel(mlr.ML_REG_LASSO)
-        label_LassoLars = QLabel(mlr.ML_REG_LASSO_LARS)
-        label_TweedieRegressor = QLabel(mlr.ML_REG_TWEEDIE_REGRESSOR)
-        label_SGDRegressor = QLabel(mlr.ML_REG_SGD_REGRESSOR)
-        label_SVR = QLabel(mlr.ML_REG_SVR)
-        label_LinearSVR = QLabel(mlr.ML_REG_LINEAR_SVR)
-        label_NearestNeighbor = QLabel(mlr.ML_REG_NEAREST_NEIGHBORS)
-        label_KNeighborsRegressor = QLabel(mlr.ML_REG_K_NEIGHBORS_REGRESSOR)
-        label_DecisionTreeRegressor = QLabel(mlr.ML_REG_DECISION_TREE_REGRESSOR)
-        label_RandomForestRegressor = QLabel(mlr.ML_REG_RANDOM_FOREST_REGRESSOR)
-        label_AdaBoostRegressor = QLabel(mlr.ML_REG_ADA_BOOST_REGRESSOR)
-        label_GradientBoostingRegressor = QLabel(mlr.ML_REG_GRADIENT_BOOSTING_REGRESSOR)
+        label_Ridge = QLabel(mlr.MLR_REG_RIDGE)
+        label_BayesianRidge = QLabel(mlr.MLR_REG_BAYESIAN_RIDGE)
+        label_Lasso = QLabel(mlr.MLR_REG_LASSO)
+        label_LassoLars = QLabel(mlr.MLR_REG_LASSO_LARS)
+        label_TweedieRegressor = QLabel(mlr.MLR_REG_TWEEDIE_REGRESSOR)
+        label_SGDRegressor = QLabel(mlr.MLR_REG_SGD_REGRESSOR)
+        label_SVR = QLabel(mlr.MLR_REG_SVR)
+        label_LinearSVR = QLabel(mlr.MLR_REG_LINEAR_SVR)
+        label_NearestNeighbor = QLabel(mlr.MLR_REG_NEAREST_NEIGHBORS)
+        label_KNeighborsRegressor = QLabel(mlr.MLR_REG_K_NEIGHBORS_REGRESSOR)
+        label_DecisionTreeRegressor = QLabel(mlr.MLR_REG_DECISION_TREE_REGRESSOR)
+        label_RandomForestRegressor = QLabel(mlr.MLR_REG_RANDOM_FOREST_REGRESSOR)
+        label_AdaBoostRegressor = QLabel(mlr.MLR_REG_ADA_BOOST_REGRESSOR)
+        label_GradientBoostingRegressor = QLabel(mlr.MLR_REG_GRADIENT_BOOSTING_REGRESSOR)
 
         # Set layout
         scrollAreaWidget = QWidget()
@@ -2360,33 +2443,33 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
 
         label_LinearRegression = QLabel(mlr.MLR_REG_LINEAR_REGRESSION)
         label_LinearRegression.setMinimumWidth(label_min_width)
-        label_Ridge = QLabel(mlr.ML_REG_RIDGE)
+        label_Ridge = QLabel(mlr.MLR_REG_RIDGE)
         label_Ridge.setMinimumWidth(label_min_width)
-        label_BayesianRidge = QLabel(mlr.ML_REG_BAYESIAN_RIDGE)
+        label_BayesianRidge = QLabel(mlr.MLR_REG_BAYESIAN_RIDGE)
         label_BayesianRidge.setMinimumWidth(label_min_width)
-        label_Lasso = QLabel(mlr.ML_REG_LASSO)
+        label_Lasso = QLabel(mlr.MLR_REG_LASSO)
         label_Lasso.setMinimumWidth(label_min_width)
-        label_LassoLars = QLabel(mlr.ML_REG_LASSO_LARS)
+        label_LassoLars = QLabel(mlr.MLR_REG_LASSO_LARS)
         label_LassoLars.setMinimumWidth(label_min_width)
-        label_TweedieRegressor = QLabel(mlr.ML_REG_TWEEDIE_REGRESSOR)
+        label_TweedieRegressor = QLabel(mlr.MLR_REG_TWEEDIE_REGRESSOR)
         label_TweedieRegressor.setMinimumWidth(label_min_width)
-        label_SGDRegressor = QLabel(mlr.ML_REG_SGD_REGRESSOR)
+        label_SGDRegressor = QLabel(mlr.MLR_REG_SGD_REGRESSOR)
         label_SGDRegressor.setMinimumWidth(label_min_width)
-        label_SVR = QLabel(mlr.ML_REG_SVR)
+        label_SVR = QLabel(mlr.MLR_REG_SVR)
         label_SVR.setMinimumWidth(label_min_width)
-        label_LinearSVR = QLabel(mlr.ML_REG_LINEAR_SVR)
+        label_LinearSVR = QLabel(mlr.MLR_REG_LINEAR_SVR)
         label_LinearSVR.setMinimumWidth(label_min_width)
-        label_NearestNeighbor = QLabel(mlr.ML_REG_NEAREST_NEIGHBORS)
+        label_NearestNeighbor = QLabel(mlr.MLR_REG_NEAREST_NEIGHBORS)
         label_NearestNeighbor.setMinimumWidth(label_min_width)
-        label_KNeighborsRegressor = QLabel(mlr.ML_REG_K_NEIGHBORS_REGRESSOR)
+        label_KNeighborsRegressor = QLabel(mlr.MLR_REG_K_NEIGHBORS_REGRESSOR)
         label_KNeighborsRegressor.setMinimumWidth(label_min_width)
-        label_DecisionTreeRegressor = QLabel(mlr.ML_REG_DECISION_TREE_REGRESSOR)
+        label_DecisionTreeRegressor = QLabel(mlr.MLR_REG_DECISION_TREE_REGRESSOR)
         label_DecisionTreeRegressor.setMinimumWidth(label_min_width)
-        label_RandomForestRegressor = QLabel(mlr.ML_REG_RANDOM_FOREST_REGRESSOR)
+        label_RandomForestRegressor = QLabel(mlr.MLR_REG_RANDOM_FOREST_REGRESSOR)
         label_RandomForestRegressor.setMinimumWidth(label_min_width)
-        label_AdaBoostRegressor = QLabel(mlr.ML_REG_ADA_BOOST_REGRESSOR)
+        label_AdaBoostRegressor = QLabel(mlr.MLR_REG_ADA_BOOST_REGRESSOR)
         label_AdaBoostRegressor.setMinimumWidth(label_min_width)
-        label_GradientBoostingRegressor = QLabel(mlr.ML_REG_GRADIENT_BOOSTING_REGRESSOR)
+        label_GradientBoostingRegressor = QLabel(mlr.MLR_REG_GRADIENT_BOOSTING_REGRESSOR)
         label_GradientBoostingRegressor.setMinimumWidth(label_min_width)
 
         # Set hboxes
@@ -2674,10 +2757,10 @@ class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
         label_Options = QLabel('<b><u>Options<\\u><\\b>')
         # label_Options.setMaximumHeight(30)
 
-        label_Covid_DeepNeuralNetwork = QLabel(mlr.ML_REG_COVID_DNN)
-        label_Covid_LongShortTermMemoryNeuralNetwork = QLabel(mlr.ML_REG_COVID_LSTM)
-        label_Covid_RecurrentNeuralNetwork = QLabel(mlr.ML_REG_COVID_RNN)
-        label_Covid_SimpleRecurrentNeuralNetwork = QLabel(mlr.ML_REG_COVID_SIMPLE_RNN)
+        label_Covid_DeepNeuralNetwork = QLabel(mlr.MLR_REG_COVID_DNN)
+        label_Covid_LongShortTermMemoryNeuralNetwork = QLabel(mlr.MLR_REG_COVID_LSTM)
+        label_Covid_RecurrentNeuralNetwork = QLabel(mlr.MLR_REG_COVID_RNN)
+        label_Covid_SimpleRecurrentNeuralNetwork = QLabel(mlr.MLR_REG_COVID_SIMPLE_RNN)
 
         # Set layout
         scrollAreaWidget = QWidget()
@@ -2910,10 +2993,10 @@ class WidgetRidgeML(QWidget):
         _iconAdd = QIcon(QPixmap(ICON_ADD_RIGHT_LIST))
         _iconDel = QIcon(QPixmap(ICON_DELETE_FROM_LIST))
 
-        self.button_TollAdd = QPushButton()
-        self.button_TollAdd.setIcon(_iconAdd)
-        self.button_TollRemove = QPushButton()
-        self.button_TollRemove.setIcon(_iconDel)
+        self.button_TolAdd = QPushButton()
+        self.button_TolAdd.setIcon(_iconAdd)
+        self.button_TolRemove = QPushButton()
+        self.button_TolRemove.setIcon(_iconDel)
 
         self.button_SolverAdd = QPushButton()
         self.button_SolverAdd.setIcon(_iconAdd)
@@ -2981,8 +3064,8 @@ class WidgetRidgeML(QWidget):
         vbox_SolverSelected.addWidget(labelSolverSelectedList)
         vbox_SolverSelected.addWidget(self.listWidget_SolverSelectedList)
 
-        vbox_ButtonsTol.addWidget(self.button_TollAdd)
-        vbox_ButtonsTol.addWidget(self.button_TollRemove)
+        vbox_ButtonsTol.addWidget(self.button_TolAdd)
+        vbox_ButtonsTol.addWidget(self.button_TolRemove)
         vbox_ButtonsSolver.addWidget(self.button_SolverAdd)
         vbox_ButtonsSolver.addWidget(self.button_SolverRemove)
 
@@ -3127,6 +3210,314 @@ class WidgetRidgeML(QWidget):
         for _item_ in self.listWidget_SolverSelectedList.selectedItems():
             if self.checkIfItemAlreadyInList_Solver(_item_.text()) and self.listWidget_SolverSelectedList.count() > 1:
                 self.listWidget_SolverSelectedList.takeItem(self.listWidget_SolverSelectedList.row(_item_))
+
+
+class WidgetSVRML(QWidget):
+    def __init__(self, w=512, h=512, minW=256, minH=256, maxW=None, maxH=None,
+                 winTitle='My Window', iconPath=None):
+        super().__init__()
+
+        self.setStyleSheet(setStyle_())  # set the tab style
+
+        self.iconPath = iconPath
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.setWindowTitle(winTitle)  # Set Window Title
+        self.setWindowIcon(QIcon(self.iconPath))  # Set Window Icon
+        self.setGeometry(INT_SCREEN_WIDTH / 4, INT_SCREEN_HEIGHT / 4, w, h)  # Set Window Geometry
+        self.setMinimumWidth(minW)  # Set Window Minimum Width
+        self.setMinimumHeight(minH)  # Set Window Minimum Height
+        if maxW is not None:
+            self.setMaximumWidth(maxW)  # Set Window Maximum Width
+        if maxH is not None:
+            self.setMaximumHeight(maxH)  # Set Window Maximum Width
+
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+        # ----------------------- #
+        # ----- QListWidget ----- #
+        # ----------------------- #
+        self.listWidget_KernelOptionsList = QListWidget()
+        self.listWidget_KernelOptionsList.setSelectionMode(QListWidget.ExtendedSelection)  # Set Extended Selection
+        self.listWidget_KernelSelectedList = QListWidget()
+
+        self.listWidget_GammaOptionsList = QListWidget()
+        self.listWidget_GammaOptionsList.setSelectionMode(QListWidget.ExtendedSelection)  # Set Extended Selection
+        self.listWidget_GammaSelectedList = QListWidget()
+
+        self.listWidget_TolOptionsList = QListWidget()
+        self.listWidget_TolOptionsList.setSelectionMode(QListWidget.ExtendedSelection)  # Set Extended Selection
+        self.listWidget_TolSelectedList = QListWidget()
+
+        # ----------------------- #
+        # ----- QPushButton ----- #
+        # ----------------------- #
+        _iconAdd = QIcon(QPixmap(ICON_ADD_RIGHT_LIST))
+        _iconDel = QIcon(QPixmap(ICON_DELETE_FROM_LIST))
+
+        self.button_KernelAdd = QPushButton()
+        self.button_KernelAdd.setIcon(_iconAdd)
+        self.button_KernelRemove = QPushButton()
+        self.button_KernelRemove.setIcon(_iconDel)
+
+        self.button_GammaAdd = QPushButton()
+        self.button_GammaAdd.setIcon(_iconAdd)
+        self.button_GammaRemove = QPushButton()
+        self.button_GammaRemove.setIcon(_iconDel)
+
+        self.button_TolAdd = QPushButton()
+        self.button_TolAdd.setIcon(_iconAdd)
+        self.button_TolRemove = QPushButton()
+        self.button_TolRemove.setIcon(_iconDel)
+
+        self.button_RestoreDefault = QPushButton("Restore Default")
+        self.button_RestoreDefault.setMinimumWidth(150)  # Set Minimum Width
+        self.button_RestoreDefault.setMinimumHeight(30)  # Set Minimum Height
+
+    def setWidget(self):
+        """
+            A function to create the widget components into the main QWidget
+            :return: Nothing
+        """
+        self.vbox_main_layout.addLayout(self._setHorLayout())
+
+    def _setHorLayout(self):
+        labelKernelOptionList = QLabel("Kernel Options:")
+        labelKernelSelectedList = QLabel("Kernel Selected:")
+
+        labelGammaOptionList = QLabel("Gamma Options:")
+        labelGammaSelectedList = QLabel("Gamma Selected:")
+
+        labelTolOptionList = QLabel("Tolerance Options:")
+        labelTolSelectedList = QLabel("Tolerance Selected:")
+
+        # Set hbox
+        hbox_Restore = QHBoxLayout()
+        hbox_Restore.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+        hbox_Restore.addWidget(self.button_RestoreDefault)
+
+        # Set vbox
+        vbox_KernelOptions = QVBoxLayout()  # Create Kernel Options layout - vbox
+        vbox_KernelSelected = QVBoxLayout()  # Create Kernel Selected layout - vbox
+
+        vbox_GammaOptions = QVBoxLayout()  # Create Gamma Options layout - vbox
+        vbox_GammaSelected = QVBoxLayout()  # Create Gamma Selected layout - vbox
+
+        vbox_TolOptions = QVBoxLayout()  # Create Tol Options layout - vbox
+        vbox_TolSelected = QVBoxLayout()  # Create Tol Selected layout - vbox
+
+        vbox_ButtonsKernel = QVBoxLayout()  # Create ButtonsKernel - vbox
+        vbox_ButtonsGamma = QVBoxLayout()  # Create ButtonsGamma - vbox
+        vbox_ButtonsTol = QVBoxLayout()  # Create ButtonsTol - vbox
+
+        # Add widgets to Kernel (Option, Selected)-layouts
+        vbox_KernelOptions.addWidget(labelKernelOptionList)
+        vbox_KernelOptions.addWidget(self.listWidget_KernelOptionsList)
+        vbox_KernelSelected.addWidget(labelKernelSelectedList)
+        vbox_KernelSelected.addWidget(self.listWidget_KernelSelectedList)
+
+        # Add widgets to Gamma (Option, Selected)-layouts
+        vbox_GammaOptions.addWidget(labelGammaOptionList)
+        vbox_GammaOptions.addWidget(self.listWidget_GammaOptionsList)
+        vbox_GammaSelected.addWidget(labelGammaSelectedList)
+        vbox_GammaSelected.addWidget(self.listWidget_GammaSelectedList)
+
+        # Add widgets to Tol (Option, Selected)-layouts
+        vbox_TolOptions.addWidget(labelTolOptionList)
+        vbox_TolOptions.addWidget(self.listWidget_TolOptionsList)
+        vbox_TolSelected.addWidget(labelTolSelectedList)
+        vbox_TolSelected.addWidget(self.listWidget_TolSelectedList)
+
+        # Add widgets to button (Kernel, Gamma, Tol)-layouts
+        vbox_ButtonsKernel.addWidget(self.button_KernelAdd)
+        vbox_ButtonsKernel.addWidget(self.button_KernelRemove)
+        vbox_ButtonsGamma.addWidget(self.button_GammaAdd)
+        vbox_ButtonsGamma.addWidget(self.button_GammaRemove)
+        vbox_ButtonsTol.addWidget(self.button_TolAdd)
+        vbox_ButtonsTol.addWidget(self.button_TolRemove)
+
+        # Create hbox Kernel layout and add Kernel-layouts
+        hbox_Kernel = QHBoxLayout()
+        hbox_Kernel.addLayout(vbox_KernelOptions)
+        hbox_Kernel.addLayout(vbox_ButtonsKernel)
+        hbox_Kernel.addLayout(vbox_KernelSelected)
+
+        # Create hbox Gamma layout and add Gamma-layouts
+        hbox_Gamma = QHBoxLayout()
+        hbox_Gamma.addLayout(vbox_GammaOptions)
+        hbox_Gamma.addLayout(vbox_ButtonsGamma)
+        hbox_Gamma.addLayout(vbox_GammaSelected)
+
+        # Create hbox Tol layout and add Tol-layouts
+        hbox_Tol = QHBoxLayout()
+        hbox_Tol.addLayout(vbox_TolOptions)
+        hbox_Tol.addLayout(vbox_ButtonsTol)
+        hbox_Tol.addLayout(vbox_TolSelected)
+
+        vbox_final = QVBoxLayout()
+        vbox_final.addLayout(hbox_Kernel)
+        vbox_final.addLayout(hbox_Gamma)
+        vbox_final.addLayout(hbox_Tol)
+        vbox_final.addLayout(hbox_Restore)
+
+        return vbox_final
+
+    def sortOptionList_Kernel(self):
+        self.listWidget_KernelOptionsList.sortItems(Qt.AscendingOrder)
+
+    def setOptionList_Kernel(self, listValue: []):
+        self.listWidget_KernelOptionsList.clear()
+        for _item_ in listValue:
+            self.listWidget_KernelOptionsList.addItem(str(_item_))
+        if self.listWidget_KernelOptionsList.item(0):
+            self.listWidget_KernelOptionsList.setCurrentRow(0)
+        self.sortOptionList_Kernel()
+
+    def sortOptionList_Gamma(self):
+        self.listWidget_GammaOptionsList.sortItems(Qt.AscendingOrder)
+
+    def setOptionList_Gamma(self, listValue: []):
+        self.listWidget_GammaOptionsList.clear()
+        for _item_ in listValue:
+            self.listWidget_GammaOptionsList.addItem(str(_item_))
+        if self.listWidget_GammaOptionsList.item(0):
+            self.listWidget_GammaOptionsList.setCurrentRow(0)
+        self.sortOptionList_Gamma()
+
+    def sortOptionList_Tol(self):
+        self.listWidget_TolOptionsList.sortItems(Qt.AscendingOrder)
+
+    def setOptionList_Tol(self, listValue: []):
+        self.listWidget_TolOptionsList.clear()
+        for _item_ in listValue:
+            self.listWidget_TolOptionsList.addItem("{:.0e}".format(_item_))
+        if self.listWidget_TolOptionsList.item(0):
+            self.listWidget_TolOptionsList.setCurrentRow(0)
+        self.sortOptionList_Tol()
+
+    def sortSelectedList_Kernel(self):
+        self.listWidget_KernelSelectedList.sortItems(Qt.AscendingOrder)
+
+    def setSelectedList_Kernel(self, listValue: []):
+        self.listWidget_KernelSelectedList.clear()
+        for _item_ in listValue:
+            self.listWidget_KernelSelectedList.addItem(str(_item_))
+        if self.listWidget_KernelSelectedList.item(0):
+            self.listWidget_KernelSelectedList.setCurrentRow(0)
+        self.sortSelectedList_Kernel()
+
+    def getSelectedList_Kernel(self):
+        valueList = []
+        for _index_ in range(self.listWidget_KernelSelectedList.count()):
+            valueList.append(self.listWidget_KernelSelectedList.item(_index_).text())
+        return valueList
+
+    def sortSelectedList_Gamma(self):
+        self.listWidget_GammaSelectedList.sortItems(Qt.AscendingOrder)
+
+    def setSelectedList_Gamma(self, listValue: []):
+        self.listWidget_GammaSelectedList.clear()
+        for _item_ in listValue:
+            self.listWidget_GammaSelectedList.addItem(str(_item_))
+        if self.listWidget_GammaSelectedList.item(0):
+            self.listWidget_GammaSelectedList.setCurrentRow(0)
+        self.sortSelectedList_Gamma()
+
+    def getSelectedList_Gamma(self):
+        valueList = []
+        for _index_ in range(self.listWidget_GammaSelectedList.count()):
+            valueList.append(self.listWidget_GammaSelectedList.item(_index_).text())
+        return valueList
+
+    def sortSelectedList_Tol(self):
+        self.listWidget_TolSelectedList.sortItems(Qt.AscendingOrder)
+
+    def setSelectedList_Tol(self, listValue: []):
+        self.listWidget_TolSelectedList.clear()
+        for _item_ in listValue:
+            self.listWidget_TolSelectedList.addItem("{:.0e}".format(_item_))
+        if self.listWidget_TolSelectedList.item(0):
+            self.listWidget_TolSelectedList.setCurrentRow(0)
+        self.sortSelectedList_Tol()
+
+    def getSelectedList_Tol(self):
+        valueList = []
+        for _index_ in range(self.listWidget_TolSelectedList.count()):
+            valueList.append(self.listWidget_TolSelectedList.item(_index_).text())
+        return valueList
+
+    def addToOptionList_Kernel(self, value):
+        self.listWidget_KernelOptionsList.addItem(str(value))
+        self.sortOptionList_Kernel()
+
+    def addToOptionList_Gamma(self, value):
+        self.listWidget_GammaOptionsList.addItem(str(value))
+        self.sortOptionList_Gamma()
+
+    def addToOptionList_Tol(self, value):
+        self.listWidget_TolOptionsList.addItem(str(value))
+        self.sortOptionList_Tol()
+
+    def addToSelectedList_Kernel(self, value):
+        self.listWidget_KernelSelectedList.addItem(str(value))
+        self.sortSelectedList_Kernel()
+
+    def addToSelectedList_Gamma(self, value):
+        self.listWidget_GammaSelectedList.addItem(str(value))
+        self.sortSelectedList_Gamma()
+
+    def addToSelectedList_Tol(self, value):
+        self.listWidget_TolSelectedList.addItem(str(value))
+        self.sortSelectedList_Tol()
+
+    def getListOptionSelectedItems_Kernel(self):
+        return [_item_.text() for _item_ in self.listWidget_KernelOptionsList.selectedItems()]
+
+    def getListOptionSelectedItems_Gamma(self):
+        return [_item_.text() for _item_ in self.listWidget_GammaOptionsList.selectedItems()]
+
+    def getListOptionSelectedItems_Tol(self):
+        return [_item_.text() for _item_ in self.listWidget_TolOptionsList.selectedItems()]
+
+    def checkIfItemAlreadyInList_Kernel(self, item):
+        itemFound = False
+        for _index_ in range(self.listWidget_KernelSelectedList.count()):
+            if item == self.listWidget_KernelSelectedList.item(_index_).text():
+                itemFound = True
+                break
+        return itemFound
+
+    def checkIfItemAlreadyInList_Gamma(self, item):
+        itemFound = False
+        for _index_ in range(self.listWidget_GammaSelectedList.count()):
+            if item == self.listWidget_GammaSelectedList.item(_index_).text():
+                itemFound = True
+                break
+        return itemFound
+
+    def checkIfItemAlreadyInList_Tol(self, item):
+        itemFound = False
+        for _index_ in range(self.listWidget_TolSelectedList.count()):
+            if item == self.listWidget_TolSelectedList.item(_index_).text():
+                itemFound = True
+                break
+        return itemFound
+
+    def removeItemFromList_KernelSelected(self):
+        for _item_ in self.listWidget_KernelSelectedList.selectedItems():
+            if self.checkIfItemAlreadyInList_Kernel(_item_.text()) and self.listWidget_KernelSelectedList.count() > 1:
+                self.listWidget_KernelSelectedList.takeItem(self.listWidget_KernelSelectedList.row(_item_))
+
+    def removeItemFromList_GammaSelected(self):
+        for _item_ in self.listWidget_GammaSelectedList.selectedItems():
+            if self.checkIfItemAlreadyInList_Gamma(_item_.text()) and self.listWidget_GammaSelectedList.count() > 1:
+                self.listWidget_GammaSelectedList.takeItem(self.listWidget_GammaSelectedList.row(_item_))
+
+    def removeItemFromList_TolSelected(self):
+        for _item_ in self.listWidget_TolSelectedList.selectedItems():
+            if self.checkIfItemAlreadyInList_Tol(_item_.text()) and self.listWidget_TolSelectedList.count() > 1:
+                self.listWidget_TolSelectedList.takeItem(self.listWidget_TolSelectedList.row(_item_))
 
 
 # *                                              * #
