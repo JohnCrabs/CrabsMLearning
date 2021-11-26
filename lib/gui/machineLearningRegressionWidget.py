@@ -2264,7 +2264,7 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         label_Options = QLabel('<b><u>Options<\\u><\\b>')
         # label_Options.setMaximumHeight(30)
 
-        label_LinearRegression = QLabel(mlr.ML_REG_LINEAR_REGRESSION)
+        label_LinearRegression = QLabel(mlr.MLR_REG_LINEAR_REGRESSION)
         label_Ridge = QLabel(mlr.ML_REG_RIDGE)
         label_BayesianRidge = QLabel(mlr.ML_REG_BAYESIAN_RIDGE)
         label_Lasso = QLabel(mlr.ML_REG_LASSO)
@@ -2358,7 +2358,7 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         label_Method = QLabel('Method')
         label_Method.setMinimumWidth(label_min_width)
 
-        label_LinearRegression = QLabel(mlr.ML_REG_LINEAR_REGRESSION)
+        label_LinearRegression = QLabel(mlr.MLR_REG_LINEAR_REGRESSION)
         label_LinearRegression.setMinimumWidth(label_min_width)
         label_Ridge = QLabel(mlr.ML_REG_RIDGE)
         label_Ridge.setMinimumWidth(label_min_width)
