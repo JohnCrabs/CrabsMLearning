@@ -406,7 +406,7 @@ class MachineLearningRegression:
 
         return model
 
-    def DeepLearning_Covid_DNN(self, train_x, train_y, test_x, test_y):
+    def DeepLearning_Covid_DNN(self, train_x, train_y, test_x, test_y, exportDirectory):
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
 
@@ -445,12 +445,13 @@ class MachineLearningRegression:
             return ffunc_model
 
         model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      '../../export_folder/test', 'DNN', epochs=TRAIN_EPOCHS)
+                                      exportDirectory, ML_REG_COVID_DNN, epochs=TRAIN_EPOCHS)
         # print(model)
 
         return model
 
-    def DeepLearning_Covid_LSTM(self, train_x, train_y, test_x, test_y):
+    def DeepLearning_Covid_LSTM(self, train_x, train_y, test_x, test_y, exportDirectory
+                                ):
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
         expandDimSize = self._MLR_dictMethods[ML_REG_COVID_LSTM][ML_KEY_3RD_DIM_SIZE]
@@ -482,7 +483,8 @@ class MachineLearningRegression:
                                     ))
             # Add Hidden Layer - SimpleLSTM
             ffunc_model.add(
-                keras.layers.LSTM(int((inputSize / expandDimSize) / 2 + int(outputSize / expandDimSize)), return_sequences=True,
+                keras.layers.LSTM(int((inputSize / expandDimSize) / 2 + int(outputSize / expandDimSize)),
+                                  return_sequences=True,
                                   activation=hp.Choice('activation_l4',
                                                        values=ACTIVATION_FUNCTIONS)
                                   ))
@@ -512,12 +514,12 @@ class MachineLearningRegression:
             return ffunc_model
 
         model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      '../../export_folder/test', 'LSTM', epochs=TRAIN_EPOCHS)
+                                      exportDirectory, ML_REG_COVID_LSTM, epochs=TRAIN_EPOCHS)
         # print(model)
 
         return model
 
-    def DeepLearning_Covid_RNN(self, train_x, train_y, test_x, test_y):
+    def DeepLearning_Covid_RNN(self, train_x, train_y, test_x, test_y, exportDirectory):
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
         expandDimSize = self._MLR_dictMethods[ML_REG_COVID_LSTM][ML_KEY_3RD_DIM_SIZE]
@@ -567,12 +569,12 @@ class MachineLearningRegression:
             return ffunc_model
 
         model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      '../../export_folder/test', 'RNN', epochs=TRAIN_EPOCHS)
+                                      exportDirectory, ML_REG_COVID_RNN, epochs=TRAIN_EPOCHS)
         # print(model)
 
         return model
 
-    def DeepLearning_Covid_SimpleRNN(self, train_x, train_y, test_x, test_y):
+    def DeepLearning_Covid_SimpleRNN(self, train_x, train_y, test_x, test_y, exportDirectory):
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
         expandDimSize = self._MLR_dictMethods[ML_REG_COVID_LSTM][ML_KEY_3RD_DIM_SIZE]
@@ -622,7 +624,7 @@ class MachineLearningRegression:
             return ffunc_model
 
         model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      '../../export_folder/test', 'SimpleRNN', epochs=TRAIN_EPOCHS)
+                                      exportDirectory, ML_REG_COVID_SIMPLE_RNN, epochs=TRAIN_EPOCHS)
         # print(model)
 
         return model
@@ -751,6 +753,8 @@ class MachineLearningRegression:
         exportBaseDir = os.path.normpath(exportFolder + '/' + currentDatetime)
         exportTrainedModelsPath = os.path.normpath(exportFolder + '/' +
                                                    currentDatetime + '/TrainedModels') + '/'
+        exportDeepLearningTunersPath = os.path.normpath(exportFolder + '/' +
+                                                        currentDatetime + '/TrainedModels/DeepLearningTuners') + '/'
         # The path the folder which we will export the performance scores
         workbookDirPath = os.path.normpath(exportFolder + '/' +
                                            currentDatetime) + '/'
@@ -771,6 +775,7 @@ class MachineLearningRegression:
         file_manip.checkAndCreateFolders(os.path.normpath(exportFolder))  # exportFolder
         file_manip.checkAndCreateFolders(workbookDirPath)  # workbookDirPath
         file_manip.checkAndCreateFolders(exportTrainedModelsPath)  # exportTrainedModelsPath
+        file_manip.checkAndCreateFolders(exportDeepLearningTunersPath)  # exportDeepLearningTunersPath
 
         # Create the Train and Validation Indexes
         randomIndexes = np.random.permutation(inputData_TrainVal_Shape[0])  # random permutation
@@ -785,6 +790,7 @@ class MachineLearningRegression:
             print("CurrentDatetime = ", currentDatetime)
             print("ErrorFileName = ", errorFileName)
             print("ExportTrainedModelPaths = ", exportTrainedModelsPath)
+            print("ExportTrainedModelPaths = ", exportDeepLearningTunersPath)
             print("WorkbookFilePath = ", workbookDirPath)
             print("InputData_TrainVal_Shape = ", inputData_TrainVal_Shape)
             print("OutputData_TrainVal_Shape = ", outputData_TrainVal_Shape)
@@ -847,7 +853,8 @@ class MachineLearningRegression:
                     model = self._MLR_dictMethods[_methodKey_][ML_KEY_METHOD](inputData_TrainVal,
                                                                               outputData_TrainVal,
                                                                               inputData_Test,
-                                                                              outputData_Test)
+                                                                              outputData_Test,
+                                                                              exportDeepLearningTunersPath)
                     print(file_manip.getCurrentDatetimeForConsole() + "::...COMPLETED!")  # console message
                     # Export model
                     modelExportPath = os.path.normpath(exportTrainedModelsPath + modelName + '_' +
