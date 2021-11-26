@@ -10,6 +10,7 @@ from lib.gui.mergeTableFiles_simple import WidgetMergeTableFilesSimple
 from lib.gui.mergeTableFiles_calendar import WidgetMergeTableFilesCalendar
 
 from lib.gui.machineLearningRegressionWidget import WidgetMachineLearningRegressionWidget
+from lib.gui.machineLearningForVideo import WidgetMachineLearningForVideo
 
 _STR_PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
@@ -41,6 +42,8 @@ class MainWindowCrabsMLearning(QMainWindow):
 
         # ***************************** #
         # Tools -> ....                 #
+
+        # .... -> MergeTableFilesSimple
         self.widgetMergeTableFilesSimple = WidgetMergeTableFilesSimple(w=512, h=512,
                                                                        minW=512, minH=256,
                                                                        maxW=840, maxH=512,
@@ -48,6 +51,7 @@ class MainWindowCrabsMLearning(QMainWindow):
                                                                        iconPath=_ICON_PATH_LOGO_32x32)
         self.widgetMergeTableFilesSimple.setWidget()
 
+        # .... -> MergeTableFilesCalendar
         self.widgetMergeTableFilesCalendar = WidgetMergeTableFilesCalendar(w=1024, h=512,
                                                                            minW=512, minH=256,
                                                                            maxW=1280, maxH=840,
@@ -55,13 +59,23 @@ class MainWindowCrabsMLearning(QMainWindow):
                                                                            iconPath=_ICON_PATH_LOGO_32x32)
         self.widgetMergeTableFilesCalendar.setWidget()
 
+        # .... -> MachineLearningRegression
         self.widgetMachineLearningRegressionWidget = WidgetMachineLearningRegressionWidget(w=1024, h=512,
                                                                                            minW=512, minH=256,
                                                                                            maxW=None,
                                                                                            maxH=None,
-                                                                                           winTitle='Machine Learning',
+                                                                                           winTitle='Machine Learning Regression',
                                                                                            iconPath=_ICON_PATH_LOGO_32x32)
         self.widgetMachineLearningRegressionWidget.setWidget()
+
+        # .... -> MachineLearningForVideo
+        self.widgetMachineLearningForVideoWidget = WidgetMachineLearningForVideo(w=1024, h=512,
+                                                                                 minW=512, minH=256,
+                                                                                 maxW=None,
+                                                                                 maxH=None,
+                                                                                 winTitle='Machine Learning For Video',
+                                                                                 iconPath=_ICON_PATH_LOGO_32x32)
+        self.widgetMachineLearningForVideoWidget.setWidget()
 
         #                               #
         # ***************************** #
@@ -103,6 +117,10 @@ class MainWindowCrabsMLearning(QMainWindow):
         # Action MachineLearningRegression - Α Machine Learning Regression Widget
         self.actionMachineLearningRegression = QAction('Machine Learning Regression' +
                                                        self.setSpaces(_INT_SPACES))
+
+        # Action MachineLearningForVideo - Α Machine Learning Widget for video
+        self.actionMachineLearningForVideo = QAction('Machine Learning For Video Files' +
+                                                     self.setSpaces(_INT_SPACES))
 
         # ******************* #
 
@@ -201,6 +219,7 @@ class MainWindowCrabsMLearning(QMainWindow):
 
         menuMachineLearning = menuTools.addMenu("Machine Learning")
         menuMachineLearning.addAction(self.actionMachineLearningRegression)
+        menuMachineLearning.addAction(self.actionMachineLearningForVideo)
 
     # ------------------ #
     # ----- Events ----- #
@@ -226,6 +245,7 @@ class MainWindowCrabsMLearning(QMainWindow):
 
         # actionMachineLearningSequential
         self.actionMachineLearningRegression.triggered.connect(self.actionMachineLearningRegression_func_)
+        self.actionMachineLearningForVideo.triggered.connect(self.actionMachineLearningForVideo_func_)
 
     # ************ #
     # *** File *** #
@@ -251,6 +271,9 @@ class MainWindowCrabsMLearning(QMainWindow):
 
     def actionMachineLearningRegression_func_(self):
         self.widgetMachineLearningRegressionWidget.show()
+
+    def actionMachineLearningForVideo_func_(self):
+        self.widgetMachineLearningForVideoWidget.show()
 
 
 # ******************************************************* #

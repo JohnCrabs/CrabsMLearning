@@ -15,7 +15,7 @@ _INT_MAX_STRETCH = 100000  # Spacer Max Stretch
 _INT_BUTTON_MIN_WIDTH = 50  # Minimum Button Width
 
 
-class WidgetTemplate(QWidget):
+class WidgetMachineLearningForVideo(QWidget):
     def __init__(self, w=512, h=512, minW=256, minH=256, maxW=512, maxH=512,
                  winTitle='My Window', iconPath=''):
         super().__init__()
@@ -72,8 +72,8 @@ class WidgetTemplate(QWidget):
 
 def exec_app(w=512, h=512, minW=256, minH=256, maxW=512, maxH=512, winTitle='My Window', iconPath=''):
     myApp = QApplication(sys.argv)  # Set Up Application
-    widgetWin = WidgetTemplate(w=w, h=h, minW=minW, minH=minH, maxW=maxW, maxH=maxH,
-                               winTitle=winTitle, iconPath=iconPath)  # Create MainWindow
+    widgetWin = WidgetMachineLearningForVideo(w=w, h=h, minW=minW, minH=minH, maxW=maxW, maxH=maxH,
+                                              winTitle=winTitle, iconPath=iconPath)  # Create MainWindow
     widgetWin.show()  # Show Window
     myApp.exec_()  # Execute Application
     sys.exit(0)  # Exit Application
