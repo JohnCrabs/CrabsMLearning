@@ -182,7 +182,10 @@ _ML_3RD_DIM_DEEP_METHODS = [
     ML_REG_COVID_SIMPLE_RNN
 ]
 
-ACTIVATION_FUNCTIONS = ['relu', 'sigmoid', 'softmax', 'softplus', 'softsign', 'tanh', 'selu', 'elu', 'exponential']
+# ACTIVATION_FUNCTIONS = ['relu', 'sigmoid', 'softmax', 'softplus', 'softsign', 'tanh', 'selu', 'elu', 'linear',  'exponential']
+ACTIVATION_FUNCTIONS = ['relu', 'sigmoid', 'softmax', 'softplus', 'softsign', 'tanh', 'selu', 'elu', 'linear']
+
+TRAIN_EPOCHS = 100
 
 
 # A class to store the Machine Learning Regression algorithms
@@ -366,22 +369,31 @@ class MachineLearningRegression:
     # ***** DEEP LEARNING METHODS ***** #
     # ********************************* #
     @staticmethod
-    def DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model, directory, name, epochs=100):
+    def DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model, directory, name,
+                         epochs=100, tuner_objective='loss', early_stop_monitor='val_loss'):
         tuner = kt.Hyperband(ffunc_build_model,
-                             objective='accuracy',
+                             objective=tuner_objective,
                              max_epochs=50,
                              factor=5,
                              directory=directory,
                              project_name=name)
 
-        tuner.search(train_x, train_y, epochs=epochs, validation_split=0.2)
+        # tuner = kt.RandomSearch(ffunc_build_model,
+        #                         objective='accuracy',
+        #                         max_trials=30,
+        #                         directory=directory,
+        #                         project_name=name
+        #                         )
+
+        stop_early = keras.callbacks.EarlyStopping(monitor=early_stop_monitor, patience=5)
+        tuner.search(train_x, train_y, epochs=epochs, validation_split=0.2, callbacks=[stop_early])
 
         # Get the optimal hyperparameters
         best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 
         model = tuner.hypermodel.build(best_hps)
         history = model.fit(train_x, train_y, epochs=epochs, validation_split=0.2)
-        val_acc_per_epoch = history.history['val_accuracy']
+        val_acc_per_epoch = history.history['val_loss']
         best_epoch = val_acc_per_epoch.index(max(val_acc_per_epoch)) + 1
 
         model = tuner.hypermodel.build(best_hps)
@@ -390,7 +402,7 @@ class MachineLearningRegression:
         model.fit(train_x, train_y, epochs=best_epoch, validation_split=0.2)
 
         eval_result = model.evaluate(test_x, test_y)
-        print("[test loss, test accuracy]:", eval_result)
+        print("test loss:", round(eval_result, 5))
 
         return model
 
@@ -410,7 +422,7 @@ class MachineLearningRegression:
             # Add Dropout Layer - d1
             ffunc_model.add(keras.layers.Dropout(.2, input_shape=(2,)))
             # Add Second Hidden Layer - l2
-            ffunc_model.add(keras.layers.Dense(inputSize,
+            ffunc_model.add(keras.layers.Dense(int(inputSize / 2) + 2,
                                                activation=hp.Choice('activation_l2',
                                                                     values=ACTIVATION_FUNCTIONS)))
             # Add Dropout Layer - d2
@@ -427,15 +439,14 @@ class MachineLearningRegression:
                                                                     values=ACTIVATION_FUNCTIONS)))
             hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.001, 0.0001])
             ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
-                                loss='mae',
-                                metrics=['accuracy'])
+                                loss='mae')
             ffunc_model.summary()
 
             return ffunc_model
 
         model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      '../../export_folder/test', 'DNN', epochs=200)
-        print(model)
+                                      '../../export_folder/test', 'DNN', epochs=TRAIN_EPOCHS)
+        # print(model)
 
         return model
 
@@ -465,14 +476,26 @@ class MachineLearningRegression:
                                   ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
-                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
+                keras.layers.Conv1D(int((inputSize / expandDimSize) / 2 + int(outputSize / expandDimSize)), 1,
                                     activation=hp.Choice('activation_l3',
                                                          values=ACTIVATION_FUNCTIONS)
                                     ))
             # Add Hidden Layer - SimpleLSTM
             ffunc_model.add(
-                keras.layers.LSTM(int(outputSize / expandDimSize), return_sequences=True,
+                keras.layers.LSTM(int((inputSize / expandDimSize) / 2 + int(outputSize / expandDimSize)), return_sequences=True,
                                   activation=hp.Choice('activation_l4',
+                                                       values=ACTIVATION_FUNCTIONS)
+                                  ))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
+                                    activation=hp.Choice('activation_l5',
+                                                         values=ACTIVATION_FUNCTIONS)
+                                    ))
+            # Add Hidden Layer - SimpleLSTM
+            ffunc_model.add(
+                keras.layers.LSTM(int(outputSize / expandDimSize), return_sequences=True,
+                                  activation=hp.Choice('activation_l6',
                                                        values=ACTIVATION_FUNCTIONS)
                                   ))
             # Add Reshape Layer
@@ -481,17 +504,16 @@ class MachineLearningRegression:
             ffunc_model.add(keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
                                                                                 values=ACTIVATION_FUNCTIONS)))
 
-            hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.001, 0.0001])
+            hp_learning_rate = hp.Choice('learning_rate', values=[0.01, 0.001])
             ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
-                                loss='mae',
-                                metrics=['accuracy'])
+                                loss='mae')
             ffunc_model.summary()
 
             return ffunc_model
 
         model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      '../../export_folder/test', 'LSTM', epochs=200)
-        print(model)
+                                      '../../export_folder/test', 'LSTM', epochs=TRAIN_EPOCHS)
+        # print(model)
 
         return model
 
@@ -537,17 +559,16 @@ class MachineLearningRegression:
             ffunc_model.add(keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
                                                                                 values=ACTIVATION_FUNCTIONS)))
 
-            hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.001, 0.0001])
+            hp_learning_rate = hp.Choice('learning_rate', values=[0.01, 0.001])
             ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
-                                loss='mae',
-                                metrics=['accuracy'])
+                                loss='mae')
             ffunc_model.summary()
 
             return ffunc_model
 
         model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      '../../export_folder/test', 'RNN', epochs=200)
-        print(model)
+                                      '../../export_folder/test', 'RNN', epochs=TRAIN_EPOCHS)
+        # print(model)
 
         return model
 
@@ -572,9 +593,9 @@ class MachineLearningRegression:
             # Add Hidden Layer - SimpleLSTM
             ffunc_model.add(
                 keras.layers.SimpleRNN(int(inputSize / expandDimSize), return_sequences=True,
-                                 activation=hp.Choice('activation_l2',
-                                                      values=ACTIVATION_FUNCTIONS)
-                                 ))
+                                       activation=hp.Choice('activation_l2',
+                                                            values=ACTIVATION_FUNCTIONS)
+                                       ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
                 keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
@@ -584,26 +605,25 @@ class MachineLearningRegression:
             # Add Hidden Layer - SimpleLSTM
             ffunc_model.add(
                 keras.layers.SimpleRNN(int(outputSize / expandDimSize), return_sequences=True,
-                                 activation=hp.Choice('activation_l4',
-                                                      values=ACTIVATION_FUNCTIONS)
-                                 ))
+                                       activation=hp.Choice('activation_l4',
+                                                            values=ACTIVATION_FUNCTIONS)
+                                       ))
             # Add Reshape Layer
             ffunc_model.add(keras.layers.Reshape(target_shape=(outputSize,)))
             # Add Output Layer
             ffunc_model.add(keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
                                                                                 values=ACTIVATION_FUNCTIONS)))
 
-            hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.001, 0.0001])
+            hp_learning_rate = hp.Choice('learning_rate', values=[0.01, 0.001])
             ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
-                                loss='mae',
-                                metrics=['accuracy'])
+                                loss='mae')
             ffunc_model.summary()
 
             return ffunc_model
 
         model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      '../../export_folder/test', 'SimpleRNN', epochs=200)
-        print(model)
+                                      '../../export_folder/test', 'SimpleRNN', epochs=TRAIN_EPOCHS)
+        # print(model)
 
         return model
 

@@ -2181,6 +2181,21 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.button_AdaBoostRegressor.setIcon(_icon)
         self.button_GradientBoostingRegressor.setIcon(_icon)
 
+        self.button_BayesianRidge.setEnabled(False)
+        self.button_Lasso.setEnabled(False)
+        self.button_LassoLars.setEnabled(False)
+        self.button_TweedieRegressor.setEnabled(False)
+        self.button_SGDRegressor.setEnabled(False)
+        self.button_SVR.setEnabled(False)
+        self.button_LinearSVR.setEnabled(False)
+        self.button_SVR.setEnabled(False)
+        self.button_NearestNeighbor.setEnabled(False)
+        self.button_KNeighborsRegressor.setEnabled(False)
+        self.button_DecisionTreeRegressor.setEnabled(False)
+        self.button_RandomForestRegressor.setEnabled(False)
+        self.button_AdaBoostRegressor.setEnabled(False)
+        self.button_GradientBoostingRegressor.setEnabled(False)
+
         # ---------------------- #
         # ----- CheckBoxes ----- #
         # ---------------------- #
@@ -2199,6 +2214,20 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.checkbox_RandomForestRegressor = QCheckBox()
         self.checkbox_AdaBoostRegressor = QCheckBox()
         self.checkbox_GradientBoostingRegressor = QCheckBox()
+
+        self.checkbox_BayesianRidge.setEnabled(False)
+        self.checkbox_Lasso.setEnabled(False)
+        self.checkbox_LassoLars.setEnabled(False)
+        self.checkbox_TweedieRegressor.setEnabled(False)
+        self.checkbox_SGDRegressor.setEnabled(False)
+        self.checkbox_SVR.setEnabled(False)
+        self.checkbox_LinearSVR.setEnabled(False)
+        self.checkbox_NearestNeighbor.setEnabled(False)
+        self.checkbox_KNeighborsRegressor.setEnabled(False)
+        self.checkbox_DecisionTreeRegressor.setEnabled(False)
+        self.checkbox_RandomForestRegressor.setEnabled(False)
+        self.checkbox_AdaBoostRegressor.setEnabled(False)
+        self.checkbox_GradientBoostingRegressor.setEnabled(False)
 
         # ---------------------- #
         # ----- ScrollArea ----- #
@@ -2595,6 +2624,11 @@ class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
         self.button_Covid_SimpleRecurrentNeuralNetwork = QPushButton()
         self.button_Covid_SimpleRecurrentNeuralNetwork.setIcon(_icon)
 
+        self.button_Covid_DeepNeuralNetwork.setEnabled(False)
+        self.button_Covid_SimpleRecurrentNeuralNetwork.setEnabled(False)
+        self.button_Covid_RecurrentNeuralNetwork.setEnabled(False)
+        self.button_Covid_LongShortTermMemoryNeuralNetwork.setEnabled(False)
+
         # ---------------------- #
         # ----- CheckBoxes ----- #
         # ---------------------- #
@@ -2602,6 +2636,8 @@ class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
         self.checkbox_Covid_LongShortTermMemoryNeuralNetwork = QCheckBox()
         self.checkbox_Covid_RecurrentNeuralNetwork = QCheckBox()
         self.checkbox_Covid_SimpleRecurrentNeuralNetwork = QCheckBox()
+
+        self.checkbox_Covid_RecurrentNeuralNetwork.setEnabled(False)
 
         # ---------------------- #
         # ----- ScrollArea ----- #
@@ -2706,6 +2742,9 @@ class WidgetTabMachineLearningSettingsSignalCompareMethods(QWidget):
         self.checkbox_TimeLaggedCrossCorrelationNoSplits = QCheckBox()
         self.checkbox_RollingWindowTimeLaggedCrossCorrelation = QCheckBox()
         self.checkbox_DynamicTimeWarping = QCheckBox()
+
+        self.checkbox_TimeLaggedCrossCorrelationNoSplits.setEnabled(False)
+        self.checkbox_RollingWindowTimeLaggedCrossCorrelation.setEnabled(False)
 
         # ---------------------- #
         # ----- ScrollArea ----- #
