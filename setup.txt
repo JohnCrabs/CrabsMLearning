@@ -10,3 +10,4 @@ pip install dulwich
 pip install tensorflow
 pip install seaborn
 pip install dtw-python
+pip install keras-tuner --upgrade
