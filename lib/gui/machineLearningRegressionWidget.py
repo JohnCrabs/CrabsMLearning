@@ -1602,23 +1602,28 @@ class WidgetMachineLearningRegressionWidget(QWidget):
 
     def actionStateChangeBayesianRidge(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_BayesianRidge()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setBayesianRidge_state(state)
 
     def actionStateChangeLasso(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_Lasso()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setLasso_state(state)
 
     def actionStateChangeLassoLars(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_LassoLars()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setLassoLars_state(state)
 
     def actionStateChangeTweedieRegressor(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_TweedieRegressor()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setTweedieRegressor_state(state)
 
     def actionStateChangeSGDRegressor(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_SGDRegressor()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setSGDRegressor_state(state)
 
     def actionStateChangeSVR(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_SVR()
@@ -1627,31 +1632,38 @@ class WidgetMachineLearningRegressionWidget(QWidget):
 
     def actionStateChangeLinearSVR(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_LinearSVR()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setLinearSVR_state(state)
 
     def actionStateChangeNearestNeighbor(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_NearestNeighbor()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setNearestNeighbor_state(state)
 
     def actionStateChangeKNeighborsRegressor(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_KNeighborsRegressor()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setKNeighborsRegressor_state(state)
 
     def actionStateChangeDecisionTreeRegressor(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_DecisionTreeRegressor()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setDecisionTreeRegressor_state(state)
 
     def actionStateChangeRandomForestRegressor(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_RandomForestRegressor()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setRandomForestRegressor_state(state)
 
     def actionStateChangeAdaBoostRegressor(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_AdaBoostRegressor()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setAdaBoostRegressor_state(state)
 
     def actionStateChangeGradientBoostingRegressor(self):
         state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_GradientBoostingRegressor()
-        print(state)
+        # print(state)
+        self.mlr_Regression.setGradientBoostingRegressor_state(state)
 
     # _____ BUTTON CLICKED EVENT _____ #
     def actionButtonClickedRidge(self):

@@ -783,6 +783,41 @@ class MachineLearningRegression:
     def getRidge_state(self):
         return self._MLR_dictMethods[MLR_REG_RIDGE][self._MLR_KEY_STATE]
 
+    # ****** Bayesian Ridge ***** #
+    def setBayesianRidge_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_BAYESIAN_RIDGE][self._MLR_KEY_STATE] = state
+
+    def getBayesianRidge_state(self):
+        return self._MLR_dictMethods[MLR_REG_BAYESIAN_RIDGE][self._MLR_KEY_STATE]
+
+    # ****** Lasso ***** #
+    def setLasso_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_LASSO][self._MLR_KEY_STATE] = state
+
+    def getLasso_state(self):
+        return self._MLR_dictMethods[MLR_REG_LASSO][self._MLR_KEY_STATE]
+
+    # ****** Lasso Lars ***** #
+    def setLassoLars_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_LASSO_LARS][self._MLR_KEY_STATE] = state
+
+    def getLassoLars_state(self):
+        return self._MLR_dictMethods[MLR_REG_LASSO_LARS][self._MLR_KEY_STATE]
+
+    # ****** Tweedie Regressor ***** #
+    def setTweedieRegressor_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_TWEEDIE_REGRESSOR][self._MLR_KEY_STATE] = state
+
+    def getTweedieRegressor_state(self):
+        return self._MLR_dictMethods[MLR_REG_TWEEDIE_REGRESSOR][self._MLR_KEY_STATE]
+
+    # ****** SGD Regressor ***** #
+    def setSGDRegressor_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_SGD_REGRESSOR][self._MLR_KEY_STATE] = state
+
+    def getSGDRegressor_state(self):
+        return self._MLR_dictMethods[MLR_REG_SGD_REGRESSOR][self._MLR_KEY_STATE]
+
     # ****** SVR ***** #
     def setSVR_Kernel(self, value: []):
         self._MLR_dictMethods[MLR_REG_SVR][MLR_KEY_PARAM_GRID][MLR_KEY_KERNEL] = value
@@ -825,6 +860,55 @@ class MachineLearningRegression:
 
     def getSVR_state(self):
         return self._MLR_dictMethods[MLR_REG_SVR][self._MLR_KEY_STATE]
+
+    # ****** Linear SVR ***** #
+    def setLinearSVR_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_LINEAR_SVR][self._MLR_KEY_STATE] = state
+
+    def getLinearSVR_state(self):
+        return self._MLR_dictMethods[MLR_REG_LINEAR_SVR][self._MLR_KEY_STATE]
+
+    # ****** Nearest Neighbor ***** #
+    def setNearestNeighbor_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_NEAREST_NEIGHBORS][self._MLR_KEY_STATE] = state
+
+    def getNearestNeighbor_state(self):
+        return self._MLR_dictMethods[MLR_REG_NEAREST_NEIGHBORS][self._MLR_KEY_STATE]
+
+    # ****** K Neighbors Regressor ***** #
+    def setKNeighborsRegressor_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_K_NEIGHBORS_REGRESSOR][self._MLR_KEY_STATE] = state
+
+    def getKNeighborsRegressor_state(self):
+        return self._MLR_dictMethods[MLR_REG_K_NEIGHBORS_REGRESSOR][self._MLR_KEY_STATE]
+
+    # ****** Decision Tree Regressor ***** #
+    def setDecisionTreeRegressor_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_DECISION_TREE_REGRESSOR][self._MLR_KEY_STATE] = state
+
+    def getDecisionTreeRegressor_state(self):
+        return self._MLR_dictMethods[MLR_REG_DECISION_TREE_REGRESSOR][self._MLR_KEY_STATE]
+
+    # ****** Random Forest Regressor ***** #
+    def setRandomForestRegressor_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_RANDOM_FOREST_REGRESSOR][self._MLR_KEY_STATE] = state
+
+    def getRandomForestRegressor_state(self):
+        return self._MLR_dictMethods[MLR_REG_RANDOM_FOREST_REGRESSOR][self._MLR_KEY_STATE]
+
+    # ****** Ada Boost Regressor ***** #
+    def setAdaBoostRegressor_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_ADA_BOOST_REGRESSOR][self._MLR_KEY_STATE] = state
+
+    def getAdaBoostRegressor_state(self):
+        return self._MLR_dictMethods[MLR_REG_ADA_BOOST_REGRESSOR][self._MLR_KEY_STATE]
+
+    # ****** Gradient Boosting Regressor ***** #
+    def setGradientBoostingRegressor_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_GRADIENT_BOOSTING_REGRESSOR][self._MLR_KEY_STATE] = state
+
+    def getGradientBoostingRegressor_state(self):
+        return self._MLR_dictMethods[MLR_REG_GRADIENT_BOOSTING_REGRESSOR][self._MLR_KEY_STATE]
 
     # ****** Covid_DeepNeuralNetworkRegressor ***** #
     def setCovid_DNN_reg_state(self, state: bool):
