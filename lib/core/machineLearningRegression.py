@@ -545,36 +545,66 @@ class MachineLearningRegression:
             # Add Input Layer
             ffunc_model.add(keras.Input(shape=(inputSize,)))
             # Add Reshape Layer
-            ffunc_model.add(keras.layers.Reshape(target_shape=(expandDimSize, int(inputSize / expandDimSize),)))
+            ffunc_model.add(
+                keras.layers.Reshape(target_shape=(expandDimSize, int(inputSize / expandDimSize),)
+                                     ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
                 keras.layers.Conv1D(int(inputSize / expandDimSize), 1,
-                                    activation=hp.Choice('activation_l1',
+                                    activation=hp.Choice('activation_conv_l1',
                                                          values=activation_function_list)
                                     ))
-            # Add Hidden Layer - SimpleLSTM
+            # Add Hidden Layer - LSTM
             ffunc_model.add(
                 keras.layers.LSTM(int(inputSize / expandDimSize), return_sequences=True,
-                                  activation=hp.Choice('activation_l2',
+                                  activation=hp.Choice('activation_lstm_l2',
                                                        values=activation_function_list)
                                   ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
-                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
-                                    activation=hp.Choice('activation_l3',
+                keras.layers.Conv1D(int(inputSize / expandDimSize) * 2, 1,
+                                    activation=hp.Choice('activation_conv_l3',
                                                          values=activation_function_list)
                                     ))
-            # Add Hidden Layer - SimpleLSTM
+            # Add Hidden Layer - LSTM
+            ffunc_model.add(keras.layers.Bidirectional(
+                keras.layers.LSTM(int(inputSize / expandDimSize) * 2, return_sequences=True,
+                                  activation=hp.Choice('activation_lstm_l4',
+                                                       values=activation_function_list)
+                                  )))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(outputSize / expandDimSize) * 2, 1,
+                                    activation=hp.Choice('activation_conv_l5',
+                                                         values=activation_function_list)
+                                    ))
+            # Add Hidden Layer - LSTM
+            ffunc_model.add(keras.layers.Bidirectional(
+                keras.layers.LSTM(int(outputSize / expandDimSize) * 2, return_sequences=True,
+                                  activation=hp.Choice('activation_lstm_l6',
+                                                       values=activation_function_list)
+                                  )))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
+                                    activation=hp.Choice('activation_conv_l7',
+                                                         values=activation_function_list)
+                                    ))
+            # Add Hidden Layer - LSTM
             ffunc_model.add(
                 keras.layers.LSTM(int(outputSize / expandDimSize), return_sequences=True,
-                                  activation=hp.Choice('activation_l4',
+                                  activation=hp.Choice('activation_lstm_l9',
                                                        values=activation_function_list)
                                   ))
             # Add Reshape Layer
-            ffunc_model.add(keras.layers.Reshape(target_shape=(outputSize,)))
+            ffunc_model.add(
+                keras.layers.Reshape(target_shape=(outputSize,)
+                                     ))
             # Add Output Layer
-            ffunc_model.add(keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
-                                                                                values=activation_function_list)))
+            ffunc_model.add(
+                keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
+                                                                    values=activation_function_list)
+                                   ))
 
             hp_learning_rate = hp.Choice('learning_rate', values=[0.001])
             ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
@@ -661,27 +691,60 @@ class MachineLearningRegression:
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
                 keras.layers.Conv1D(int(inputSize / expandDimSize), 1,
-                                    activation=hp.Choice('activation_l1',
+                                    activation=hp.Choice('activation_conv_l1',
                                                          values=activation_function_list)
                                     ))
-            # Add Hidden Layer - SimpleLSTM
+            # Add Hidden Layer - SimpleRNN
             ffunc_model.add(
                 keras.layers.SimpleRNN(int(inputSize / expandDimSize), return_sequences=True,
-                                       activation=hp.Choice('activation_l2',
+                                       activation=hp.Choice('activation_lstm_l2',
                                                             values=activation_function_list)
                                        ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
-                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
-                                    activation=hp.Choice('activation_l3',
+                keras.layers.Conv1D(int(inputSize / expandDimSize) * 2, 1,
+                                    activation=hp.Choice('activation_conv_l3',
                                                          values=activation_function_list)
                                     ))
-            # Add Hidden Layer - SimpleLSTM
+            # Add Hidden Layer - LSTM
+            ffunc_model.add(keras.layers.Bidirectional(
+                keras.layers.SimpleRNN(int(inputSize / expandDimSize) * 2, return_sequences=True,
+                                       activation=hp.Choice('activation_lstm_l4',
+                                                            values=activation_function_list)
+                                       )))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(outputSize / expandDimSize) * 2, 1,
+                                    activation=hp.Choice('activation_conv_l5',
+                                                         values=activation_function_list)
+                                    ))
+            # Add Hidden Layer - SimpleRNN
+            ffunc_model.add(keras.layers.Bidirectional(
+                keras.layers.SimpleRNN(int(outputSize / expandDimSize) * 2, return_sequences=True,
+                                       activation=hp.Choice('activation_lstm_l6',
+                                                            values=activation_function_list)
+                                       )))
+            # Add Hidden Layer - Conv1D
+            ffunc_model.add(
+                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
+                                    activation=hp.Choice('activation_conv_l7',
+                                                         values=activation_function_list)
+                                    ))
+            # Add Hidden Layer - SimpleRNN
             ffunc_model.add(
                 keras.layers.SimpleRNN(int(outputSize / expandDimSize), return_sequences=True,
-                                       activation=hp.Choice('activation_l4',
+                                       activation=hp.Choice('activation_lstm_l9',
                                                             values=activation_function_list)
                                        ))
+            # Add Reshape Layer
+            ffunc_model.add(
+                keras.layers.Reshape(target_shape=(outputSize,)
+                                     ))
+            # Add Output Layer
+            ffunc_model.add(
+                keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
+                                                                    values=activation_function_list)
+                                   ))
             # Add Reshape Layer
             ffunc_model.add(keras.layers.Reshape(target_shape=(outputSize,)))
             # Add Output Layer
