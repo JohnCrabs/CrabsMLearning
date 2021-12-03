@@ -538,6 +538,7 @@ class MachineLearningRegression:
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
         expandDimSize = self._MLR_dictMethods[MLR_REG_COVID_LSTM][MLR_KEY_3RD_DIM_SIZE]
+        # expandDimSize = 1
 
         def ffunc_build_model(hp):
             # Create Model - Sequential
@@ -546,8 +547,9 @@ class MachineLearningRegression:
             ffunc_model.add(keras.Input(shape=(inputSize,)))
             # Add Reshape Layer
             ffunc_model.add(
-                keras.layers.Reshape(target_shape=(expandDimSize, int(inputSize / expandDimSize),)
-                                     ))
+                keras.layers.Reshape(
+                    target_shape=(expandDimSize, int(inputSize / expandDimSize),)
+                                    ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
                 keras.layers.Conv1D(int(inputSize / expandDimSize), 1,
@@ -567,11 +569,11 @@ class MachineLearningRegression:
                                                          values=activation_function_list)
                                     ))
             # Add Hidden Layer - LSTM
-            ffunc_model.add(keras.layers.Bidirectional(
+            ffunc_model.add(
                 keras.layers.LSTM(int(inputSize / expandDimSize) * 2, return_sequences=True,
                                   activation=hp.Choice('activation_lstm_l4',
                                                        values=activation_function_list)
-                                  )))
+                                  ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
                 keras.layers.Conv1D(int(outputSize / expandDimSize) * 2, 1,
@@ -579,11 +581,11 @@ class MachineLearningRegression:
                                                          values=activation_function_list)
                                     ))
             # Add Hidden Layer - LSTM
-            ffunc_model.add(keras.layers.Bidirectional(
+            ffunc_model.add(
                 keras.layers.LSTM(int(outputSize / expandDimSize) * 2, return_sequences=True,
                                   activation=hp.Choice('activation_lstm_l6',
                                                        values=activation_function_list)
-                                  )))
+                                  ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
                 keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
