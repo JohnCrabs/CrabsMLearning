@@ -38,7 +38,6 @@ from PySide2.QtGui import (
     QPixmap
 )
 
-# import lib.core.my_calendar_v2 as my_cal_v2
 from lib.core.project_flags import *
 import lib.core.machineLearningRegression as mlr
 import lib.core.signalCompare as signComp
@@ -234,7 +233,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
     # --------------------------- #
     # ----- Reuse Functions ----- #
     # --------------------------- #
-    def setTab(self):
+    def set_IO_Tab(self):
         # Set main Tab Widget
         self.widgetTabInputOutput.setWidget()  # Set the Tab File Management Widget
         self.mainTabWidget.addTab(self.widgetTabInputOutput, "Input/Output Management")  # Add it to mainTanWidget
@@ -252,7 +251,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         :return: Nothing
         """
 
-        self.setTab()
+        self.set_IO_Tab()
         self.set_MLR_Defaults()
         self.widgetTabMachineLearningSettings.setWidget()
         self.mainTabWidget.addTab(self.widgetTabMachineLearningSettings, "Machine Learning Settings")
@@ -344,7 +343,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
     # ------------------ #
     # ----- Events ----- #
     # ------------------ #
-    # ***** SET EVENTS FUNCTIONS *** #
+    # ***** SET EVENTS FUNCTIONS ***** #
     def setEvents_(self):
         # buttonInputColumn
         self.widgetTabInputOutput.buttonInputColumn.clicked.connect(self.actionButtonInput)
@@ -535,6 +534,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         self.widgetOptions_Ridge.listWidget_SolverSelectedList.model().rowsRemoved.connect(
             self.actionChange_Ridge_SelectedSolver)
 
+    # Set event for SVROptions
     def setWidgetSVREvents_(self):
         # Set Button Events
         self.widgetOptions_SVR.button_KernelAdd.clicked.connect(self.actionButtonClicked_SVR_KernelAdd)
@@ -564,6 +564,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         self.widgetOptions_SVR.listWidget_TolSelectedList.model().rowsRemoved.connect(
             self.actionChange_SVR_SelectedTol)
 
+    # ***** MAIN EVENTS FUNCTION ***** #
     def setMainEvents_(self):
         # Button Events
         self.buttonAdd.clicked.connect(self.actionButtonAdd)  # buttonAdd -> clicked

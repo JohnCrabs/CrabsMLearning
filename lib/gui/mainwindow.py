@@ -10,7 +10,7 @@ from lib.gui.mergeTableFiles_simple import WidgetMergeTableFilesSimple
 from lib.gui.mergeTableFiles_calendar import WidgetMergeTableFilesCalendar
 
 from lib.gui.machineLearningRegressionWidget import WidgetMachineLearningRegressionWidget
-from lib.gui.machineLearningForVideo import WidgetMachineLearningForVideo
+from lib.gui.machineLearningImageClassification import WidgetMachineLearningImageClassification
 
 _STR_PROJECT_FOLDER = os.path.normpath(os.path.realpath(__file__) + '/../../../')
 
@@ -69,12 +69,12 @@ class MainWindowCrabsMLearning(QMainWindow):
         self.widgetMachineLearningRegressionWidget.setWidget()
 
         # .... -> MachineLearningForVideo
-        self.widgetMachineLearningForVideoWidget = WidgetMachineLearningForVideo(w=1024, h=512,
-                                                                                 minW=512, minH=256,
-                                                                                 maxW=None,
-                                                                                 maxH=None,
-                                                                                 winTitle='Machine Learning For Video',
-                                                                                 iconPath=_ICON_PATH_LOGO_32x32)
+        self.widgetMachineLearningForVideoWidget = WidgetMachineLearningImageClassification(w=1024, h=512,
+                                                                                            minW=512, minH=256,
+                                                                                            maxW=None,
+                                                                                            maxH=None,
+                                                                                            winTitle='Machine Learning Image Classification',
+                                                                                            iconPath=_ICON_PATH_LOGO_32x32)
         self.widgetMachineLearningForVideoWidget.setWidget()
 
         #                               #
@@ -119,7 +119,7 @@ class MainWindowCrabsMLearning(QMainWindow):
                                                        self.setSpaces(_INT_SPACES))
 
         # Action MachineLearningForVideo - Α Machine Learning Widget for video
-        self.actionMachineLearningForVideo = QAction('Machine Learning For Video Files' +
+        self.actionMachineLearningForVideo = QAction('Machine Learning For Image Classification' +
                                                      self.setSpaces(_INT_SPACES))
 
         # ******************* #
