@@ -467,8 +467,7 @@ class MachineLearningRegression:
         #                         project_name=name
         #                         )
 
-        stop_early = keras.callbacks.EarlyStopping(monitor=early_stop_monitor, patience=5)
-        tuner.search(train_x, train_y, epochs=epochs, validation_split=0.2, callbacks=[stop_early])
+        tuner.search(train_x, train_y, epochs=epochs, validation_split=0.2)
 
         # Get the optimal hyperparameters
         best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
@@ -538,69 +537,65 @@ class MachineLearningRegression:
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
         expandDimSize = self._MLR_dictMethods[MLR_REG_COVID_LSTM][MLR_KEY_3RD_DIM_SIZE]
+
         # expandDimSize = 1
 
-        def ffunc_build_model(hp):
-            # Create Model - Sequential
+        def ffunc_build_model():
             ffunc_model = keras.Sequential()
-            # Add Input Layer
             ffunc_model.add(keras.Input(shape=(inputSize,)))
             # Add Reshape Layer
             ffunc_model.add(
                 keras.layers.Reshape(
                     target_shape=(expandDimSize, int(inputSize / expandDimSize),)
-                                    ))
+                ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
-                keras.layers.Conv1D(int(inputSize / expandDimSize), 1,
-                                    activation=hp.Choice('activation_conv_l1',
-                                                         values=activation_function_list)
-                                    ))
+                keras.layers.Conv1D(
+                    int(inputSize / expandDimSize), 1,
+                    activation='relu'
+                ))
             # Add Hidden Layer - LSTM
             ffunc_model.add(
-                keras.layers.LSTM(int(inputSize / expandDimSize), return_sequences=True,
-                                  activation=hp.Choice('activation_lstm_l2',
-                                                       values=activation_function_list)
-                                  ))
+                keras.layers.LSTM(
+                    92,
+                    return_sequences=True
+                ))
             # Add Hidden Layer - LSTM
             ffunc_model.add(
-                keras.layers.LSTM(int(inputSize / expandDimSize) * 2, return_sequences=True,
-                                  activation=hp.Choice('activation_lstm_l3',
-                                                       values=activation_function_list)
-                                  ))
-            # Add Hidden Layer - LSTM
+                keras.layers.LSTM(
+                    expandDimSize,
+                    return_sequences=True
+                ))
+            # Add Dropout
+            ffunc_model.add(keras.layers.Dropout(0.1))
+            # Add a Reshape
+            ffunc_model.add(keras.layers.Reshape((expandDimSize, -1)))
+            # Add Dense Layer
             ffunc_model.add(
-                keras.layers.LSTM(int(outputSize / expandDimSize) * 2, return_sequences=True,
-                                  activation=hp.Choice('activation_lstm_l4',
-                                                       values=activation_function_list)
-                                  ))
-
-            # Add Hidden Layer - LSTM
-            ffunc_model.add(
-                keras.layers.LSTM(int(outputSize / expandDimSize), return_sequences=True,
-                                  activation=hp.Choice('activation_lstm_l5',
-                                                       values=activation_function_list)
-                                  ))
+                keras.layers.Dense(
+                    int(outputSize / expandDimSize),
+                    activation='tanh'
+                ))
             # Add Reshape Layer
             ffunc_model.add(
-                keras.layers.Reshape(target_shape=(outputSize,)
-                                     ))
-            # Add Output Layer
-            ffunc_model.add(
-                keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
-                                                                    values=activation_function_list)
-                                   ))
+                keras.layers.Reshape(
+                    target_shape=(outputSize,)
+                ))
+            ffunc_model.add(keras.layers.Dense(outputSize))
 
-            hp_learning_rate = hp.Choice('learning_rate', values=[0.001])
-            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
+            ffunc_model.compile(optimizer='adam',
                                 loss='mae')
             ffunc_model.summary()
 
             return ffunc_model
 
-        model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      exportDirectory, MLR_REG_COVID_LSTM, epochs=epochs)
+        # model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
+        #                               exportDirectory, MLR_REG_COVID_LSTM, epochs=epochs)
         # print(model)
+        model = ffunc_build_model()
+        model.fit(train_x, train_y, epochs=epochs, shuffle=False, batch_size=12, verbose=1)
+        eval_result = model.evaluate(test_x, test_y)
+        print("test loss:", round(eval_result, 5))
 
         return model
 
@@ -611,43 +606,50 @@ class MachineLearningRegression:
         expandDimSize = self._MLR_dictMethods[MLR_REG_COVID_LSTM][MLR_KEY_3RD_DIM_SIZE]
 
         def ffunc_build_model(hp):
-            # Create Model - Sequential
             ffunc_model = keras.Sequential()
-            # Add Input Layer
             ffunc_model.add(keras.Input(shape=(inputSize,)))
             # Add Reshape Layer
-            ffunc_model.add(keras.layers.Reshape(target_shape=(expandDimSize, int(inputSize / expandDimSize),)))
+            ffunc_model.add(
+                keras.layers.Reshape(
+                    target_shape=(expandDimSize, int(inputSize / expandDimSize),)
+                ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
-                keras.layers.Conv1D(int(inputSize / expandDimSize), 1,
-                                    activation=hp.Choice('activation_l1',
-                                                         values=activation_function_list)
-                                    ))
-            # Add Hidden Layer - SimpleLSTM
+                keras.layers.Conv1D(
+                    int(inputSize / expandDimSize), 1,
+                    activation=hp.Choice('activation_conv_l1',
+                                         values=activation_function_list)
+                ))
+            # Add Hidden Layer - SimpleRNN
             ffunc_model.add(
-                keras.layers.RNN(int(inputSize / expandDimSize), return_sequences=True,
-                                 activation=hp.Choice('activation_l2',
-                                                      values=activation_function_list)
-                                 ))
-            # Add Hidden Layer - Conv1D
+                keras.layers.SimpleRNN(
+                    inputSize,
+                    return_sequences=True
+                ))
+            # Add Hidden Layer - SimpleRNN
             ffunc_model.add(
-                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
-                                    activation=hp.Choice('activation_l3',
-                                                         values=activation_function_list)
-                                    ))
-            # Add Hidden Layer - SimpleLSTM
+                keras.layers.SimpleRNN(
+                    int(inputSize / expandDimSize),
+                    return_sequences=True
+                ))
+            # Add Dropout
+            ffunc_model.add(keras.layers.Dropout(0.1))
+            # Add Dense Layer
             ffunc_model.add(
-                keras.layers.RNN(int(outputSize / expandDimSize), return_sequences=True,
-                                 activation=hp.Choice('activation_l4',
-                                                      values=activation_function_list)
-                                 ))
+                keras.layers.Dense(
+                    int(outputSize / expandDimSize),
+                    activation=hp.Choice('activation_lstm_lo',
+                                         values=activation_function_list
+                                         )
+                ))
             # Add Reshape Layer
-            ffunc_model.add(keras.layers.Reshape(target_shape=(outputSize,)))
-            # Add Output Layer
-            ffunc_model.add(keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
-                                                                                values=activation_function_list)))
+            ffunc_model.add(
+                keras.layers.Reshape(
+                    target_shape=(outputSize,)
+                ))
+            # ffunc_model.add(keras.layers.Dense(outputSize, activation='tanh'))
 
-            hp_learning_rate = hp.Choice('learning_rate', values=[0.01, 0.001])
+            hp_learning_rate = hp.Choice('learning_rate', values=[0.001])
             ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
                                 loss='mae')
             ffunc_model.summary()
@@ -666,86 +668,62 @@ class MachineLearningRegression:
         outputSize = train_y.shape[1]
         expandDimSize = self._MLR_dictMethods[MLR_REG_COVID_LSTM][MLR_KEY_3RD_DIM_SIZE]
 
-        def ffunc_build_model(hp):
-            # Create Model - Sequential
+        def ffunc_build_model():
             ffunc_model = keras.Sequential()
-            # Add Input Layer
             ffunc_model.add(keras.Input(shape=(inputSize,)))
             # Add Reshape Layer
-            ffunc_model.add(keras.layers.Reshape(target_shape=(expandDimSize, int(inputSize / expandDimSize),)))
+            ffunc_model.add(
+                keras.layers.Reshape(
+                    target_shape=(expandDimSize, int(inputSize / expandDimSize),)
+                ))
             # Add Hidden Layer - Conv1D
             ffunc_model.add(
-                keras.layers.Conv1D(int(inputSize / expandDimSize), 1,
-                                    activation=hp.Choice('activation_conv_l1',
-                                                         values=activation_function_list)
-                                    ))
+                keras.layers.Conv1D(
+                    int(inputSize / expandDimSize), 1,
+                    activation='relu'
+                ))
             # Add Hidden Layer - SimpleRNN
             ffunc_model.add(
-                keras.layers.SimpleRNN(int(inputSize / expandDimSize), return_sequences=True,
-                                       activation=hp.Choice('activation_lstm_l2',
-                                                            values=activation_function_list)
-                                       ))
-            # Add Hidden Layer - Conv1D
-            ffunc_model.add(
-                keras.layers.Conv1D(int(inputSize / expandDimSize) * 2, 1,
-                                    activation=hp.Choice('activation_conv_l3',
-                                                         values=activation_function_list)
-                                    ))
-            # Add Hidden Layer - LSTM
-            ffunc_model.add(keras.layers.Bidirectional(
-                keras.layers.SimpleRNN(int(inputSize / expandDimSize) * 2, return_sequences=True,
-                                       activation=hp.Choice('activation_lstm_l4',
-                                                            values=activation_function_list)
-                                       )))
-            # Add Hidden Layer - Conv1D
-            ffunc_model.add(
-                keras.layers.Conv1D(int(outputSize / expandDimSize) * 2, 1,
-                                    activation=hp.Choice('activation_conv_l5',
-                                                         values=activation_function_list)
-                                    ))
-            # Add Hidden Layer - SimpleRNN
-            ffunc_model.add(keras.layers.Bidirectional(
-                keras.layers.SimpleRNN(int(outputSize / expandDimSize) * 2, return_sequences=True,
-                                       activation=hp.Choice('activation_lstm_l6',
-                                                            values=activation_function_list)
-                                       )))
-            # Add Hidden Layer - Conv1D
-            ffunc_model.add(
-                keras.layers.Conv1D(int(outputSize / expandDimSize), 1,
-                                    activation=hp.Choice('activation_conv_l7',
-                                                         values=activation_function_list)
-                                    ))
+                keras.layers.SimpleRNN(
+                    92,
+                    return_sequences=True
+                ))
             # Add Hidden Layer - SimpleRNN
             ffunc_model.add(
-                keras.layers.SimpleRNN(int(outputSize / expandDimSize), return_sequences=True,
-                                       activation=hp.Choice('activation_lstm_l9',
-                                                            values=activation_function_list)
-                                       ))
+                keras.layers.SimpleRNN(
+                    expandDimSize,
+                    return_sequences=True
+                ))
+            # Add Dropout
+            ffunc_model.add(keras.layers.Dropout(0.1))
+            # Add a Reshape
+            ffunc_model.add(keras.layers.Reshape((expandDimSize, -1)))
+            # Add Dense Layer
+            ffunc_model.add(
+                keras.layers.Dense(
+                    int(outputSize / expandDimSize),
+                    activation='tanh'
+                ))
             # Add Reshape Layer
             ffunc_model.add(
-                keras.layers.Reshape(target_shape=(outputSize,)
-                                     ))
-            # Add Output Layer
-            ffunc_model.add(
-                keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
-                                                                    values=activation_function_list)
-                                   ))
-            # Add Reshape Layer
-            ffunc_model.add(keras.layers.Reshape(target_shape=(outputSize,)))
-            # Add Output Layer
-            ffunc_model.add(keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
-                                                                                values=activation_function_list)))
+                keras.layers.Reshape(
+                    target_shape=(outputSize,)
+                ))
+            ffunc_model.add(keras.layers.Dense(outputSize))
 
-            hp_learning_rate = hp.Choice('learning_rate', values=[0.01, 0.001])
-            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
+            ffunc_model.compile(optimizer='adam',
                                 loss='mae')
             ffunc_model.summary()
 
             return ffunc_model
 
-        model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-                                      exportDirectory, MLR_REG_COVID_SIMPLE_RNN, epochs=epochs)
+        # model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
+        #                               exportDirectory, MLR_REG_COVID_LSTM, epochs=epochs)
         # print(model)
+        model = ffunc_build_model()
+        model.fit(train_x, train_y, epochs=epochs, shuffle=False, batch_size=12, verbose=1)
+        eval_result = model.evaluate(test_x, test_y)
+        print("test loss:", round(eval_result, 5))
 
         return model
 
@@ -1099,7 +1077,8 @@ class MachineLearningRegression:
                     print(
                         file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "..")  # console message
 
-                    epochs = self._MLR_dictMethods[_methodKey_][MLR_KEY_PARAM_GRID][MLR_KEY_NUMBER_OF_EPOCHS]
+                    # epochs = self._MLR_dictMethods[_methodKey_][MLR_KEY_PARAM_GRID][MLR_KEY_NUMBER_OF_EPOCHS]
+                    epochs = 500
                     activationFunctionList = self._MLR_dictMethods[_methodKey_][MLR_KEY_PARAM_GRID][
                         MLR_KEY_ACTIVATION_FUNCTION]
 
