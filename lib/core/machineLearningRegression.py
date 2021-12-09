@@ -229,7 +229,7 @@ DMLR_ACTIVATION_FUNCTIONS = [
     'linear',
     # 'exponential'
 ]
-DMLR_EPOCHS = 100
+DMLR_EPOCHS = 250
 
 
 #                                          #
@@ -517,7 +517,9 @@ class MachineLearningRegression:
         return model
 
     def DeepLearning_Covid_LSTM(self, train_x, train_y, test_x, test_y,
-                                epochs: int, exportDirectory: str, activation_function_list: []):
+                                epochs: int, *args):
+        print(args, 'will be skipped in this method')
+
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
         expandDimSize = self._MLR_dictMethods[MLR_REG_COVID_LSTM][MLR_KEY_3RD_DIM_SIZE]
@@ -539,17 +541,17 @@ class MachineLearningRegression:
                     activation='linear'
                 ))
             # Add Hidden Layer - LSTM
-            ffunc_model.add(keras.layers.Bidirectional(
+            ffunc_model.add(
                 keras.layers.LSTM(
                     inputSize + 1,
                     return_sequences=True
-                )))
+                ))
             # Add Hidden Layer - LSTM
-            ffunc_model.add(keras.layers.Bidirectional(
+            ffunc_model.add(
                 keras.layers.LSTM(
                     expandDimSize,
                     return_sequences=True
-                )))
+                ))
             # Add Dropout
             ffunc_model.add(keras.layers.Dropout(0.1))
             # Add a Reshape
@@ -584,7 +586,9 @@ class MachineLearningRegression:
         return model
 
     def DeepLearning_Covid_SimpleRNN(self, train_x, train_y, test_x, test_y,
-                                     epochs: int, exportDirectory: str, activation_function_list: []):
+                                     epochs: int, *args):
+        print(args, 'will be skipped in this method')
+
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
         expandDimSize = self._MLR_dictMethods[MLR_REG_COVID_LSTM][MLR_KEY_3RD_DIM_SIZE]
@@ -604,17 +608,17 @@ class MachineLearningRegression:
                     activation='linear'
                 ))
             # Add Hidden Layer - SimpleRNN
-            ffunc_model.add(keras.layers.Bidirectional(
+            ffunc_model.add(
                 keras.layers.SimpleRNN(
                     inputSize + 1,
                     return_sequences=True
-                )))
+                ))
             # Add Hidden Layer - SimpleRNN
-            ffunc_model.add(keras.layers.Bidirectional(
+            ffunc_model.add(
                 keras.layers.SimpleRNN(
                     expandDimSize,
                     return_sequences=True
-                )))
+                ))
             # Add Dropout
             ffunc_model.add(keras.layers.Dropout(0.1))
             # Add a Reshape
@@ -991,8 +995,8 @@ class MachineLearningRegression:
                     print(
                         file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "..")  # console message
 
-                    # epochs = self._MLR_dictMethods[_methodKey_][MLR_KEY_PARAM_GRID][MLR_KEY_NUMBER_OF_EPOCHS]
-                    epochs = 500
+                    epochs = self._MLR_dictMethods[_methodKey_][MLR_KEY_PARAM_GRID][MLR_KEY_NUMBER_OF_EPOCHS]
+                    # epochs = 500
                     activationFunctionList = self._MLR_dictMethods[_methodKey_][MLR_KEY_PARAM_GRID][
                         MLR_KEY_ACTIVATION_FUNCTION]
 

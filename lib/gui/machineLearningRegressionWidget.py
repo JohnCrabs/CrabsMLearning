@@ -1189,7 +1189,9 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                                             y_Test=y_Test,
                                             exportFolder=exportPrimaryDir)
                 # Create a workbook for storing the Errors for each unique event
-                workbookPath = workbookDirPath + '/' + currentFileName + '_Errors.xlsx'
+                workbookPath_ErrorsForTrainValTest = workbookDirPath + '/' + currentFileName + '_ErrorsForTrainValTest.xlsx'
+                workbookPath_ErrorsForTrainVal = workbookDirPath + '/' + currentFileName + '_ErrorsForTrainVal.xlsx'
+                workbookPath_ErrorsForTest = workbookDirPath + '/' + currentFileName + '_ErrorsForTest.xlsx'
 
                 # for each uniqueEvent
                 uniqueEventCounter = 0
@@ -1201,10 +1203,13 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                     # Shorten the variable name of trainTestSplitIndex
                     trainTestSplitIndex = dict_fileData[fileName][_FF_KEY_TRAIN_TEST_SPLIT_INDEX][_uniqueEvent_]
 
+                    # ---------------------------------------------------------------------------- #
+
+                    # ***** workbookPath_ErrorsForTrainValTest ***** #
                     # try to load the workbook for storing the errors
                     try:
-                        wb = op.load_workbook(workbookPath)  # load workbook
-                        ws = wb.worksheets[0]  # select first worksheet
+                        wb_ErrorsForTrainValTest = op.load_workbook(workbookPath_ErrorsForTrainValTest)  # load workbook
+                        ws_ErrorsForTrainValTest = wb_ErrorsForTrainValTest.worksheets[0]  # select first worksheet
                     except FileNotFoundError:  # exception: Create the workbook
                         # Create the header row
                         headers_row = ['Event', 'Technique']
@@ -1217,33 +1222,122 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                             for _headerError_ in headers_errors:
                                 headers_row.append(_header_ + _headerError_)
 
-                        wb = op.Workbook()  # open a workbook
-                        ws = wb.active  # set a worksheet active
-                        ws.append(headers_row)  # append to worksheet the header row
-                        wb.save(workbookPath)  # save the workbook
+                        wb_ErrorsForTrainValTest = op.Workbook()  # open a workbook
+                        ws_ErrorsForTrainValTest = wb_ErrorsForTrainValTest.active  # set a worksheet active
+                        ws_ErrorsForTrainValTest.append(headers_row)  # append to worksheet the header row
+                        wb_ErrorsForTrainValTest.save(workbookPath_ErrorsForTrainValTest)  # save the workbook
+
+                    # ***** workbookPath_ErrorsForTrainVal ***** #
+                    try:
+                        wb_ErrorsForTrainVal = op.load_workbook(workbookPath_ErrorsForTrainVal)  # load workbook
+                        ws_ErrorsForTrainVal = wb_ErrorsForTrainVal.worksheets[0]  # select first worksheet
+                    except FileNotFoundError:  # exception: Create the workbook
+                        # Create the header row
+                        headers_row = ['Event', 'Technique']
+                        headers_errors = ['_MAX_NORM', '_MAX_DENORM',
+                                          '_MIN_NORM', '_MIN_DENORM',
+                                          '_MSE_NORM', '_MSE_DENORM',
+                                          '_RMSE_NORM', '_RMSE_DENORM',
+                                          '_MAE_NORM', '_MAE_DENORM']
+                        for _header_ in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]:
+                            for _headerError_ in headers_errors:
+                                headers_row.append(_header_ + _headerError_)
+
+                        wb_ErrorsForTrainVal = op.Workbook()  # open a workbook
+                        ws_ErrorsForTrainVal = wb_ErrorsForTrainVal.active  # set a worksheet active
+                        ws_ErrorsForTrainVal.append(headers_row)  # append to worksheet the header row
+                        wb_ErrorsForTrainVal.save(workbookPath_ErrorsForTrainVal)  # save the workbook
+
+                    # ***** workbookPath_ErrorsForTest ***** #
+                    try:
+                        wb_ErrorsForTest = op.load_workbook(workbookPath_ErrorsForTest)  # load workbook
+                        ws_ErrorsForTest = wb_ErrorsForTest.worksheets[0]  # select first worksheet
+                    except FileNotFoundError:  # exception: Create the workbook
+                        # Create the header row
+                        headers_row = ['Event', 'Technique']
+                        headers_errors = ['_MAX_NORM', '_MAX_DENORM',
+                                          '_MIN_NORM', '_MIN_DENORM',
+                                          '_MSE_NORM', '_MSE_DENORM',
+                                          '_RMSE_NORM', '_RMSE_DENORM',
+                                          '_MAE_NORM', '_MAE_DENORM']
+                        for _header_ in dict_fileData[fileName][_FF_KEY_OUTPUT_COLUMNS_FOR_ML]:
+                            for _headerError_ in headers_errors:
+                                headers_row.append(_header_ + _headerError_)
+
+                        wb_ErrorsForTest = op.Workbook()  # open a workbook
+                        ws_ErrorsForTest = wb_ErrorsForTest.active  # set a worksheet active
+                        ws_ErrorsForTest.append(headers_row)  # append to worksheet the header row
+                        wb_ErrorsForTest.save(workbookPath_ErrorsForTest)  # save the workbook
+
+                    # ---------------------------------------------------------------------------- #
 
                     # Store the INPUT and OUTPUT of current event to shortened named variables
-                    df_x = dict_fileData[fileName][_FF_KEY_FULL_ARRAY][_FF_KEY_INPUT][_uniqueEvent_]
-                    df_y = dict_fileData[fileName][_FF_KEY_FULL_ARRAY][_FF_KEY_OUTPUT][_uniqueEvent_]
+                    df_x_TrainValTest = dict_fileData[fileName][_FF_KEY_FULL_ARRAY][_FF_KEY_INPUT][_uniqueEvent_]
+                    df_y_TrainValTest = dict_fileData[fileName][_FF_KEY_FULL_ARRAY][_FF_KEY_OUTPUT][_uniqueEvent_]
 
-                    dict_Y = self.mlr_Regression.predict(df_x, df_y)  # make predictions for all models
+                    df_x_TrainVal = dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_INPUT][_uniqueEvent_]
+                    df_y_TrainVal = dict_fileData[fileName][_FF_KEY_TRAIN_VAL_ARRAY][_FF_KEY_OUTPUT][_uniqueEvent_]
+
+                    df_x_Test = dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_INPUT][_uniqueEvent_]
+                    df_y_Test = dict_fileData[fileName][_FF_KEY_TEST_ARRAY][_FF_KEY_OUTPUT][_uniqueEvent_]
+
+                    # make predictions for all models on TrainValTest
+                    dict_Y_TrainValTest = self.mlr_Regression.predict(df_x_TrainValTest,
+                                                                      df_y_TrainValTest)
+                    # make predictions for all models on TrainVal
+                    dict_Y_TrainVal = self.mlr_Regression.predict(df_x_TrainVal,
+                                                                  df_y_TrainVal)
+
+                    # make predictions for all models on Test
+                    dict_Y_Test = self.mlr_Regression.predict(df_x_Test,
+                                                              df_y_Test)
 
                     # cor_CSV = [headerCorrelation]  # create a CSV list and add the header row
-                    for _modelName_ in dict_Y:  # for each modelName in dict_Y
+                    for _modelName_ in dict_Y_TrainValTest:  # for each modelName in dict_Y
                         # Create an append row (for workbook) and add the uniqueEvent and modelName
-                        tmpAppendRow = [_uniqueEvent_, _modelName_]
+                        tmpAppendRow_TrainValTest = [_uniqueEvent_, _modelName_]
+                        tmpAppendRow_TrainVal = [_uniqueEvent_, _modelName_]
+                        tmpAppendRow_Test = [_uniqueEvent_, _modelName_]
                         # Create an append row (for cor_CSV) and add the modelName
                         # tmpCorRow_CSV = [_modelName_]
 
                         # Store the normalized values (real, predicted) to shortened variables
-                        df_Y_realNorm = pd.DataFrame(dict_Y[_modelName_]['real'],
-                                                     columns=dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_REAL])
-                        df_Y_predNorm = pd.DataFrame(dict_Y[_modelName_]['pred'],
-                                                     columns=dict_fileData[fileName][_FF_KEY_OUT_COL_HEADER_PRED])
+                        df_Y_realNorm_TrainValTest = pd.DataFrame(
+                            dict_Y_TrainValTest[_modelName_]['real'],
+                            columns=dict_fileData[fileName][
+                                _FF_KEY_OUT_COL_HEADER_REAL])
+                        df_Y_predNorm_TrainValTest = pd.DataFrame(
+                            dict_Y_TrainValTest[_modelName_]['pred'],
+                            columns=dict_fileData[fileName][
+                                _FF_KEY_OUT_COL_HEADER_PRED])
+
+                        df_Y_realNorm_TrainVal = pd.DataFrame(
+                            dict_Y_TrainVal[_modelName_]['real'],
+                            columns=dict_fileData[fileName][
+                                _FF_KEY_OUT_COL_HEADER_REAL])
+                        df_Y_predNorm_TrainVal = pd.DataFrame(
+                            dict_Y_TrainVal[_modelName_]['pred'],
+                            columns=dict_fileData[fileName][
+                                _FF_KEY_OUT_COL_HEADER_PRED])
+
+                        df_Y_realNorm_Test = pd.DataFrame(
+                            dict_Y_Test[_modelName_]['real'],
+                            columns=dict_fileData[fileName][
+                                _FF_KEY_OUT_COL_HEADER_REAL])
+                        df_Y_predNorm_Test = pd.DataFrame(
+                            dict_Y_Test[_modelName_]['pred'],
+                            columns=dict_fileData[fileName][
+                                _FF_KEY_OUT_COL_HEADER_PRED])
 
                         # Copy the normalized values to denormalized variables
-                        df_Y_realDenorm = df_Y_realNorm.copy()
-                        df_Y_predDenorm = df_Y_predNorm.copy()
+                        df_Y_realDenorm_TrainValTest = df_Y_realNorm_TrainValTest.copy()
+                        df_Y_predDenorm_TrainValTest = df_Y_predNorm_TrainValTest.copy()
+
+                        df_Y_realDenorm_TrainVal = df_Y_realNorm_TrainVal.copy()
+                        df_Y_predDenorm_TrainVal = df_Y_predNorm_TrainVal.copy()
+
+                        df_Y_realDenorm_Test = df_Y_realNorm_Test.copy()
+                        df_Y_predDenorm_Test = df_Y_predNorm_Test.copy()
 
                         # Create the paths for exporting data
                         # Main Directory
@@ -1271,18 +1365,24 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                                 if currColumn_real.__contains__(_oColumn_):
                                     mul_ind = dict_fileData[fileName][_FF_KEY_OUT_COL_DENORM_VAL][_oColumn_]
 
-                            df_Y_realDenorm[currColumn_real] *= mul_ind
-                            df_Y_predDenorm[currColumn_pred] *= mul_ind
+                            df_Y_realDenorm_TrainValTest[currColumn_real] *= mul_ind
+                            df_Y_predDenorm_TrainValTest[currColumn_pred] *= mul_ind
+
+                            df_Y_realDenorm_TrainVal[currColumn_real] *= mul_ind
+                            df_Y_predDenorm_TrainVal[currColumn_pred] *= mul_ind
+
+                            df_Y_realDenorm_Test[currColumn_real] *= mul_ind
+                            df_Y_predDenorm_Test[currColumn_pred] *= mul_ind
 
                             print(file_manip.getCurrentDatetimeForConsole() +
                                   "::Plot normalized figure for column: " + currColumn)
-                            y_max = df_Y_realNorm[currColumn_real].max()
-                            if df_Y_predNorm[currColumn_pred].max() > y_max:
-                                y_max = df_Y_predNorm[currColumn_pred].max()
+                            y_max = df_Y_realNorm_TrainValTest[currColumn_real].max()
+                            if df_Y_predNorm_TrainValTest[currColumn_pred].max() > y_max:
+                                y_max = df_Y_predNorm_TrainValTest[currColumn_pred].max()
                             exportFigPath = o_dir_RealPredictPlots + 'Normalized_' + _uniqueEvent_ + '_' + currColumn + '.png'
                             figTitle = _uniqueEvent_ + ': ' + currColumn
-                            self.BE_saveRealPredictedOutputFigure(y_Real=df_Y_realNorm[currColumn_real],
-                                                                  y_Pred=df_Y_predNorm[currColumn_pred],
+                            self.BE_saveRealPredictedOutputFigure(y_Real=df_Y_realNorm_TrainValTest[currColumn_real],
+                                                                  y_Pred=df_Y_predNorm_TrainValTest[currColumn_pred],
                                                                   exportPath=exportFigPath,
                                                                   # y_max=y_max,
                                                                   trainTestSplit=trainTestSplitIndex,
@@ -1295,8 +1395,8 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                             exportFigPath = o_dir_RealPredictPlots + 'Denormalized_' + _uniqueEvent_ + '_' + currColumn + '.png'
                             figTitle = _uniqueEvent_ + ': ' + currColumn
                             y_max *= mul_ind
-                            self.BE_saveRealPredictedOutputFigure(y_Real=df_Y_realDenorm[currColumn_real],
-                                                                  y_Pred=df_Y_predDenorm[currColumn_pred],
+                            self.BE_saveRealPredictedOutputFigure(y_Real=df_Y_realDenorm_TrainValTest[currColumn_real],
+                                                                  y_Pred=df_Y_predDenorm_TrainValTest[currColumn_pred],
                                                                   exportPath=exportFigPath,
                                                                   # y_max=y_max,
                                                                   trainTestSplit=trainTestSplitIndex,
@@ -1305,57 +1405,138 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                                                                   xLabel='')
 
                             print(file_manip.getCurrentDatetimeForConsole() + "::Calculate the Errors")
-                            # Calculate the Errors
-                            normList_yReal = df_Y_realNorm[currColumn_real].to_numpy()
-                            normList_yPred = df_Y_predNorm[currColumn_pred].to_numpy()
+                            # Calculate the Errors - TrainValTest
+                            normList_yReal = df_Y_realNorm_TrainValTest[currColumn_real].to_numpy()
+                            normList_yPred = df_Y_predNorm_TrainValTest[currColumn_pred].to_numpy()
+                            denormList_yReal = df_Y_realDenorm_TrainValTest[currColumn_real].to_numpy()
+                            denormList_yPred = df_Y_predDenorm_TrainValTest[currColumn_pred].to_numpy()
 
-                            denormList_yReal = df_Y_realDenorm[currColumn_real].to_numpy()
-                            denormList_yPred = df_Y_predDenorm[currColumn_pred].to_numpy()
+                            # max
+                            norm_err_max_TrainValTest = np.abs(normList_yReal - normList_yPred).max()
+                            denorm_err_max_TrainValTest = np.abs(denormList_yReal - denormList_yPred).max()
+                            # min
+                            norm_err_min_TrainValTest = np.abs(normList_yReal - normList_yPred).min()
+                            denorm_err_min_TrainValTest = np.abs(denormList_yReal - denormList_yPred).min()
+                            # mse
+                            norm_err_mse_TrainValTest = sklearn.metrics.mean_squared_error(normList_yReal,
+                                                                                           normList_yPred)
+                            denorm_err_mse_TrainValTest = sklearn.metrics.mean_squared_error(denormList_yReal,
+                                                                                             denormList_yPred)
+                            # rmse
+                            norm_err_rmse_TrainValTest = np.sqrt(norm_err_mse_TrainValTest)
+                            denorm_err_rmse_TrainValTest = np.sqrt(denorm_err_mse_TrainValTest)
+                            # mae
+                            norm_err_mae_TrainValTest = sklearn.metrics.mean_absolute_error(normList_yReal,
+                                                                                            normList_yPred)
+                            denorm_err_mae_TrainValTest = sklearn.metrics.mean_absolute_error(denormList_yReal,
+                                                                                              denormList_yPred)
 
-                            norm_err_max = np.abs(normList_yReal - normList_yPred).max()
-                            denorm_err_max = np.abs(denormList_yReal - denormList_yPred).max()
+                            tmpAppendRow_TrainValTest.append(norm_err_max_TrainValTest)
+                            tmpAppendRow_TrainValTest.append(denorm_err_max_TrainValTest)
+                            tmpAppendRow_TrainValTest.append(norm_err_min_TrainValTest)
+                            tmpAppendRow_TrainValTest.append(denorm_err_min_TrainValTest)
+                            tmpAppendRow_TrainValTest.append(norm_err_mse_TrainValTest)
+                            tmpAppendRow_TrainValTest.append(denorm_err_mse_TrainValTest)
+                            tmpAppendRow_TrainValTest.append(norm_err_rmse_TrainValTest)
+                            tmpAppendRow_TrainValTest.append(denorm_err_rmse_TrainValTest)
+                            tmpAppendRow_TrainValTest.append(norm_err_mae_TrainValTest)
+                            tmpAppendRow_TrainValTest.append(denorm_err_mae_TrainValTest)
 
-                            norm_err_min = np.abs(normList_yReal - normList_yPred).min()
-                            denorm_err_min = np.abs(denormList_yReal - denormList_yPred).min()
+                            # Calculate the Errors - TrainValTes
+                            normList_yReal = df_Y_realNorm_TrainVal[currColumn_real].to_numpy()
+                            normList_yPred = df_Y_predNorm_TrainVal[currColumn_pred].to_numpy()
+                            denormList_yReal = df_Y_realDenorm_TrainVal[currColumn_real].to_numpy()
+                            denormList_yPred = df_Y_predDenorm_TrainVal[currColumn_pred].to_numpy()
 
-                            norm_err_mse = sklearn.metrics.mean_squared_error(normList_yReal, normList_yPred)
-                            denorm_err_mse = sklearn.metrics.mean_squared_error(denormList_yReal,
-                                                                                denormList_yPred)
+                            # max
+                            norm_err_max_TrainVal = np.abs(normList_yReal - normList_yPred).max()
+                            denorm_err_max_TrainVal = np.abs(denormList_yReal - denormList_yPred).max()
+                            # min
+                            norm_err_min_TrainVal = np.abs(normList_yReal - normList_yPred).min()
+                            denorm_err_min_TrainVal = np.abs(denormList_yReal - denormList_yPred).min()
+                            # mse
+                            norm_err_mse_TrainVal = sklearn.metrics.mean_squared_error(normList_yReal,
+                                                                                           normList_yPred)
+                            denorm_err_mse_TrainVal = sklearn.metrics.mean_squared_error(denormList_yReal,
+                                                                                             denormList_yPred)
+                            # rmse
+                            norm_err_rmse_TrainVal = np.sqrt(norm_err_mse_TrainVal)
+                            denorm_err_rmse_TrainVal = np.sqrt(denorm_err_mse_TrainVal)
+                            # mae
+                            norm_err_mae_TrainVal = sklearn.metrics.mean_absolute_error(normList_yReal,
+                                                                                            normList_yPred)
+                            denorm_err_mae_TrainVal = sklearn.metrics.mean_absolute_error(denormList_yReal,
+                                                                                              denormList_yPred)
 
-                            norm_err_rmse = np.sqrt(norm_err_mse)
-                            denorm_err_rmse = np.sqrt(denorm_err_mse)
+                            tmpAppendRow_TrainVal.append(norm_err_max_TrainVal)
+                            tmpAppendRow_TrainVal.append(denorm_err_max_TrainVal)
+                            tmpAppendRow_TrainVal.append(norm_err_min_TrainVal)
+                            tmpAppendRow_TrainVal.append(denorm_err_min_TrainVal)
+                            tmpAppendRow_TrainVal.append(norm_err_mse_TrainVal)
+                            tmpAppendRow_TrainVal.append(denorm_err_mse_TrainVal)
+                            tmpAppendRow_TrainVal.append(norm_err_rmse_TrainVal)
+                            tmpAppendRow_TrainVal.append(denorm_err_rmse_TrainVal)
+                            tmpAppendRow_TrainVal.append(norm_err_mae_TrainVal)
+                            tmpAppendRow_TrainVal.append(denorm_err_mae_TrainVal)
 
-                            norm_err_mae = sklearn.metrics.mean_absolute_error(normList_yReal, normList_yPred)
-                            denorm_err_mae = sklearn.metrics.mean_absolute_error(denormList_yReal,
-                                                                                 denormList_yPred)
+                            # Calculate the Errors - TrainValTes
+                            normList_yReal = df_Y_realNorm_Test[currColumn_real].to_numpy()
+                            normList_yPred = df_Y_predNorm_Test[currColumn_pred].to_numpy()
+                            denormList_yReal = df_Y_realDenorm_Test[currColumn_real].to_numpy()
+                            denormList_yPred = df_Y_predDenorm_Test[currColumn_pred].to_numpy()
 
-                            tmpAppendRow.append(norm_err_max)
-                            tmpAppendRow.append(denorm_err_max)
-                            tmpAppendRow.append(norm_err_min)
-                            tmpAppendRow.append(denorm_err_min)
-                            tmpAppendRow.append(norm_err_mse)
-                            tmpAppendRow.append(denorm_err_mse)
-                            tmpAppendRow.append(norm_err_rmse)
-                            tmpAppendRow.append(denorm_err_rmse)
-                            tmpAppendRow.append(norm_err_mae)
-                            tmpAppendRow.append(denorm_err_mae)
+                            # max
+                            norm_err_max_Test = np.abs(normList_yReal - normList_yPred).max()
+                            denorm_err_max_Test = np.abs(denormList_yReal - denormList_yPred).max()
+                            # min
+                            norm_err_min_Test = np.abs(normList_yReal - normList_yPred).min()
+                            denorm_err_min_Test = np.abs(denormList_yReal - denormList_yPred).min()
+                            # mse
+                            norm_err_mse_Test = sklearn.metrics.mean_squared_error(normList_yReal,
+                                                                                           normList_yPred)
+                            denorm_err_mse_Test = sklearn.metrics.mean_squared_error(denormList_yReal,
+                                                                                             denormList_yPred)
+                            # rmse
+                            norm_err_rmse_Test = np.sqrt(norm_err_mse_Test)
+                            denorm_err_rmse_Test = np.sqrt(denorm_err_mse_Test)
+                            # mae
+                            norm_err_mae_Test = sklearn.metrics.mean_absolute_error(normList_yReal,
+                                                                                            normList_yPred)
+                            denorm_err_mae_Test = sklearn.metrics.mean_absolute_error(denormList_yReal,
+                                                                                              denormList_yPred)
+
+                            tmpAppendRow_Test.append(norm_err_max_Test)
+                            tmpAppendRow_Test.append(denorm_err_max_Test)
+                            tmpAppendRow_Test.append(norm_err_min_Test)
+                            tmpAppendRow_Test.append(denorm_err_min_Test)
+                            tmpAppendRow_Test.append(norm_err_mse_Test)
+                            tmpAppendRow_Test.append(denorm_err_mse_Test)
+                            tmpAppendRow_Test.append(norm_err_rmse_Test)
+                            tmpAppendRow_Test.append(denorm_err_rmse_Test)
+                            tmpAppendRow_Test.append(norm_err_mae_Test)
+                            tmpAppendRow_Test.append(denorm_err_mae_Test)
 
                             corrFileName = _uniqueEvent_ + '_' + currColumn
-                            self.signComp_Methods.signComp_exec_(arrData1=df_Y_realNorm[currColumn_real].to_numpy(),
-                                                                 arrData2=df_Y_predNorm[currColumn_pred].to_numpy(),
-                                                                 exportFigDirPath=o_dir_SignalCompare,
-                                                                 exportFigFileName=corrFileName)
+                            self.signComp_Methods.signComp_exec_(
+                                arrData1=df_Y_realNorm_TrainValTest[currColumn_real].to_numpy(),
+                                arrData2=df_Y_predNorm_TrainValTest[currColumn_pred].to_numpy(),
+                                exportFigDirPath=o_dir_SignalCompare,
+                                exportFigFileName=corrFileName)
 
                         print(file_manip.getCurrentDatetimeForConsole() + "::Export Files")
-                        ws.append(tmpAppendRow)
-                        wb.save(workbookPath)
-                        df_Y_realNorm.to_csv(
+                        ws_ErrorsForTrainValTest.append(tmpAppendRow_TrainValTest)
+                        wb_ErrorsForTrainValTest.save(workbookPath_ErrorsForTrainValTest)
+                        ws_ErrorsForTrainVal.append(tmpAppendRow_TrainVal)
+                        wb_ErrorsForTrainVal.save(workbookPath_ErrorsForTrainVal)
+                        ws_ErrorsForTest.append(tmpAppendRow_Test)
+                        wb_ErrorsForTest.save(workbookPath_ErrorsForTest)
+                        df_Y_realNorm_TrainValTest.to_csv(
                             o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputReal_Normalized.csv')
-                        df_Y_predNorm.to_csv(
+                        df_Y_predNorm_TrainValTest.to_csv(
                             o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputPred_Normalized.csv')
-                        df_Y_realDenorm.to_csv(
+                        df_Y_realDenorm_TrainValTest.to_csv(
                             o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputReal_Denormalized.csv')
-                        df_Y_predDenorm.to_csv(
+                        df_Y_predDenorm_TrainValTest.to_csv(
                             o_dir_RealPredictCSV + '/' + _uniqueEvent_ + '_' + _modelName_ + '_OutputPred_Denormalized.csv')
 
                     # o_file = os.path.normpath(dir_path + "/../") + '/Correlation_R2.csv'
