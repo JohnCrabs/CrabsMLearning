@@ -229,7 +229,7 @@ DMLR_ACTIVATION_FUNCTIONS = [
     'linear',
     # 'exponential'
 ]
-DMLR_EPOCHS = 250
+DMLR_EPOCHS = 500
 
 
 #                                          #
