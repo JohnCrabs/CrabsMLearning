@@ -591,8 +591,8 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # --------------------- #
         # MachineLearningMethods
         self.comboBox_MachineLearningMethods = QComboBox()
-        self.comboBox_MachineLearningMethods.setMinimumWidth(150)
-        self.comboBox_MachineLearningMethods.addItems(MLPF_METHOD_LIST_REGRESSION)
+        self.comboBox_MachineLearningMethods.setMinimumWidth(250)
+        self.comboBox_MachineLearningMethods.addItems(MLPF_METHOD_LIST_IMAGE_CLASSIFICATION)
 
         # MultifileTrainingProcessing
         self.comboBox_MultifileTrainingProcessing = QComboBox()
