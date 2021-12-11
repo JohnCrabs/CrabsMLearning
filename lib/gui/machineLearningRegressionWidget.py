@@ -794,7 +794,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         outputHeaderColumnsForML = []
 
         # Check if the user selected Sequential method
-        if self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL:
+        if self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL_REGRESSION:
             for _event_ in dictDataInput.keys():
                 X_full[_event_] = []
                 y_full[_event_] = []
@@ -837,7 +837,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                     outputHeaderColumnsForML.append(columnName + '_SEQ_' + str(_index_))
 
         # Else if the user selected Average method
-        elif self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_AVERAGE:
+        elif self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_AVERAGE_REGRESSION:
             for _event_ in dictDataInput.keys():
                 X_full[_event_] = []
                 y_full[_event_] = []
@@ -879,7 +879,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
             outputHeaderColumnsForML = outputHeaders
 
         # Check if the user selected Sequential Average method
-        elif self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL_AVERAGE:
+        elif self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL_AVERAGE_REGRESSION:
             for _event_ in dictDataInput.keys():
                 X_full[_event_] = []
                 y_full[_event_] = []
@@ -2232,7 +2232,7 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # MachineLearningMethods
         self.comboBox_MachineLearningMethods = QComboBox()
         self.comboBox_MachineLearningMethods.setMinimumWidth(150)
-        self.comboBox_MachineLearningMethods.addItems(MLPF_METHOD_LIST)
+        self.comboBox_MachineLearningMethods.addItems(MLPF_METHOD_LIST_REGRESSION)
 
         # MultifileTrainingProcessing
         self.comboBox_MultifileTrainingProcessing = QComboBox()
