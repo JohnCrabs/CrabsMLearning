@@ -1004,7 +1004,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                 if self.BE_errorExist(fileName):  # if errors exists
                     return  # exit the function
 
-            # 01 - Read the data
+            # 01 - Run The Main Routine
             for fileName in self.dict_tableFilesPaths.keys():
                 # Create a tmp variable primaryEvent for code simplicity
                 primaryEvent = self.dict_tableFilesPaths[fileName][self.dkeyPrimaryEventColumn()]

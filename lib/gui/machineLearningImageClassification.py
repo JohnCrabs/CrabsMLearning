@@ -170,7 +170,8 @@ class WidgetMachineLearningImageClassification(QWidget):
         self.widgetTabImageVisualizer.setWidget()  # Set the Tab File Management Widget
         self.widgetTabMachineLearningSettings.setWidget()  # Set the Tab Machine Learnings Settings
         self.mainTabWidget.addTab(self.widgetTabImageVisualizer, "Image Visualizer")  # Add it to mainTanWidget
-        self.mainTabWidget.addTab(self.widgetTabMachineLearningSettings, "Machine Learning Settings")  # Add it to mainTabWidget
+        self.mainTabWidget.addTab(self.widgetTabMachineLearningSettings,
+                                  "Machine Learning Settings")  # Add it to mainTabWidget
 
     def setWidget(self):
         """
@@ -254,6 +255,7 @@ class WidgetMachineLearningImageClassification(QWidget):
         # Button Events
         self.buttonAdd.clicked.connect(self.actionButtonAdd)  # buttonAdd -> clicked
         self.buttonRemove.clicked.connect(self.actionButtonRemove)  # buttonRemove -> clicked
+        self.buttonExecute.clicked.connect(self.actionButtonExecute)  # buttonExecute -> clicked
 
         # ListWidget Events
         self.listWidget_DirList.currentRowChanged.connect(self.actionDirListRowChanged_event)
@@ -266,7 +268,7 @@ class WidgetMachineLearningImageClassification(QWidget):
     # -------------------------- #
     # ----- Events Actions ----- #
     # -------------------------- #
-    # ***** SET MAIN EVENTS ACTIONS *** #
+    # ***** SET MAIN EVENTS ACTIONS ***** #
     def actionButtonAdd(self):
         # Open dialog
         success, dialog = coFunc.openDirectoryDialog(
@@ -302,7 +304,7 @@ class WidgetMachineLearningImageClassification(QWidget):
             if self.dict_tableDirsPaths.keys().__len__() < 1:
                 self.buttonExecute.setEnabled(False)  # disable the Execute Button
 
-    # ***** SET CURRENT LIST ROW CHANGE *** #
+    # ***** SET CURRENT DIR LIST ROW CHANGE ***** #
     def actionDirListRowChanged_event(self):
         self.listWidget_ClassesList.clear()
 
@@ -314,7 +316,7 @@ class WidgetMachineLearningImageClassification(QWidget):
                 self.listWidget_ClassesList.addItem(QListWidgetItem(_className_))
             self.listWidget_ClassesList.setCurrentRow(0)
 
-    # ***** SET CURRENT LIST ROW CHANGE *** #
+    # ***** SET CURRENT CLASSES LIST ROW CHANGE ***** #
     def actionClassesListRowChanged_event(self):
         self.widgetTabImageVisualizer.clearImageList()
 
@@ -346,6 +348,26 @@ class WidgetMachineLearningImageClassification(QWidget):
                 self.widgetTabImageVisualizer.showImageInVisualiser(currentImagePath)
         else:
             self.widgetTabImageVisualizer.showImageInVisualiser(None)
+
+    # *********************************************************** #
+    # *********** Helping Functions for ButtonExecute *********** #
+    # *********************************************************** #
+    # *                                                         * #
+
+    # *                                                         * #
+    # *********************************************************** #
+
+    # ***** EXECUTION ***** #
+    def actionButtonExecute(self):
+        # If true run the main pipeline
+        if self.dict_tableDirsPaths.keys().__len__() > 0:  # if there is at least a file (safety if)
+            # 00 - Error Checking
+
+
+            # 01 - Run The Main Routine
+
+            pass
+
 
 
 # *********************************** #
