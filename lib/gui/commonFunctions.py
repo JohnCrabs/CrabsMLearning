@@ -90,3 +90,17 @@ def errorMessageDialog(classRef, errorType, textMessageInfo,
     msg.setText(errorType)  # Set the errorType
     msg.setInformativeText(textMessageInfo)  # set the errorMessage
     msg.exec_()  # execute the dialog (show the message)
+
+
+def nameClassList2MachineLearningList(str_list: []):
+    listSize = str_list.__len__()
+    zeroList = []
+    outputList = []
+    for _ in range(listSize):
+        zeroList.append(0)
+
+    for _index_ in range(listSize):
+        outputList.append(zeroList.copy())
+        outputList[_index_][_index_] += 1
+
+    return outputList

@@ -220,16 +220,16 @@ MLR_GAMMA_OPTIONS = [
 DMLR_ACTIVATION_FUNCTIONS = [
     'relu',
     'sigmoid',
-    'softmax',
-    'softplus',
-    'softsign',
+    # 'softmax',
+    # 'softplus',
+    # 'softsign',
     'tanh',
     'selu',
     'elu',
     'linear',
     # 'exponential'
 ]
-DMLR_EPOCHS = 500
+DMLR_EPOCHS = 100
 
 
 #                                          #
@@ -517,8 +517,8 @@ class MachineLearningRegression:
         return model
 
     def DeepLearning_Covid_LSTM(self, train_x, train_y, test_x, test_y,
-                                epochs: int, *args):
-        print(args, 'will be skipped in this method')
+                                epochs: int, exportDirectory: str, activation_function_list: []):
+        # print(args, 'will be skipped in this method')
 
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
@@ -535,17 +535,28 @@ class MachineLearningRegression:
                     target_shape=(expandDimSize, int(inputSize / expandDimSize),)
                 ))
             # Add Hidden Layer - Conv1D
-            ffunc_model.add(
-                keras.layers.Conv1D(
-                    int(inputSize / expandDimSize), 1,
-                    activation='linear'
-                ))
+            # ffunc_model.add(
+            #     keras.layers.Conv1D(
+            #         int(inputSize / expandDimSize), 1,
+            #         activation='linear'
+            #     ))
+            # ffunc_model.add(
+            #     keras.layers.MaxPooling1D(2)
+            # )
             # Add Hidden Layer - LSTM
-            ffunc_model.add(
-                keras.layers.LSTM(
-                    inputSize + 1,
-                    return_sequences=True
-                ))
+            # ffunc_model.add(
+            #     keras.layers.LSTM(
+            #         int(inputSize / expandDimSize),
+            #         return_sequences=True,
+            #     ))
+            # # Add Hidden Layer - LSTM
+            # ffunc_model.add(
+            #     keras.layers.LSTM(
+            #         inputSize,
+            #         return_sequences=True
+            #     ))
+            # # Add Dropout
+            # ffunc_model.add(keras.layers.Dropout(0.5))
             # Add Hidden Layer - LSTM
             ffunc_model.add(
                 keras.layers.LSTM(
@@ -553,7 +564,7 @@ class MachineLearningRegression:
                     return_sequences=True
                 ))
             # Add Dropout
-            ffunc_model.add(keras.layers.Dropout(0.1))
+            ffunc_model.add(keras.layers.Dropout(0.25))
             # Add a Reshape
             ffunc_model.add(keras.layers.Reshape((expandDimSize, -1)))
             # Add Dense Layer
@@ -567,15 +578,53 @@ class MachineLearningRegression:
                 keras.layers.Reshape(
                     target_shape=(outputSize,)
                 ))
-            ffunc_model.add(keras.layers.Dense(outputSize))
+            ffunc_model.add(keras.layers.Dense(outputSize, activation='linear'))
 
-            ffunc_model.compile(optimizer='adam',
+            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
                                 loss='mae')
             ffunc_model.summary()
 
             return ffunc_model
 
-        # model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
+        def ffunc_build_model_tuner(hp):
+            ffunc_model = keras.Sequential()
+            ffunc_model.add(keras.Input(shape=(inputSize,)))
+            # Add Reshape Layer
+            ffunc_model.add(
+                keras.layers.Reshape(
+                    target_shape=(expandDimSize, int(inputSize / expandDimSize),)
+                ))
+            ffunc_model.add(
+                keras.layers.LSTM(
+                    expandDimSize,
+                    return_sequences=True
+                ))
+            # Add Dropout
+            ffunc_model.add(keras.layers.Dropout(0.1))
+            # Add a Reshape
+            ffunc_model.add(keras.layers.Reshape((expandDimSize, -1)))
+            # Add Dense Layer
+            ffunc_model.add(
+                keras.layers.Dense(
+                    int(outputSize / expandDimSize),
+                    activation=hp.Choice('activation_l1',
+                                         values=activation_function_list)
+                ))
+            # Add Reshape Layer
+            ffunc_model.add(
+                keras.layers.Reshape(
+                    target_shape=(outputSize,)
+                ))
+            ffunc_model.add(keras.layers.Dense(outputSize, activation=hp.Choice('activation_lo',
+                                                                                values=activation_function_list)))
+
+            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
+                                loss='mae')
+            ffunc_model.summary()
+
+            return ffunc_model
+
+        # model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model_tuner,
         #                               exportDirectory, MLR_REG_COVID_LSTM, epochs=epochs)
         # print(model)
         model = ffunc_build_model()
@@ -586,8 +635,8 @@ class MachineLearningRegression:
         return model
 
     def DeepLearning_Covid_SimpleRNN(self, train_x, train_y, test_x, test_y,
-                                     epochs: int, *args):
-        print(args, 'will be skipped in this method')
+                                     epochs: int, exportDirectory: str, activation_function_list: []):
+        # print(args, 'will be skipped in this method')
 
         inputSize = train_x.shape[1]
         outputSize = train_y.shape[1]
@@ -602,17 +651,19 @@ class MachineLearningRegression:
                     target_shape=(expandDimSize, int(inputSize / expandDimSize),)
                 ))
             # Add Hidden Layer - Conv1D
-            ffunc_model.add(
-                keras.layers.Conv1D(
-                    int(inputSize / expandDimSize), 1,
-                    activation='linear'
-                ))
-            # Add Hidden Layer - SimpleRNN
-            ffunc_model.add(
-                keras.layers.SimpleRNN(
-                    inputSize + 1,
-                    return_sequences=True
-                ))
+            # ffunc_model.add(
+            #     keras.layers.Conv1D(
+            #         int(inputSize / expandDimSize), 1,
+            #         activation='linear'
+            #     ))
+            # # Add Hidden Layer - SimpleRNN
+            # ffunc_model.add(
+            #     keras.layers.SimpleRNN(
+            #         inputSize,
+            #         return_sequences=True
+            #     ))
+            # # Add Dropout
+            # ffunc_model.add(keras.layers.Dropout(0.5))
             # Add Hidden Layer - SimpleRNN
             ffunc_model.add(
                 keras.layers.SimpleRNN(
@@ -620,7 +671,7 @@ class MachineLearningRegression:
                     return_sequences=True
                 ))
             # Add Dropout
-            ffunc_model.add(keras.layers.Dropout(0.1))
+            ffunc_model.add(keras.layers.Dropout(0.25))
             # Add a Reshape
             ffunc_model.add(keras.layers.Reshape((expandDimSize, -1)))
             # Add Dense Layer
@@ -634,16 +685,56 @@ class MachineLearningRegression:
                 keras.layers.Reshape(
                     target_shape=(outputSize,)
                 ))
-            ffunc_model.add(keras.layers.Dense(outputSize))
+            ffunc_model.add(keras.layers.Dense(outputSize,
+                                               activation='linear'))
 
-            ffunc_model.compile(optimizer='adam',
+            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
                                 loss='mae')
             ffunc_model.summary()
 
             return ffunc_model
 
-        # model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model,
-        #                               exportDirectory, MLR_REG_COVID_LSTM, epochs=epochs)
+        def ffunc_build_model_tuner(hp):
+            ffunc_model = keras.Sequential()
+            ffunc_model.add(keras.Input(shape=(inputSize,)))
+            # Add Reshape Layer
+            ffunc_model.add(
+                keras.layers.Reshape(
+                    target_shape=(expandDimSize, int(inputSize / expandDimSize),)
+                ))
+            ffunc_model.add(
+                keras.layers.SimpleRNN(
+                    expandDimSize,
+                    return_sequences=True
+                ))
+            # Add Dropout
+            ffunc_model.add(keras.layers.Dropout(0.1))
+            # Add a Reshape
+            ffunc_model.add(keras.layers.Reshape((expandDimSize, -1)))
+            # Add Dense Layer
+            ffunc_model.add(
+                keras.layers.Dense(
+                    int(outputSize / expandDimSize),
+                    activation=hp.Choice('activation_l1',
+                                         values=activation_function_list)
+                ))
+            # Add Reshape Layer
+            ffunc_model.add(
+                keras.layers.Reshape(
+                    target_shape=(outputSize,)
+                ))
+            ffunc_model.add(keras.layers.Dense(outputSize,
+                                               activation=hp.Choice('activation_lo',
+                                                                    values=activation_function_list)))
+
+            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
+                                loss='mae')
+            ffunc_model.summary()
+
+            return ffunc_model
+
+        # model = self.DeepLearning_fit(train_x, train_y, test_x, test_y, ffunc_build_model_tuner,
+        #                               exportDirectory, MLR_REG_COVID_SIMPLE_RNN, epochs=epochs)
         # print(model)
         model = ffunc_build_model()
         model.fit(train_x, train_y, epochs=epochs, shuffle=False, batch_size=12, verbose=1)

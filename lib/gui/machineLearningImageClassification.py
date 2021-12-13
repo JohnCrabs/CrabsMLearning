@@ -1,5 +1,6 @@
 import sys
 import cv2 as cv2
+import numpy as np
 from OpenGL.GL import *
 
 from PySide2.QtCore import (
@@ -34,6 +35,7 @@ from PySide2.QtGui import (
 )
 
 from lib.core.project_flags import *
+from lib.gui.commonFunctions import *
 # import lib.core.machineLearningRegression as mlr
 # import lib.core.signalCompare as signComp
 
@@ -59,6 +61,7 @@ class WidgetMachineLearningImageClassification(QWidget):
         self._DKEY_DIR_NAME: str = 'name'
         self._DKEY_FULLPATH: str = 'full-path'
         self._DKEY_CLASSES_NAMES: str = 'classes-names'
+        self._DKEY_CLASSES_ML_CODE: str = 'classes-ml-code'
         self._DKEY_CLASSES_DATA: str = 'classes-data'
         self._DKEY_IMAGE_NAMES: str = 'image-names'
         self._DKEY_DATA_FULLPATHS: str = 'data-fullpaths'
@@ -150,6 +153,9 @@ class WidgetMachineLearningImageClassification(QWidget):
     def dkeyClassesNames(self):
         return self._DKEY_CLASSES_NAMES
 
+    def dkeyClassesMLCode(self):
+        return self._DKEY_CLASSES_ML_CODE
+
     def dkeyClassesData(self):
         return self._DKEY_CLASSES_DATA
 
@@ -222,6 +228,31 @@ class WidgetMachineLearningImageClassification(QWidget):
     # ---------------------------------- #
 
     def addItemsToList(self, fullPath):
+        """
+        Create a dictionary as follows:
+        <dir_name> -> {
+                        "name": str,
+                        "full-path": str,
+                        "classes-names": [str],
+                        "classes-names": [[int]]
+                        "classes-data": {
+                            <dir_name_class_0>: {},
+                            <dir_name_class_1>: {},
+                            ..................: {},
+                            <dir_name_class_n>: {}}
+                        }
+        }
+
+        <dir_name_class_0>: {
+            "full-path": str,
+            "image-names": [str],
+            "data-size": int (the number of samples of the current class),
+            data_fullpaths: [str] (this will be used later to create the x and y arrays)
+        }
+
+        :param fullPath:
+        :return:
+        """
         dirName = fullPath.split('/')[-1:][0]  # find the name of the file
         dirClasses = os.listdir(fullPath)
         # Create the dictionary
@@ -229,6 +260,7 @@ class WidgetMachineLearningImageClassification(QWidget):
             self.dkeyDirName(): dirName,
             self.dkeyFullPath(): fullPath,
             self.dkeyClassesNames(): dirClasses,
+            self.dkeyClassesMLCode(): nameClassList2MachineLearningList(dirClasses),
             self.dkeyClassesData(): {}
         }
         for _class_ in dirClasses:
@@ -353,6 +385,18 @@ class WidgetMachineLearningImageClassification(QWidget):
     # *********** Helping Functions for ButtonExecute *********** #
     # *********************************************************** #
     # *                                                         * #
+    def BE_Create_XY_dict(self, key):
+        XY_dict = {'x': [], 'y': []}
+        for _className_ in self.dict_tableDirsPaths[key][self.dkeyClassesData()].keys():
+            # Get the index of the current class
+            mlCodeIndex = self.dict_tableDirsPaths[key][self.dkeyClassesNames()].index(_className_)
+            # Get the code of the current class using the above index
+            mlCode = self.dict_tableDirsPaths[key][self.dkeyClassesMLCode()][mlCodeIndex]
+            for _path_ in self.dict_tableDirsPaths[key][self.dkeyClassesData()][_className_][self.dkeyDataFullpath()]:
+                XY_dict['x'].append(_path_)
+                XY_dict['y'].append(mlCode)
+
+        return XY_dict
 
     # *                                                         * #
     # *********************************************************** #
@@ -362,12 +406,34 @@ class WidgetMachineLearningImageClassification(QWidget):
         # If true run the main pipeline
         if self.dict_tableDirsPaths.keys().__len__() > 0:  # if there is at least a file (safety if)
             # 00 - Error Checking
-
-
             # 01 - Run The Main Routine
+            XY_dict = {}
+            for key in self.dict_tableDirsPaths.keys():
+                XY_dict[key] = self.BE_Create_XY_dict(key)
+                fullSizeOfData = XY_dict[key]['x'].__len__()
 
-            pass
+                indexList = np.random.permutation(fullSizeOfData).tolist()
+                sliceIndex = fullSizeOfData - int(fullSizeOfData * 0.25)
+                trainIndexes = np.array(indexList[:sliceIndex])
+                testIndexes = np.array(indexList[sliceIndex:])
 
+                X_train_paths = np.array(XY_dict[key]['x'])[trainIndexes]
+                X_train_images = []
+                Y_train = np.array(XY_dict[key]['y'])[trainIndexes]
+
+                X_test_paths = np.array(XY_dict[key]['x'])[testIndexes]
+                X_test_images = []
+                Y_test = np.array(XY_dict[key]['y'])[testIndexes]
+
+                for _path_ in X_train_paths:
+                    img = cv2.imread(_path_)
+                    # print(img.shape)
+                    X_train_images.append(img)
+
+                for _path_ in X_test_paths:
+                    img = cv2.imread(_path_)
+                    # print(img.shape)
+                    X_test_images.append(img)
 
 
 # *********************************** #
