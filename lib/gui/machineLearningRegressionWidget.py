@@ -973,6 +973,87 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         plt.savefig(exportPath, bbox_inches='tight', dpi=100)
         plt.close()
 
+    @staticmethod
+    def BE_saveAbsoluteErrorsFigure(absErrors: pd.DataFrame, exportPath: str, y_max=None,
+                                    trainTestSplit=None, title='Figure: Absolute Errors',
+                                    yLabel='', xLabel=''):
+        absErrors.plot()
+        plt.gcf().set_size_inches(24.8, 12.4)
+        plt.gcf().subplots_adjust(bottom=0.25)
+        plt.title(title, fontsize=25)
+        plt.legend(fontsize=20, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=False, ncol=2)
+        plt.yticks(fontsize=20)
+        plt.ylabel(yLabel,
+                   fontsize=22.5)
+        plt.xticks(fontsize=20)
+        plt.xlabel(xLabel,
+                   fontsize=22.5)
+
+        if y_max is not None:
+            y_bottom, y_top = plt.ylim(0, y_max)
+        else:
+            y_bottom, y_top = plt.ylim(0)
+        if trainTestSplit is not None:
+            for _vxLine_ in trainTestSplit:
+                plt.vlines(_vxLine_, y_bottom, y_top, colors='r', linestyles='dashed')
+        plt.savefig(exportPath, bbox_inches='tight', dpi=100)
+        plt.close()
+
+    def BE_calculateErrors(self, y_Real_norm: np.ndarray, y_Pred_norm: np.ndarray,
+                           y_Real_denorm: np.ndarray, y_Pred_denorm: np.ndarray,
+                           path_toSavePlot=None, trainTestSplit=None,
+                           title='Figure: Absolute Errors'):
+        tmpAppendRow = []
+
+        DY_RealPred_abs_norm = np.abs(y_Real_norm - y_Pred_norm)
+        DY_RealPred_abs_denorm = np.abs(y_Real_denorm - y_Pred_denorm)
+
+        # max
+        norm_err_max_TrainValTest = DY_RealPred_abs_norm.max()
+        denorm_err_max_TrainValTest = DY_RealPred_abs_denorm.max()
+        # min
+        norm_err_min_TrainValTest = DY_RealPred_abs_norm.min()
+        denorm_err_min_TrainValTest = DY_RealPred_abs_denorm.min()
+        # mse
+        norm_err_mse_TrainValTest = sklearn.metrics.mean_squared_error(y_Real_norm,
+                                                                       y_Pred_norm)
+        denorm_err_mse_TrainValTest = sklearn.metrics.mean_squared_error(y_Real_denorm,
+                                                                         y_Pred_denorm)
+        # rmse
+        norm_err_rmse_TrainValTest = np.sqrt(norm_err_mse_TrainValTest)
+        denorm_err_rmse_TrainValTest = np.sqrt(denorm_err_mse_TrainValTest)
+        # mae
+        norm_err_mae_TrainValTest = sklearn.metrics.mean_absolute_error(y_Real_norm,
+                                                                        y_Pred_norm)
+        denorm_err_mae_TrainValTest = sklearn.metrics.mean_absolute_error(y_Real_denorm,
+                                                                          y_Pred_denorm)
+
+        tmpAppendRow.append(norm_err_max_TrainValTest)
+        tmpAppendRow.append(denorm_err_max_TrainValTest)
+        tmpAppendRow.append(norm_err_min_TrainValTest)
+        tmpAppendRow.append(denorm_err_min_TrainValTest)
+        tmpAppendRow.append(norm_err_mse_TrainValTest)
+        tmpAppendRow.append(denorm_err_mse_TrainValTest)
+        tmpAppendRow.append(norm_err_rmse_TrainValTest)
+        tmpAppendRow.append(denorm_err_rmse_TrainValTest)
+        tmpAppendRow.append(norm_err_mae_TrainValTest)
+        tmpAppendRow.append(denorm_err_mae_TrainValTest)
+
+        if path_toSavePlot is not None:
+            print(file_manip.getCurrentDatetimeForConsole() +
+                  "::Plot Denormalized Absolute Error Figure")
+            y_max = DY_RealPred_abs_denorm.max()
+            yLabel = 'Absolute Error'
+            xLabel = ''
+            self.BE_saveAbsoluteErrorsFigure(absErrors=DY_RealPred_abs_denorm,
+                                             exportPath=path_toSavePlot,
+                                             y_max=y_max,
+                                             trainTestSplit=trainTestSplit,
+                                             title=title,
+                                             yLabel=yLabel, xLabel=xLabel)
+
+        return tmpAppendRow
+
     # *                                                         * #
     # *********************************************************** #
 
@@ -1411,117 +1492,67 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                             denormList_yReal = df_Y_realDenorm_TrainValTest[currColumn_real].to_numpy()
                             denormList_yPred = df_Y_predDenorm_TrainValTest[currColumn_pred].to_numpy()
 
-                            # max
-                            norm_err_max_TrainValTest = np.abs(normList_yReal - normList_yPred).max()
-                            denorm_err_max_TrainValTest = np.abs(denormList_yReal - denormList_yPred).max()
-                            # min
-                            norm_err_min_TrainValTest = np.abs(normList_yReal - normList_yPred).min()
-                            denorm_err_min_TrainValTest = np.abs(denormList_yReal - denormList_yPred).min()
-                            # mse
-                            norm_err_mse_TrainValTest = sklearn.metrics.mean_squared_error(normList_yReal,
-                                                                                           normList_yPred)
-                            denorm_err_mse_TrainValTest = sklearn.metrics.mean_squared_error(denormList_yReal,
-                                                                                             denormList_yPred)
-                            # rmse
-                            norm_err_rmse_TrainValTest = np.sqrt(norm_err_mse_TrainValTest)
-                            denorm_err_rmse_TrainValTest = np.sqrt(denorm_err_mse_TrainValTest)
-                            # mae
-                            norm_err_mae_TrainValTest = sklearn.metrics.mean_absolute_error(normList_yReal,
-                                                                                            normList_yPred)
-                            denorm_err_mae_TrainValTest = sklearn.metrics.mean_absolute_error(denormList_yReal,
-                                                                                              denormList_yPred)
+                            exportFigPath = o_dir_RealPredictPlots + 'Denormalized_TrainValTest_AbsoluteErrors' + \
+                                            _uniqueEvent_ + '_' + currColumn + '.png'
+                            figTitle = _uniqueEvent_ + ': ' + currColumn + ' Absolute Errors Full Set'
+                            tmpErrorArr = self.BE_calculateErrors(
+                                normList_yReal, normList_yPred,
+                                denormList_yReal, denormList_yPred,
+                                path_toSavePlot=exportFigPath,
+                                trainTestSplit=trainTestSplitIndex,
+                                title=figTitle
+                            )
 
-                            tmpAppendRow_TrainValTest.append(norm_err_max_TrainValTest)
-                            tmpAppendRow_TrainValTest.append(denorm_err_max_TrainValTest)
-                            tmpAppendRow_TrainValTest.append(norm_err_min_TrainValTest)
-                            tmpAppendRow_TrainValTest.append(denorm_err_min_TrainValTest)
-                            tmpAppendRow_TrainValTest.append(norm_err_mse_TrainValTest)
-                            tmpAppendRow_TrainValTest.append(denorm_err_mse_TrainValTest)
-                            tmpAppendRow_TrainValTest.append(norm_err_rmse_TrainValTest)
-                            tmpAppendRow_TrainValTest.append(denorm_err_rmse_TrainValTest)
-                            tmpAppendRow_TrainValTest.append(norm_err_mae_TrainValTest)
-                            tmpAppendRow_TrainValTest.append(denorm_err_mae_TrainValTest)
+                            for _error_ in tmpErrorArr:
+                                tmpAppendRow_TrainValTest.append(_error_)
 
-                            # Calculate the Errors - TrainValTes
+                            # Calculate the Errors - TrainVal
                             normList_yReal = df_Y_realNorm_TrainVal[currColumn_real].to_numpy()
                             normList_yPred = df_Y_predNorm_TrainVal[currColumn_pred].to_numpy()
                             denormList_yReal = df_Y_realDenorm_TrainVal[currColumn_real].to_numpy()
                             denormList_yPred = df_Y_predDenorm_TrainVal[currColumn_pred].to_numpy()
 
-                            # max
-                            norm_err_max_TrainVal = np.abs(normList_yReal - normList_yPred).max()
-                            denorm_err_max_TrainVal = np.abs(denormList_yReal - denormList_yPred).max()
-                            # min
-                            norm_err_min_TrainVal = np.abs(normList_yReal - normList_yPred).min()
-                            denorm_err_min_TrainVal = np.abs(denormList_yReal - denormList_yPred).min()
-                            # mse
-                            norm_err_mse_TrainVal = sklearn.metrics.mean_squared_error(normList_yReal,
-                                                                                           normList_yPred)
-                            denorm_err_mse_TrainVal = sklearn.metrics.mean_squared_error(denormList_yReal,
-                                                                                             denormList_yPred)
-                            # rmse
-                            norm_err_rmse_TrainVal = np.sqrt(norm_err_mse_TrainVal)
-                            denorm_err_rmse_TrainVal = np.sqrt(denorm_err_mse_TrainVal)
-                            # mae
-                            norm_err_mae_TrainVal = sklearn.metrics.mean_absolute_error(normList_yReal,
-                                                                                            normList_yPred)
-                            denorm_err_mae_TrainVal = sklearn.metrics.mean_absolute_error(denormList_yReal,
-                                                                                              denormList_yPred)
+                            exportFigPath = o_dir_RealPredictPlots + 'Denormalized_TrainVal_AbsoluteErrors' + \
+                                            _uniqueEvent_ + '_' + currColumn + '.png'
+                            figTitle = _uniqueEvent_ + ': ' + currColumn + ' Absolute Errors Train-Validation Set'
+                            tmpErrorArr = self.BE_calculateErrors(
+                                normList_yReal, normList_yPred,
+                                denormList_yReal, denormList_yPred,
+                                path_toSavePlot=exportFigPath,
+                                trainTestSplit=None,
+                                title=figTitle
+                            )
 
-                            tmpAppendRow_TrainVal.append(norm_err_max_TrainVal)
-                            tmpAppendRow_TrainVal.append(denorm_err_max_TrainVal)
-                            tmpAppendRow_TrainVal.append(norm_err_min_TrainVal)
-                            tmpAppendRow_TrainVal.append(denorm_err_min_TrainVal)
-                            tmpAppendRow_TrainVal.append(norm_err_mse_TrainVal)
-                            tmpAppendRow_TrainVal.append(denorm_err_mse_TrainVal)
-                            tmpAppendRow_TrainVal.append(norm_err_rmse_TrainVal)
-                            tmpAppendRow_TrainVal.append(denorm_err_rmse_TrainVal)
-                            tmpAppendRow_TrainVal.append(norm_err_mae_TrainVal)
-                            tmpAppendRow_TrainVal.append(denorm_err_mae_TrainVal)
+                            for _error_ in tmpErrorArr:
+                                tmpAppendRow_TrainVal.append(_error_)
 
-                            # Calculate the Errors - TrainValTes
+                            # Calculate the Errors - Test
                             normList_yReal = df_Y_realNorm_Test[currColumn_real].to_numpy()
                             normList_yPred = df_Y_predNorm_Test[currColumn_pred].to_numpy()
                             denormList_yReal = df_Y_realDenorm_Test[currColumn_real].to_numpy()
                             denormList_yPred = df_Y_predDenorm_Test[currColumn_pred].to_numpy()
 
-                            # max
-                            norm_err_max_Test = np.abs(normList_yReal - normList_yPred).max()
-                            denorm_err_max_Test = np.abs(denormList_yReal - denormList_yPred).max()
-                            # min
-                            norm_err_min_Test = np.abs(normList_yReal - normList_yPred).min()
-                            denorm_err_min_Test = np.abs(denormList_yReal - denormList_yPred).min()
-                            # mse
-                            norm_err_mse_Test = sklearn.metrics.mean_squared_error(normList_yReal,
-                                                                                           normList_yPred)
-                            denorm_err_mse_Test = sklearn.metrics.mean_squared_error(denormList_yReal,
-                                                                                             denormList_yPred)
-                            # rmse
-                            norm_err_rmse_Test = np.sqrt(norm_err_mse_Test)
-                            denorm_err_rmse_Test = np.sqrt(denorm_err_mse_Test)
-                            # mae
-                            norm_err_mae_Test = sklearn.metrics.mean_absolute_error(normList_yReal,
-                                                                                            normList_yPred)
-                            denorm_err_mae_Test = sklearn.metrics.mean_absolute_error(denormList_yReal,
-                                                                                              denormList_yPred)
+                            exportFigPath = o_dir_RealPredictPlots + 'Denormalized_Test_AbsoluteErrors' + \
+                                            _uniqueEvent_ + '_' + currColumn + '.png'
+                            figTitle = _uniqueEvent_ + ': ' + currColumn + ' Absolute Errors Test Set'
+                            tmpErrorArr = self.BE_calculateErrors(
+                                normList_yReal, normList_yPred,
+                                denormList_yReal, denormList_yPred,
+                                path_toSavePlot=exportFigPath,
+                                trainTestSplit=None,
+                                title=figTitle
+                            )
 
-                            tmpAppendRow_Test.append(norm_err_max_Test)
-                            tmpAppendRow_Test.append(denorm_err_max_Test)
-                            tmpAppendRow_Test.append(norm_err_min_Test)
-                            tmpAppendRow_Test.append(denorm_err_min_Test)
-                            tmpAppendRow_Test.append(norm_err_mse_Test)
-                            tmpAppendRow_Test.append(denorm_err_mse_Test)
-                            tmpAppendRow_Test.append(norm_err_rmse_Test)
-                            tmpAppendRow_Test.append(denorm_err_rmse_Test)
-                            tmpAppendRow_Test.append(norm_err_mae_Test)
-                            tmpAppendRow_Test.append(denorm_err_mae_Test)
+                            for _error_ in tmpErrorArr:
+                                tmpAppendRow_Test.append(_error_)
 
                             corrFileName = _uniqueEvent_ + '_' + currColumn
                             self.signComp_Methods.signComp_exec_(
                                 arrData1=df_Y_realNorm_TrainValTest[currColumn_real].to_numpy(),
                                 arrData2=df_Y_predNorm_TrainValTest[currColumn_pred].to_numpy(),
                                 exportFigDirPath=o_dir_SignalCompare,
-                                exportFigFileName=corrFileName)
+                                exportFigFileName=corrFileName,
+                            )
 
                         print(file_manip.getCurrentDatetimeForConsole() + "::Export Files")
                         ws_ErrorsForTrainValTest.append(tmpAppendRow_TrainValTest)

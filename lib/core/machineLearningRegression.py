@@ -229,7 +229,7 @@ DMLR_ACTIVATION_FUNCTIONS = [
     'linear',
     # 'exponential'
 ]
-DMLR_EPOCHS = 100
+DMLR_EPOCHS = 1000
 
 
 #                                          #
@@ -534,29 +534,6 @@ class MachineLearningRegression:
                 keras.layers.Reshape(
                     target_shape=(expandDimSize, int(inputSize / expandDimSize),)
                 ))
-            # Add Hidden Layer - Conv1D
-            # ffunc_model.add(
-            #     keras.layers.Conv1D(
-            #         int(inputSize / expandDimSize), 1,
-            #         activation='linear'
-            #     ))
-            # ffunc_model.add(
-            #     keras.layers.MaxPooling1D(2)
-            # )
-            # Add Hidden Layer - LSTM
-            # ffunc_model.add(
-            #     keras.layers.LSTM(
-            #         int(inputSize / expandDimSize),
-            #         return_sequences=True,
-            #     ))
-            # # Add Hidden Layer - LSTM
-            # ffunc_model.add(
-            #     keras.layers.LSTM(
-            #         inputSize,
-            #         return_sequences=True
-            #     ))
-            # # Add Dropout
-            # ffunc_model.add(keras.layers.Dropout(0.5))
             # Add Hidden Layer - LSTM
             ffunc_model.add(
                 keras.layers.LSTM(
@@ -580,7 +557,7 @@ class MachineLearningRegression:
                 ))
             ffunc_model.add(keras.layers.Dense(outputSize, activation='linear'))
 
-            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001),
                                 loss='mae')
             ffunc_model.summary()
 
@@ -650,21 +627,6 @@ class MachineLearningRegression:
                 keras.layers.Reshape(
                     target_shape=(expandDimSize, int(inputSize / expandDimSize),)
                 ))
-            # Add Hidden Layer - Conv1D
-            # ffunc_model.add(
-            #     keras.layers.Conv1D(
-            #         int(inputSize / expandDimSize), 1,
-            #         activation='linear'
-            #     ))
-            # # Add Hidden Layer - SimpleRNN
-            # ffunc_model.add(
-            #     keras.layers.SimpleRNN(
-            #         inputSize,
-            #         return_sequences=True
-            #     ))
-            # # Add Dropout
-            # ffunc_model.add(keras.layers.Dropout(0.5))
-            # Add Hidden Layer - SimpleRNN
             ffunc_model.add(
                 keras.layers.SimpleRNN(
                     expandDimSize,
@@ -688,7 +650,7 @@ class MachineLearningRegression:
             ffunc_model.add(keras.layers.Dense(outputSize,
                                                activation='linear'))
 
-            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001),
                                 loss='mae')
             ffunc_model.summary()
 

@@ -36,7 +36,7 @@ from PySide2.QtGui import (
 
 from lib.core.project_flags import *
 from lib.gui.commonFunctions import *
-# import lib.core.machineLearningRegression as mlr
+import lib.core.machineLearningClassification as mlc
 # import lib.core.signalCompare as signComp
 
 from lib.gui.guiStyle import setStyle_
