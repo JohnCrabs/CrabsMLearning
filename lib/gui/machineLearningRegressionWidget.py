@@ -485,12 +485,15 @@ class WidgetMachineLearningRegressionWidget(QWidget):
             self.actionButtonClickedGradientBoostingRegressor)
 
     def setTabSettingsDeepRegressionMethodsEvents_(self):
-        # ChangeState -> Covid_DeepNeuralNetwork
-        self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.checkbox_Covid_DeepNeuralNetwork.stateChanged.connect(
+        # ChangeState -> Covid_Convolutional_1D_LongShortTermMemory
+        self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.checkbox_Covid_Convolutional_1D_LongShortTermMemory.stateChanged.connect(
             self.actionStateChange_Covid_DeepNeuralNetwork)
         # ChangeState -> Covid_LongShortTermMemoryNeuralNetwork
         self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.checkbox_Covid_LongShortTermMemoryNeuralNetwork.stateChanged.connect(
             self.actionStateChange_Covid_LongShortTermMemoryNeuralNetwork)
+        # ChangeState -> Covid_LongShortTermMemoryNeuralNetwork_Simple
+        self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.checkbox_Covid_LongShortTermMemoryNeuralNetwork_Simple.stateChanged.connect(
+            self.actionStateChange_Covid_LongShortTermMemoryNeuralNetwork_Simple)
         # ChangeState -> Covid_SimpleRecurrentNeuralNetwork
         self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.checkbox_Covid_SimpleRecurrentNeuralNetwork.stateChanged.connect(
             self.actionStateChange_Covid_SimpleRecurrentNeuralNetwork)
@@ -1045,7 +1048,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
             y_max = DY_RealPred_abs_denorm.max()
             yLabel = 'Absolute Error'
             xLabel = ''
-            self.BE_saveAbsoluteErrorsFigure(absErrors=DY_RealPred_abs_denorm,
+            self.BE_saveAbsoluteErrorsFigure(absErrors=pd.DataFrame(DY_RealPred_abs_denorm, columns=['Absolute Errors']),
                                              exportPath=path_toSavePlot,
                                              y_max=y_max,
                                              trainTestSplit=trainTestSplit,
@@ -1921,14 +1924,19 @@ class WidgetMachineLearningRegressionWidget(QWidget):
     # ***** SET SETTINGS MACHINE DEEP LEARNING REGRESSION METHODS *** #
     # _____ CHECK BOX STATE CHANGE EVENT _____ *
     def actionStateChange_Covid_DeepNeuralNetwork(self):
-        state = self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.getCheckState_Covid_DeepNeuralNetwork()
+        state = self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.getCheckState_Covid_Convolutional_1D_LongShortTermMemory()
         # print(state)
-        self.mlr_Regression.setCovid_DNN_reg_state(state)
+        self.mlr_Regression.setCovid_CNN1D_LSTM_reg_state(state)
 
     def actionStateChange_Covid_LongShortTermMemoryNeuralNetwork(self):
         state = self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.getCheckState_Covid_LongShortTermMemoryNeuralNetwork()
         # print(state)
         self.mlr_Regression.setCovid_LSTM_reg_state(state)
+
+    def actionStateChange_Covid_LongShortTermMemoryNeuralNetwork_Simple(self):
+        state = self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.getCheckState_Covid_LongShortTermMemoryNeuralNetwork_Simple()
+        # print(state)
+        self.mlr_Regression.setCovid_LSTM_Simple_reg_state(state)
 
     def actionStateChange_Covid_SimpleRecurrentNeuralNetwork(self):
         state = self.widgetTabMachineLearningSettings.tabDeepRegressionMethods.getCheckState_Covid_SimpleRecurrentNeuralNetwork()
@@ -2917,24 +2925,29 @@ class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
         # ----------------------- #
         _icon = QIcon(QPixmap(ICON_OPTION_SETTINGS))
 
-        self.button_Covid_DeepNeuralNetwork = QPushButton()
-        self.button_Covid_DeepNeuralNetwork.setIcon(_icon)
+        self.button_Covid_Convolutional_1D_LongShortTermMemory = QPushButton()
+        self.button_Covid_Convolutional_1D_LongShortTermMemory.setIcon(_icon)
 
         self.button_Covid_LongShortTermMemoryNeuralNetwork = QPushButton()
         self.button_Covid_LongShortTermMemoryNeuralNetwork.setIcon(_icon)
 
+        self.button_Covid_LongShortTermMemoryNeuralNetwork_Simple = QPushButton()
+        self.button_Covid_LongShortTermMemoryNeuralNetwork_Simple.setIcon(_icon)
+
         self.button_Covid_SimpleRecurrentNeuralNetwork = QPushButton()
         self.button_Covid_SimpleRecurrentNeuralNetwork.setIcon(_icon)
 
-        self.button_Covid_DeepNeuralNetwork.setEnabled(False)
-        self.button_Covid_SimpleRecurrentNeuralNetwork.setEnabled(False)
+        self.button_Covid_Convolutional_1D_LongShortTermMemory.setEnabled(False)
         self.button_Covid_LongShortTermMemoryNeuralNetwork.setEnabled(False)
+        self.button_Covid_LongShortTermMemoryNeuralNetwork_Simple.setEnabled(False)
+        self.button_Covid_SimpleRecurrentNeuralNetwork.setEnabled(False)
 
         # ---------------------- #
         # ----- CheckBoxes ----- #
         # ---------------------- #
-        self.checkbox_Covid_DeepNeuralNetwork = QCheckBox()
+        self.checkbox_Covid_Convolutional_1D_LongShortTermMemory = QCheckBox()
         self.checkbox_Covid_LongShortTermMemoryNeuralNetwork = QCheckBox()
+        self.checkbox_Covid_LongShortTermMemoryNeuralNetwork_Simple = QCheckBox()
         self.checkbox_Covid_SimpleRecurrentNeuralNetwork = QCheckBox()
 
         # ---------------------- #
@@ -2967,8 +2980,9 @@ class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
         label_Options = QLabel('<b><u>Options<\\u><\\b>')
         # label_Options.setMaximumHeight(30)
 
-        label_Covid_DeepNeuralNetwork = QLabel(mlr.MLR_REG_COVID_DNN)
+        label_Covid_Convolutional_1D_LongShortTermMemory = QLabel(mlr.MLR_REG_COVID_CONV1D_LSTM)
         label_Covid_LongShortTermMemoryNeuralNetwork = QLabel(mlr.MLR_REG_COVID_LSTM)
+        label_Covid_LongShortTermMemoryNeuralNetwork_Simple = QLabel(mlr.MLR_REG_COVID_LSTM_SIMPLE)
         label_Covid_SimpleRecurrentNeuralNetwork = QLabel(mlr.MLR_REG_COVID_SIMPLE_RNN)
 
         # Set layout
@@ -2977,40 +2991,74 @@ class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
         scrollAreaWidget.setMaximumHeight(512)
         gridBox_Methods = QGridLayout(scrollAreaWidget)
 
-        gridBox_Methods.addWidget(label_Method, 0, 0, alignment=Qt.AlignLeft)
-        gridBox_Methods.addWidget(label_State, 0, 1, alignment=Qt.AlignCenter)
-        gridBox_Methods.addWidget(label_Options, 0, 2, alignment=Qt.AlignCenter)
+        tmpRowIndex = 0  # Create this index for dynamically change the rows when code changed
+        gridBox_Methods.addWidget(label_Method, tmpRowIndex, 0,
+                                  alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(label_State, tmpRowIndex, 1,
+                                  alignment=Qt.AlignCenter)
+        gridBox_Methods.addWidget(label_Options, tmpRowIndex, 2,
+                                  alignment=Qt.AlignCenter)
 
-        gridBox_Methods.addWidget(label_Covid_DeepNeuralNetwork, 1, 0, alignment=Qt.AlignLeft)
-        gridBox_Methods.addWidget(self.checkbox_Covid_DeepNeuralNetwork, 1, 1, alignment=Qt.AlignHCenter)
-        gridBox_Methods.addWidget(self.button_Covid_DeepNeuralNetwork, 1, 2, alignment=Qt.AlignHCenter)
+        tmpRowIndex += 1
+        gridBox_Methods.addWidget(label_Covid_Convolutional_1D_LongShortTermMemory, tmpRowIndex, 0,
+                                  alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_Covid_Convolutional_1D_LongShortTermMemory, tmpRowIndex, 1,
+                                  alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_Covid_Convolutional_1D_LongShortTermMemory, tmpRowIndex, 2,
+                                  alignment=Qt.AlignHCenter)
 
-        gridBox_Methods.addWidget(label_Covid_LongShortTermMemoryNeuralNetwork, 2, 0, alignment=Qt.AlignLeft)
-        gridBox_Methods.addWidget(self.checkbox_Covid_LongShortTermMemoryNeuralNetwork, 2, 1, alignment=Qt.AlignHCenter)
-        gridBox_Methods.addWidget(self.button_Covid_LongShortTermMemoryNeuralNetwork, 2, 2, alignment=Qt.AlignHCenter)
+        tmpRowIndex += 1
+        gridBox_Methods.addWidget(label_Covid_LongShortTermMemoryNeuralNetwork, tmpRowIndex, 0,
+                                  alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_Covid_LongShortTermMemoryNeuralNetwork, tmpRowIndex, 1,
+                                  alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_Covid_LongShortTermMemoryNeuralNetwork, tmpRowIndex, 2,
+                                  alignment=Qt.AlignHCenter)
 
-        gridBox_Methods.addWidget(label_Covid_SimpleRecurrentNeuralNetwork, 3, 0, alignment=Qt.AlignLeft)
-        gridBox_Methods.addWidget(self.checkbox_Covid_SimpleRecurrentNeuralNetwork, 3, 1, alignment=Qt.AlignHCenter)
-        gridBox_Methods.addWidget(self.button_Covid_SimpleRecurrentNeuralNetwork, 3, 2, alignment=Qt.AlignHCenter)
+        tmpRowIndex += 1
+        gridBox_Methods.addWidget(label_Covid_LongShortTermMemoryNeuralNetwork_Simple, tmpRowIndex, 0,
+                                  alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_Covid_LongShortTermMemoryNeuralNetwork_Simple, tmpRowIndex, 1,
+                                  alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_Covid_LongShortTermMemoryNeuralNetwork_Simple, tmpRowIndex, 2,
+                                  alignment=Qt.AlignHCenter)
 
-        gridBox_Methods.addItem(QSpacerItem(0, 10), 4, 0, 4, 2)
+        tmpRowIndex += 1
+        gridBox_Methods.addWidget(label_Covid_SimpleRecurrentNeuralNetwork, tmpRowIndex, 0,
+                                  alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_Covid_SimpleRecurrentNeuralNetwork, tmpRowIndex, 1,
+                                  alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_Covid_SimpleRecurrentNeuralNetwork, tmpRowIndex, 2,
+                                  alignment=Qt.AlignHCenter)
+
+        tmpRowIndex += 1
+        gridBox_Methods.addItem(QSpacerItem(0, 10), tmpRowIndex, 0, tmpRowIndex, 2)
 
         return scrollAreaWidget
 
     # ----------------------------- #
     # ----- Setters / Getters ----- #
     # ----------------------------- #
-    def setCheckState_Covid_DeepNeuralNetwork(self, state: bool):
-        self.checkbox_Covid_DeepNeuralNetwork.setCheckState(state)
+    def setCheckState_Covid_Convolutional_1D_LongShortTermMemory(self, state: bool):
+        self.checkbox_Covid_Convolutional_1D_LongShortTermMemory.setCheckState(state)
 
-    def getCheckState_Covid_DeepNeuralNetwork(self):
-        return self.checkbox_Covid_DeepNeuralNetwork.isChecked()
+    def getCheckState_Covid_Convolutional_1D_LongShortTermMemory(self):
+        return self.checkbox_Covid_Convolutional_1D_LongShortTermMemory.isChecked()
 
     def setCheckState_Covid_LongShortTermMemoryNeuralNetwork(self, state: bool):
         self.checkbox_Covid_LongShortTermMemoryNeuralNetwork.setCheckState(state)
 
     def getCheckState_Covid_LongShortTermMemoryNeuralNetwork(self):
         return self.checkbox_Covid_LongShortTermMemoryNeuralNetwork.isChecked()
+
+    def setCheckState_Covid_LongShortTermMemoryNeuralNetwork_Simple(self, state: bool):
+        self.checkbox_Covid_LongShortTermMemoryNeuralNetwork_Simple.setCheckState(state)
+
+    def getCheckState_Covid_LongShortTermMemoryNeuralNetwork_Simple(self):
+        return self.checkbox_Covid_LongShortTermMemoryNeuralNetwork_Simple.isChecked()
+
+    def setCheckState_Covid_SimpleRecurrentNeuralNetwork(self, state: bool):
+        self.checkbox_Covid_SimpleRecurrentNeuralNetwork.setCheckState(state)
 
     def getCheckState_Covid_SimpleRecurrentNeuralNetwork(self):
         return self.checkbox_Covid_SimpleRecurrentNeuralNetwork.isChecked()
