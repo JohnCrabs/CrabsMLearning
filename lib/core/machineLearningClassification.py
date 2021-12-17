@@ -18,6 +18,8 @@ from sklearn.model_selection import (
 import tensorflow.keras as keras
 import keras_tuner as kt
 
+import matplotlib.pyplot as plt
+
 PATH_DEFAULT_EXPORT_DATA = os.path.normpath(file_manip.PATH_DOCUMENTS + '/MachineLearningRegression')
 DEBUG_MESSAGES = True
 H5_SUFFIX = '.h5'
@@ -39,9 +41,11 @@ _MLR_TUNING_NON_DEEP_METHODS = [
 ]
 
 _MLR_TUNING_DEEP_METHODS = [
+    MLR_CLF_LSTM_ROCK_PAPER_SCISSOR
 ]
 
 _MLR_3RD_DIM_DEEP_METHODS = [
+    MLR_CLF_LSTM_ROCK_PAPER_SCISSOR
 ]
 
 #                                         #
@@ -100,7 +104,7 @@ MLR_TOL_LIST = [
     1e-10
 ]
 
-MLR_EXEC_STATE = False
+MLR_EXEC_STATE = True
 
 MLR_KERNEL_LINEAR = 'linear'
 MLR_KERNEL_POLY = 'poly'
@@ -143,7 +147,7 @@ DMLR_EPOCHS = 500
 ############################################
 
 # A class to store the Machine Learning Regression algorithms
-class MachineLearningRegression:
+class MachineLearningImageClassification:
     def __init__(self):
         self._MLR_dictMethods = {}
 
@@ -171,7 +175,7 @@ class MachineLearningRegression:
         #                                       #
         #########################################
 
-    def setMLR_dict(self):
+    def setMLC_dict(self):
         for _method_ in MLR_CLF_METHODS:
             self._MLR_dictMethods[_method_] = {}
 
@@ -254,6 +258,27 @@ class MachineLearningRegression:
             keras.layers.Dense(512, activation='relu'),
             keras.layers.Dense(3, activation='softmax')
         ])
+        model.summary()
+        model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+
+        history = model.fit(train_x, train_y, epochs=epochs, steps_per_epoch=20)
+
+        acc = history.history['accuracy']
+        val_acc = history.history['val_accuracy']
+        loss = history.history['loss']
+        val_loss = history.history['val_loss']
+
+        epochs = range(len(acc))
+
+        plt.plot(epochs, acc, 'r', label='Training accuracy')
+        plt.plot(epochs, val_acc, 'b', label='Validation accuracy')
+        plt.plot(epochs, loss, 'g', label='Loss')
+        plt.plot(epochs, val_loss, 'y', label='Validation Loss')
+        plt.title('Training and validation accuracy')
+        plt.legend(loc=0)
+        plt.figure()
+
+        plt.show()
 
     # ************************ #
     # ***** MAIN EXECUTE ***** #

@@ -829,8 +829,19 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                     _event_], dict_test_train_index[_event_] = getTrainValTest(
                     tmp_event_arr_input,
                     tmp_event_arr_output)
-                X_full[_event_] = np.array(X_full[_event_])
-                y_full[_event_] = np.array(y_full[_event_])
+                # np.convolve(np.array(X_full[_event_]), np.ones(methodIndex), 'valid') / methodIndex
+                X_full[_event_] = np.array(X_full[_event_]).T
+                y_full[_event_] = np.array(y_full[_event_]).T
+
+                for _index_ in range(X_full[_event_].shape[0]):
+                    X_full[_event_][_index_] = np.convolve(X_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
+                                                           mode='same')
+                for _index_ in range(y_full[_event_].shape[0]):
+                    y_full[_event_][_index_] = np.convolve(y_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
+                                                           mode='same')
+
+                X_full[_event_] = np.array(X_full[_event_]).T
+                y_full[_event_] = np.array(y_full[_event_]).T
 
             for _index_ in range(0, methodIndex):
                 for columnName in inputHeaders:
@@ -875,8 +886,18 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                     _event_], dict_test_train_index[_event_] = getTrainValTest(
                     tmp_event_arr_input,
                     tmp_event_arr_output)
-                X_full[_event_] = np.array(X_full[_event_])
-                y_full[_event_] = np.array(y_full[_event_])
+                X_full[_event_] = np.array(X_full[_event_]).T
+                y_full[_event_] = np.array(y_full[_event_]).T
+
+                for _index_ in range(X_full[_event_].shape[0]):
+                    X_full[_event_][_index_] = np.convolve(X_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
+                                                           mode='same')
+                for _index_ in range(y_full[_event_].shape[0]):
+                    y_full[_event_][_index_] = np.convolve(y_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
+                                                           mode='same')
+
+                X_full[_event_] = np.array(X_full[_event_]).T
+                y_full[_event_] = np.array(y_full[_event_]).T
 
             inputHeaderColumnsForML = inputHeaders
             outputHeaderColumnsForML = outputHeaders
@@ -925,8 +946,18 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                     _event_], dict_test_train_index[_event_] = getTrainValTest(
                     tmp_event_arr_input,
                     tmp_event_arr_output)
-                X_full[_event_] = np.array(X_full[_event_])
-                y_full[_event_] = np.array(y_full[_event_])
+                X_full[_event_] = np.array(X_full[_event_]).T
+                y_full[_event_] = np.array(y_full[_event_]).T
+
+                for _index_ in range(X_full[_event_].shape[0]):
+                    X_full[_event_][_index_] = np.convolve(X_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
+                                                           mode='same')
+                for _index_ in range(y_full[_event_].shape[0]):
+                    y_full[_event_][_index_] = np.convolve(y_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
+                                                           mode='same')
+
+                X_full[_event_] = np.array(X_full[_event_]).T
+                y_full[_event_] = np.array(y_full[_event_]).T
 
             for _index_ in range(0, methodIndex):
                 for columnName in inputHeaders:
@@ -2982,7 +3013,7 @@ class WidgetTabMachineLearningSettingsDeepRegressionMethods(QWidget):
 
         label_Covid_Convolutional_1D_LongShortTermMemory = QLabel(mlr.MLR_REG_COVID_CONV1D_LSTM)
         label_Covid_LongShortTermMemoryNeuralNetwork = QLabel(mlr.MLR_REG_COVID_LSTM)
-        label_Covid_LongShortTermMemoryNeuralNetwork_Simple = QLabel(mlr.MLR_REG_COVID_LSTM_SIMPLE)
+        label_Covid_LongShortTermMemoryNeuralNetwork_Simple = QLabel(mlr.MLR_REG_COVID_GRU)
         label_Covid_SimpleRecurrentNeuralNetwork = QLabel(mlr.MLR_REG_COVID_SIMPLE_RNN)
 
         # Set layout

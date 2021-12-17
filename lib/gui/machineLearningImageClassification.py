@@ -143,6 +143,9 @@ class WidgetMachineLearningImageClassification(QWidget):
         self.str_pathToTheProject = NEW_PROJECT_DEFAULT_FOLDER  # var to store the projectPath
         self.dict_tableDirsPaths = {}  # a dictionary to store the table files
 
+        self.mlc_Classification = mlc.MachineLearningImageClassification()
+        self.mlc_Classification.setMLC_dict()
+
     # DICTIONARY FILE PARAMETERS
     def dkeyDirName(self):
         return self._DKEY_DIR_NAME
@@ -408,32 +411,47 @@ class WidgetMachineLearningImageClassification(QWidget):
             # 00 - Error Checking
             # 01 - Run The Main Routine
             XY_dict = {}
-            for key in self.dict_tableDirsPaths.keys():
-                XY_dict[key] = self.BE_Create_XY_dict(key)
-                fullSizeOfData = XY_dict[key]['x'].__len__()
+            for _folderName_ in self.dict_tableDirsPaths.keys():
+                # Set a path for exporting the input-output data
+                currentFileName = os.path.splitext(_folderName_)[0]
+                currentDatetime = file_manip.getCurrentDatetimeForPath()  # Find Current Datetime
+                exportPrimaryDir = 'export_folder' + \
+                                   '/' + currentFileName + '/' + currentDatetime
+                exportDataFolder = os.path.normpath(exportPrimaryDir + '/Data')
+
+                XY_dict[_folderName_] = self.BE_Create_XY_dict(_folderName_)
+                fullSizeOfData = XY_dict[_folderName_]['x'].__len__()
 
                 indexList = np.random.permutation(fullSizeOfData).tolist()
                 sliceIndex = fullSizeOfData - int(fullSizeOfData * 0.25)
                 trainIndexes = np.array(indexList[:sliceIndex])
                 testIndexes = np.array(indexList[sliceIndex:])
 
-                X_train_paths = np.array(XY_dict[key]['x'])[trainIndexes]
+                X_train_paths = np.array(XY_dict[_folderName_]['x'])[trainIndexes]
                 X_train_images = []
-                Y_train = np.array(XY_dict[key]['y'])[trainIndexes]
+                Y_train = np.array(XY_dict[_folderName_]['y'])[trainIndexes]
 
-                X_test_paths = np.array(XY_dict[key]['x'])[testIndexes]
+                X_test_paths = np.array(XY_dict[_folderName_]['x'])[testIndexes]
                 X_test_images = []
-                Y_test = np.array(XY_dict[key]['y'])[testIndexes]
+                Y_test = np.array(XY_dict[_folderName_]['y'])[testIndexes]
 
                 for _path_ in X_train_paths:
                     img = cv2.imread(_path_)
                     # print(img.shape)
                     X_train_images.append(img)
+                X_train_images = np.array(X_train_images)
 
                 for _path_ in X_test_paths:
                     img = cv2.imread(_path_)
                     # print(img.shape)
                     X_test_images.append(img)
+                X_test_images = np.array(X_test_images)
+
+                self.mlc_Classification.fit(X_TrainVal=X_train_images,
+                                           y_TrainVal=Y_train,
+                                           X_Test=X_test_images,
+                                           y_Test=Y_test,
+                                           exportFolder=exportPrimaryDir)
 
 
 # *********************************** #
@@ -536,30 +554,12 @@ class OpenGLWidgetImageVisualizer(QGLWidget):
                 designer_width = self.height() * original_ratio
                 scale = designer_width / w
 
-            if self.width() < self.height():
-                if original_ratio == 1.0:
-                    glRasterPos2f(-1.0, -0.5)
-                elif original_ratio > 1.0:
-                    pos = scale * h
-                    pos = 1.0 - ((self.height() - pos) / self.height())
-                    glRasterPos2f(-1.0, -pos)
-                else:
-                    pos = scale * w
-                    pos = 1.0 - ((self.width() - pos) / self.width())
-                    glRasterPos2f(-1.0, -pos)
-            elif self.width() > self.height():
-                if original_ratio == 1.0:
-                    glRasterPos2f(-0.5, -1.0)
-                elif original_ratio > 1.0:
-                    pos = scale * h
-                    pos = 1.0 - ((self.height() - pos) / self.height())
-                    glRasterPos2f(-pos, -1.0)
-                else:
-                    pos = scale * w
-                    pos = 1.0 - ((self.width() - pos) / self.width())
-                    glRasterPos2f(-pos, -1.0)
-            else:
-                glRasterPos2f(-1.0, -1.0)
+            pos_w = scale * w
+            pos_w = 1.0 - ((self.width() - pos_w) / self.width())
+            glRasterPos2f(-pos_w, -1.0)
+            pos_h = scale * h
+            pos_h = 1.0 - ((self.height() - pos_h) / self.height())
+            glRasterPos2f(-pos_w, -pos_h)
 
             glPixelZoom(scale, scale)
             glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, self.imgToView)
