@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 import openpyxl as op
 import matplotlib.pyplot as plt
-import statsmodels.api as sm
 import sklearn
 
 from PySide2.QtCore import (
@@ -81,7 +80,8 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         self._DKEY_MLP_EXPORT_FOLDER: str = 'export-folder'
         self._DKEY_MLP_EXPER_NUMBER: str = 'experiment-number'
         self._DKEY_MLP_ML_METHOD: str = 'ml-method'
-        self._DKEY_MLP_METHOD_INDEX: str = 'ml-type-index'
+        self._DKEY_MLP_METHOD_INDEX: str = 'ml-method-index'
+        self._DKEY_MLP_FILTER_INDEX: str = 'ml-filter-index'
         self._DKEY_MLP_MULTIFILE_TRAINING_PROCESSING: str = 'multifile-training-processing'
 
         # -------------------------------- #
@@ -175,6 +175,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
             self.dkey_mlpExportFolder(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultExportPath(),
             self.dkey_mlpMethod(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultMethod(),
             self.dkey_mlpMethodIndex(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultMethodIndex(),
+            self.dkey_mlpFilterIndex(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultFilterIndex(),
             self.dkey_multifileTrainingProcessing(): self.widgetTabMachineLearningSettings.tabGeneral.getDefaultMultifileTrainingProcessing()
         }
 
@@ -227,6 +228,9 @@ class WidgetMachineLearningRegressionWidget(QWidget):
 
     def dkey_mlpMethodIndex(self):
         return self._DKEY_MLP_METHOD_INDEX
+
+    def dkey_mlpFilterIndex(self):
+        return self._DKEY_MLP_FILTER_INDEX
 
     def dkey_multifileTrainingProcessing(self):
         return self._DKEY_MLP_MULTIFILE_TRAINING_PROCESSING
@@ -365,7 +369,10 @@ class WidgetMachineLearningRegressionWidget(QWidget):
             self.actionExperimentResultChange)
 
         self.widgetTabMachineLearningSettings.tabGeneral.spinBox_MachineLearningMethodsIndex.valueChanged.connect(
-            self.actionMachineLearningMethodIndexChange)
+            self.actionMachineLearningMethodsIndexChange)
+
+        self.widgetTabMachineLearningSettings.tabGeneral.spinBox_MachineLearningFilterIndex.valueChanged.connect(
+            self.actionMachineLearningFilterIndexChange)
 
         # Double Spin Boxes  Events
         self.widgetTabMachineLearningSettings.tabGeneral.doubleSpinBox_TestPercentage.valueChanged.connect(
@@ -693,6 +700,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
             fileData.fillna(method='bfill', inplace=True)  # fill na values using bfill
         return fileData  # return the fileData
 
+    # Create the Train-Validation-Test Arrays
     def BE_setTrainValTestArrays(self, dictDataInput: {}, dictDataOutput: {}, inputHeaders: [], outputHeaders: []):
         def getTrainValTest(inputArr, outputArr):
             datasetSize = inputArr.__len__()
@@ -792,10 +800,13 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         y_test = {}  # Create an output dict to store the values of test lists
         # Shorten the name of methodIndex
         methodIndex = self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()]
+        filterIndex = self.dict_machineLearningParameters[self.dkey_mlpFilterIndex()]
         dict_test_train_index = {}
 
         inputHeaderColumnsForML = []
         outputHeaderColumnsForML = []
+
+        print('Data will be filtered with FILTER_VALUE = ', filterIndex)
 
         # Check if the user selected Sequential method
         if self.dict_machineLearningParameters[self.dkey_mlpMethod()] == MLPF_METHOD_SEQUENTIAL_REGRESSION:
@@ -825,7 +836,9 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                 # print("InputShape: ", np.array(tmp_event_arr_input).shape)
                 # print("OutputShape: ", np.array(tmp_event_arr_output).shape)
                 # print()
-
+                # *************************** #
+                # ***** FILTER THE DATA ***** #
+                # *************************** #
                 X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[
                     _event_], dict_test_train_index[_event_] = getTrainValTest(
                     tmp_event_arr_input,
@@ -838,7 +851,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                     X_full[_event_][_index_] = np.convolve(X_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
                                                            mode='same')
                 for _index_ in range(y_full[_event_].shape[0]):
-                    y_full[_event_][_index_] = np.convolve(y_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
+                    y_full[_event_][_index_] = np.convolve(y_full[_event_][_index_], np.ones(filterIndex) / filterIndex,
                                                            mode='same')
 
                 X_full[_event_] = np.array(X_full[_event_]).T
@@ -882,7 +895,9 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                 # print("InputShape: ", np.array(tmp_event_arr_input).shape)
                 # print("OutputShape: ", np.array(tmp_event_arr_output).shape)
                 # print()
-
+                # *************************** #
+                # ***** FILTER THE DATA ***** #
+                # *************************** #
                 X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[
                     _event_], dict_test_train_index[_event_] = getTrainValTest(
                     tmp_event_arr_input,
@@ -894,7 +909,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                     X_full[_event_][_index_] = np.convolve(X_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
                                                            mode='same')
                 for _index_ in range(y_full[_event_].shape[0]):
-                    y_full[_event_][_index_] = np.convolve(y_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
+                    y_full[_event_][_index_] = np.convolve(y_full[_event_][_index_], np.ones(filterIndex) / filterIndex,
                                                            mode='same')
 
                 X_full[_event_] = np.array(X_full[_event_]).T
@@ -942,7 +957,9 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                 # print("InputShape: ", np.array(tmp_event_arr_input).shape)
                 # print("OutputShape: ", np.array(tmp_event_arr_output).shape)
                 # print()
-
+                # *************************** #
+                # ***** FILTER THE DATA ***** #
+                # *************************** #
                 X_train_val[_event_], y_train_val[_event_], X_test[_event_], y_test[
                     _event_], dict_test_train_index[_event_] = getTrainValTest(
                     tmp_event_arr_input,
@@ -954,7 +971,7 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                     X_full[_event_][_index_] = np.convolve(X_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
                                                            mode='same')
                 for _index_ in range(y_full[_event_].shape[0]):
-                    y_full[_event_][_index_] = np.convolve(y_full[_event_][_index_], np.ones(methodIndex) / methodIndex,
+                    y_full[_event_][_index_] = np.convolve(y_full[_event_][_index_], np.ones(filterIndex) / filterIndex,
                                                            mode='same')
 
                 X_full[_event_] = np.array(X_full[_event_]).T
@@ -1009,16 +1026,13 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         plt.close()
 
     @staticmethod
-    def BE_saveQQPlotFigure(y_Real: np.ndarray, y_Pred: np.ndarray, exportPath: str, y_max=None,
-                            trainTestSplit=None, title='Figure: QQ-PLot',
-                            yLabel='', xLabel=''):
-
-        y_QQ = np.array([[x, y] for (x, y) in (y_Real, y_Pred)])
-        sm.qqplot(y_QQ, line='45')
+    def BE_saveQQPlotFigure(y_Real: np.ndarray, y_Pred: np.ndarray, exportPath: str,
+                            title='Figure: QQ-PLot', yLabel='', xLabel=''):
+        plt.scatter(y_Real, y_Pred)
+        plt.plot(y_Real, y_Real, color='r', lw=3, scalex=False, scaley=False)
         plt.gcf().set_size_inches(24.8, 12.4)
         plt.gcf().subplots_adjust(bottom=0.25)
         plt.title(title, fontsize=25)
-        plt.legend(fontsize=20, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=False, ncol=2)
         plt.yticks(fontsize=20)
         plt.ylabel(yLabel,
                    fontsize=22.5)
@@ -1026,13 +1040,6 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         plt.xlabel(xLabel,
                    fontsize=22.5)
 
-        if y_max is not None:
-            y_bottom, y_top = plt.ylim(0, y_max)
-        else:
-            y_bottom, y_top = plt.ylim(0)
-        if trainTestSplit is not None:
-            for _vxLine_ in trainTestSplit:
-                plt.vlines(_vxLine_, y_bottom, y_top, colors='r', linestyles='dashed')
         plt.savefig(exportPath, bbox_inches='tight', dpi=100)
         plt.close()
 
@@ -1596,6 +1603,16 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                                 title=figTitle
                             )
 
+                            exportFigPath = o_dir_RealPredictPlots + 'Denormalized_TrainVal_QQPlot' + \
+                                            _uniqueEvent_ + '_' + currColumn + '.png'
+                            figTitle = _uniqueEvent_ + ': ' + currColumn + ' QQ-Plot'
+                            self.BE_saveQQPlotFigure(
+                                y_Real=denormList_yReal,
+                                y_Pred=denormList_yPred,
+                                exportPath=exportFigPath,
+                                title=figTitle,
+                                yLabel='Predicted Values', xLabel='Real Values')
+
                             for _error_ in tmpErrorArr:
                                 tmpAppendRow_TrainVal.append(_error_)
 
@@ -1615,6 +1632,16 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                                 trainTestSplit=None,
                                 title=figTitle
                             )
+
+                            exportFigPath = o_dir_RealPredictPlots + 'Denormalized_Test_QQPlot' + \
+                                            _uniqueEvent_ + '_' + currColumn + '.png'
+                            figTitle = _uniqueEvent_ + ': ' + currColumn + ' QQ-Plot'
+                            self.BE_saveQQPlotFigure(
+                                y_Real=denormList_yReal,
+                                y_Pred=denormList_yPred,
+                                exportPath=exportFigPath,
+                                title=figTitle,
+                                yLabel='Predicted Values', xLabel='Real Values')
 
                             for _error_ in tmpErrorArr:
                                 tmpAppendRow_Test.append(_error_)
@@ -1845,11 +1872,17 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         if self.debugMessageFlag:
             print(self.dict_machineLearningParameters[self.dkey_mlpMethod()])
 
-    def actionMachineLearningMethodIndexChange(self):
+    def actionMachineLearningMethodsIndexChange(self):
         self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()] = \
             self.widgetTabMachineLearningSettings.tabGeneral.spinBox_MachineLearningMethodsIndex.value()
         self.mlr_Regression.set3rdDimensionSizeToDeepLearningMethods(
             self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
+        if self.debugMessageFlag:
+            print(self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
+
+    def actionMachineLearningFilterIndexChange(self):
+        self.dict_machineLearningParameters[self.dkey_mlpFilterIndex()] = \
+            self.widgetTabMachineLearningSettings.tabGeneral.spinBox_MachineLearningFilterIndex.value()
         if self.debugMessageFlag:
             print(self.dict_machineLearningParameters[self.dkey_mlpMethodIndex()])
 
@@ -2309,6 +2342,11 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # set the minimum value to 1 (at least a row needs to be used as input/output)
         self.spinBox_MachineLearningMethodsIndex.setMinimum(1)
 
+        # create a spinBox for the MachineLearningMethodIndex
+        self.spinBox_MachineLearningFilterIndex = QSpinBox()
+        # set the minimum value to 1 (at least a row needs to be used as input/output)
+        self.spinBox_MachineLearningFilterIndex.setMinimum(1)
+
         # -------------------------- #
         # ----- QDoubleSpinBox ----- #
         # -------------------------- #
@@ -2367,6 +2405,7 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         self._exportPathDefaultValue = MLF_DEFAULT_EXPORT_FOLDER_PATH
         self._mlMethodDefaultValue = MLF_DEFAULT_METHOD
         self._mlMethodIndexDefaultValue = MLF_DEFAULT_METHOD_INDEX
+        self._mlFilterIndexDefaultValue = MLF_DEFAULT_FILTER_INDEX
         self._mlMultifileTrainingProcessingDefaultValue = MLF_DEFAULT_MULTIFILE_TRAINING_PROCESSING
         self._testPercentageDistributionDefaultValue = MLF_DEFAULT_TEST_PERCENTAGE_DISTRIBUTION
         self._holdoutPercentageDistributionDefaultValue = MLF_DEFAULT_HOLDOUT_PERCENTAGE_DISTRIBUTION
@@ -2397,7 +2436,9 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         # label_SetOutPath.setMinimumWidth(100)
         label_MachineLearningMethod = QLabel("Machine Learning Method:")
         # label_MachineLearningMethod.setMinimumWidth(100)
-        label_MachineLearningMethodIndex = QLabel("Method Usage Index:")
+        label_MachineLearningMethodsIndex = QLabel("Method Usage Index:")
+        # label_MachineLearningMethod.setMinimumWidth(100)
+        label_MachineLearningFilterIndex = QLabel("Filter Usage Index:")
         # label_MachineLearningMethodIndex.setMinimumWidth(100)
         label_MultifileTrainingProcessing = QLabel("Multifile Training Processing:")
         # label_MultifileTrainingProcessing.setMinimumWidth(100)
@@ -2454,13 +2495,19 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         hbox_MachineLearningMethods.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
 
         hbox_MachineLearningMethodsIndex = QHBoxLayout()
-        hbox_MachineLearningMethodsIndex.addWidget(label_MachineLearningMethodIndex)
+        hbox_MachineLearningMethodsIndex.addWidget(label_MachineLearningMethodsIndex)
         hbox_MachineLearningMethodsIndex.addWidget(self.spinBox_MachineLearningMethodsIndex)
         hbox_MachineLearningMethodsIndex.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_MachineLearningFilterIndex = QHBoxLayout()
+        hbox_MachineLearningFilterIndex.addWidget(label_MachineLearningFilterIndex)
+        hbox_MachineLearningFilterIndex.addWidget(self.spinBox_MachineLearningFilterIndex)
+        hbox_MachineLearningFilterIndex.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
 
         vbox_finalMachineLearningMethods = QVBoxLayout()
         vbox_finalMachineLearningMethods.addLayout(hbox_MachineLearningMethods)
         vbox_finalMachineLearningMethods.addLayout(hbox_MachineLearningMethodsIndex)
+        vbox_finalMachineLearningMethods.addLayout(hbox_MachineLearningFilterIndex)
 
         # MultifileTrainingProcessing
         hbox_MultifileTrainingProcessing = QHBoxLayout()
@@ -2483,6 +2530,7 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
         self.lineEdit_SetOutPath.setText(os.path.normpath(self._exportPathDefaultValue))
         self.comboBox_MachineLearningMethods.setCurrentText(self._mlMethodDefaultValue)
         self.spinBox_MachineLearningMethodsIndex.setValue(self._mlMethodIndexDefaultValue)
+        self.spinBox_MachineLearningFilterIndex.setValue(self._mlFilterIndexDefaultValue)
         self.comboBox_MultifileTrainingProcessing.setCurrentText(self._mlMultifileTrainingProcessingDefaultValue)
         self.comboBox_TestPercentageDistribution.setCurrentText(self._testPercentageDistributionDefaultValue)
         self.comboBox_HoldoutPercentageDistribution.setCurrentText(self._holdoutPercentageDistributionDefaultValue)
@@ -2516,6 +2564,9 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
 
     def getDefaultMethodIndex(self):
         return self._mlMethodIndexDefaultValue
+
+    def getDefaultFilterIndex(self):
+        return self._mlFilterIndexDefaultValue
 
     def getDefaultMultifileTrainingProcessing(self):
         return self._mlMultifileTrainingProcessingDefaultValue

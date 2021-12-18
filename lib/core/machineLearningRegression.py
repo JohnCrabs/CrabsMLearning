@@ -687,7 +687,11 @@ class MachineLearningRegression:
                 keras.layers.Reshape(
                     target_shape=(outputSize,)
                 ))
-            # ffunc_model.add(keras.layers.Dense(outputSize, activation='linear'))
+            ffunc_model.add(
+                keras.layers.Dense(
+                    outputSize,
+                    activation='linear'
+                ))
 
             ffunc_model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001),
                                 loss='mae')
