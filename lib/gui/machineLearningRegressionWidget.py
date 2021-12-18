@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import openpyxl as op
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
 import sklearn
 
 from PySide2.QtCore import (
@@ -1008,6 +1009,34 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         plt.close()
 
     @staticmethod
+    def BE_saveQQPlotFigure(y_Real: np.ndarray, y_Pred: np.ndarray, exportPath: str, y_max=None,
+                            trainTestSplit=None, title='Figure: QQ-PLot',
+                            yLabel='', xLabel=''):
+
+        y_QQ = np.array([[x, y] for (x, y) in (y_Real, y_Pred)])
+        sm.qqplot(y_QQ, line='45')
+        plt.gcf().set_size_inches(24.8, 12.4)
+        plt.gcf().subplots_adjust(bottom=0.25)
+        plt.title(title, fontsize=25)
+        plt.legend(fontsize=20, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=False, ncol=2)
+        plt.yticks(fontsize=20)
+        plt.ylabel(yLabel,
+                   fontsize=22.5)
+        plt.xticks(fontsize=20)
+        plt.xlabel(xLabel,
+                   fontsize=22.5)
+
+        if y_max is not None:
+            y_bottom, y_top = plt.ylim(0, y_max)
+        else:
+            y_bottom, y_top = plt.ylim(0)
+        if trainTestSplit is not None:
+            for _vxLine_ in trainTestSplit:
+                plt.vlines(_vxLine_, y_bottom, y_top, colors='r', linestyles='dashed')
+        plt.savefig(exportPath, bbox_inches='tight', dpi=100)
+        plt.close()
+
+    @staticmethod
     def BE_saveAbsoluteErrorsFigure(absErrors: pd.DataFrame, exportPath: str, y_max=None,
                                     trainTestSplit=None, title='Figure: Absolute Errors',
                                     yLabel='', xLabel=''):
@@ -1536,6 +1565,16 @@ class WidgetMachineLearningRegressionWidget(QWidget):
                                 trainTestSplit=trainTestSplitIndex,
                                 title=figTitle
                             )
+
+                            exportFigPath = o_dir_RealPredictPlots + 'Denormalized_TrainValTest_QQPlot' + \
+                                            _uniqueEvent_ + '_' + currColumn + '.png'
+                            figTitle = _uniqueEvent_ + ': ' + currColumn + ' QQ-Plot'
+                            self.BE_saveQQPlotFigure(
+                                y_Real=denormList_yReal,
+                                y_Pred=denormList_yPred,
+                                exportPath=exportFigPath,
+                                title=figTitle,
+                                yLabel='Predicted Values', xLabel='Real Values')
 
                             for _error_ in tmpErrorArr:
                                 tmpAppendRow_TrainValTest.append(_error_)
