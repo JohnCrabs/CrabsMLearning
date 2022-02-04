@@ -15,6 +15,7 @@ from sklearn.model_selection import (
     # cross_val_score
 )
 
+import tensorflow as tf
 import tensorflow.keras as keras
 import keras_tuner as kt
 
@@ -28,10 +29,10 @@ H5_SUFFIX = '.h5'
 # ***** MACHINE LEARNING TECHNIQUES ***** #
 #                                         #
 
-MLR_CLF_LSTM_ROCK_PAPER_SCISSOR = 'LongShortTermMemoryNetwork_for_RockPaperScissor'
+MLR_CLF_CNN_ROCK_PAPER_SCISSOR = 'ConvolutionalNeuralNetwork_for_RockPaperScissor'
 
 MLR_CLF_METHODS = [
-    MLR_CLF_LSTM_ROCK_PAPER_SCISSOR
+    MLR_CLF_CNN_ROCK_PAPER_SCISSOR
 ]
 
 _MLR_NO_TUNING_LIST = [
@@ -41,11 +42,11 @@ _MLR_TUNING_NON_DEEP_METHODS = [
 ]
 
 _MLR_TUNING_DEEP_METHODS = [
-    MLR_CLF_LSTM_ROCK_PAPER_SCISSOR
+    MLR_CLF_CNN_ROCK_PAPER_SCISSOR
 ]
 
 _MLR_3RD_DIM_DEEP_METHODS = [
-    MLR_CLF_LSTM_ROCK_PAPER_SCISSOR
+    MLR_CLF_CNN_ROCK_PAPER_SCISSOR
 ]
 
 #                                         #
@@ -140,7 +141,7 @@ DMLR_ACTIVATION_FUNCTIONS = [
     'linear',
     # 'exponential'
 ]
-DMLR_EPOCHS = 500
+DMLR_EPOCHS = 10
 
 
 #                                          #
@@ -185,8 +186,8 @@ class MachineLearningImageClassification:
     # ***** RESTORE DEFAULT VALUES ***** #
     # ********************************** #
     def restore_LSTM_RockPaperScissor_Defaults(self):
-        self._MLR_dictMethods[MLR_CLF_LSTM_ROCK_PAPER_SCISSOR] = {
-            MLR_KEY_METHOD: self.DeepLearning_RockPaperScissor_LSTM,
+        self._MLR_dictMethods[MLR_CLF_CNN_ROCK_PAPER_SCISSOR] = {
+            MLR_KEY_METHOD: self.DeepLearning_RockPaperScissor_CNN,
             self._MLR_KEY_STATE: MLR_EXEC_STATE,
             MLR_KEY_PARAM_GRID: {
                 MLR_KEY_ACTIVATION_FUNCTION: DMLR_ACTIVATION_FUNCTIONS,
@@ -235,12 +236,19 @@ class MachineLearningImageClassification:
 
         return model
 
-    def DeepLearning_RockPaperScissor_LSTM(self, train_x, train_y, test_x, test_y,
-                                           epochs: int, exportDirectory: str, activation_function_list: []):
+    @staticmethod
+    def DeepLearning_RockPaperScissor_CNN(train_x: list, train_y: list, test_x: list, test_y: list,
+                                          epochs: int, exportDirectory: str, activation_function_list: []):
+
+        size_wh = 300
+
+        train_x = tf.image.resize(train_x, [size_wh, size_wh])
+        test_x = tf.image.resize(test_x, [size_wh, size_wh])
+
         model = keras.models.Sequential([
             # Note the input shape is the desired size of the image 150x150 with 3 bytes color
             # This is the first convolution
-            keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=(150, 150, 3)),
+            keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=(size_wh, size_wh, 3)),
             keras.layers.MaxPooling2D(2, 2),
             # The second convolution
             keras.layers.Conv2D(64, (3, 3), activation='relu'),
@@ -260,25 +268,27 @@ class MachineLearningImageClassification:
         ])
         model.summary()
         model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+        model.fit(train_x, train_y, epochs=epochs, steps_per_epoch=20)
 
-        history = model.fit(train_x, train_y, epochs=epochs, steps_per_epoch=20)
+        # history = model.fit(train_x, train_y, epochs=epochs, steps_per_epoch=20)
+        # acc = history.history['accuracy']
+        # # val_acc = history.history['val_accuracy']
+        # loss = history.history['loss']
+        # # val_loss = history.history['val_loss']
+        #
+        # epochs = range(len(acc))
+        #
+        # plt.plot(epochs, acc, 'r', label='Training accuracy')
+        # # plt.plot(epochs, val_acc, 'b', label='Validation accuracy')
+        # plt.plot(epochs, loss, 'g', label='Loss')
+        # # plt.plot(epochs, val_loss, 'y', label='Validation Loss')
+        # plt.title('Training and validation accuracy')
+        # plt.legend(loc=0)
+        # plt.figure()
+        #
+        # plt.show()
 
-        acc = history.history['accuracy']
-        val_acc = history.history['val_accuracy']
-        loss = history.history['loss']
-        val_loss = history.history['val_loss']
-
-        epochs = range(len(acc))
-
-        plt.plot(epochs, acc, 'r', label='Training accuracy')
-        plt.plot(epochs, val_acc, 'b', label='Validation accuracy')
-        plt.plot(epochs, loss, 'g', label='Loss')
-        plt.plot(epochs, val_loss, 'y', label='Validation Loss')
-        plt.title('Training and validation accuracy')
-        plt.legend(loc=0)
-        plt.figure()
-
-        plt.show()
+        return model
 
     # ************************ #
     # ***** MAIN EXECUTE ***** #
