@@ -605,6 +605,7 @@ class WidgetTabMachineLearningSettings(QWidget):
         self.mainTabWidget = QTabWidget()  # Create a main widget tab
 
         self.tabGeneral = WidgetTabMachineLearningSettingsGeneral()  # create a tab for General (info)
+        self.tabCommonParameters = WidgetTabMachineLearningSettingsCommonParameters()  # create a tab for common parameters
 
     def setWidget(self):
         """
@@ -612,7 +613,9 @@ class WidgetTabMachineLearningSettings(QWidget):
             :return: Nothing
         """
         self.tabGeneral.setWidget()  # set tab General (info)
+        self.tabCommonParameters.setWidget()  # set tab Common Parameters
         self.mainTabWidget.addTab(self.tabGeneral, "General")  # add tab to mainTabWidget
+        self.mainTabWidget.addTab(self.tabCommonParameters, "Common Parameters")  # add tab to mainTabWidget
         self.vbox_main_layout.addWidget(self.mainTabWidget)  # add tabWidget to main layout
 
 
@@ -865,6 +868,211 @@ class WidgetTabMachineLearningSettingsGeneral(QWidget):
 
     def getDefaultMultifileTrainingProcessing(self):
         return self._mlMultifileTrainingProcessingDefaultValue
+
+
+# *********** Machine Learning Settings --> Common Parameters *********** #
+class WidgetTabMachineLearningSettingsCommonParameters(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet(setStyle_())  # set the tab style
+
+        # ---------------------- #
+        # ----- Set Window ----- #
+        # ---------------------- #
+        self.vbox_main_layout = QVBoxLayout(self)  # Create the main vbox
+
+        # ----------------------- #
+        # ----- QPushButton ----- #
+        # ----------------------- #
+        self.buttonRestoreDefault = QPushButton("Restore Default")
+        self.buttonRestoreDefault.setMinimumWidth(150)  # Set Minimum Width
+        self.buttonRestoreDefault.setMinimumHeight(30)  # Set Minimum Height
+        self.buttonRestoreDefault.setToolTip('Restore the default values.')  # Add Description
+
+        # self.buttonSetOutPath = QPushButton("...")
+        # self.buttonSetOutPath.setMinimumWidth(INT_ADD_REMOVE_BUTTON_SIZE)  # Set Minimum Width
+        # self.buttonSetOutPath.setMaximumWidth(INT_ADD_REMOVE_BUTTON_SIZE)  # Set Maximum Width
+        # self.buttonSetOutPath.setMinimumHeight(30)  # Set Minimum Height
+        # self.buttonSetOutPath.setToolTip('Select the output path')  # Add Description
+
+        # -------------------- #
+        # ----- QSpinBox ----- #
+        # -------------------- #
+        # create a spinBox for the Width Resolution
+        self.spinBox_WidthResolution = QSpinBox()
+        # set the minimum value to 8 and maximum value to 4096
+        self.spinBox_WidthResolution.setMinimum(8)
+        self.spinBox_WidthResolution.setMaximum(4096)
+        # set single step tp 16
+        self.spinBox_WidthResolution.setSingleStep(16)
+
+        # create a spinBox for the Height Resolution
+        self.spinBox_HeightResolution = QSpinBox()
+        # set the minimum value to 8 and maximum value to 4096
+        self.spinBox_HeightResolution.setMinimum(8)
+        self.spinBox_HeightResolution.setMaximum(4096)
+        # set single step tp 16
+        self.spinBox_HeightResolution.setSingleStep(16)
+
+        # -------------------------- #
+        # ----- QDoubleSpinBox ----- #
+        # -------------------------- #
+        # # create a doubleSpinBox for the test percentage
+        # self.doubleSpinBox_TestPercentage = QDoubleSpinBox()
+        # # set minimum value
+        # self.doubleSpinBox_TestPercentage.setMinimum(MLF_TEST_PERCENTAGE_MIN)
+        # # set maximum value
+        # self.doubleSpinBox_TestPercentage.setMaximum(MLF_TEST_PERCENTAGE_MAX)
+        # # set step
+        # self.doubleSpinBox_TestPercentage.setSingleStep(MLF_TEST_STEP_WIDGET)
+        # # create a doubleSpinBox fot the holdout percentage
+        # self.doubleSpinBox_HoldoutPercentage = QDoubleSpinBox()
+        # # set minimum value
+        # self.doubleSpinBox_HoldoutPercentage.setMinimum(MLF_HOLDOUT_PERCENTAGE_MIN)
+        # # set maximum value
+        # self.doubleSpinBox_HoldoutPercentage.setMaximum(MLF_HOLDOUT_PERCENTAGE_MAX)
+        # # set step
+        # self.doubleSpinBox_HoldoutPercentage.setSingleStep(MLF_HOLDOUT_STEP_WIDGET)
+
+        # --------------------- #
+        # ----- QLineEdit ----- #
+        # --------------------- #
+        # self.lineEdit_SetOutPath = QLineEdit()
+        # self.lineEdit_SetOutPath.setEnabled(False)
+
+        # --------------------- #
+        # ----- QComboBox ----- #
+        # --------------------- #
+        # # MachineLearningMethods
+        # self.comboBox_MachineLearningMethods = QComboBox()
+        # self.comboBox_MachineLearningMethods.setMinimumWidth(250)
+        # self.comboBox_MachineLearningMethods.addItems(MLPF_METHOD_LIST_IMAGE_CLASSIFICATION)
+        #
+        # # MultifileTrainingProcessing
+        # self.comboBox_MultifileTrainingProcessing = QComboBox()
+        # self.comboBox_MultifileTrainingProcessing.setMinimumWidth(200)
+        # self.comboBox_MultifileTrainingProcessing.addItems(MLPF_MULTIFILE_TRAINING_PROCESSING_LIST)
+        #
+        # # TestPercentageDistribution
+        # self.comboBox_TestPercentageDistribution = QComboBox()
+        # self.comboBox_TestPercentageDistribution.setMinimumWidth(200)
+        # self.comboBox_TestPercentageDistribution.addItems(MLPF_PERCENTAGE_DISTRIBUTION_LIST)
+        #
+        # # HoldoutPercentageDistribution
+        # self.comboBox_HoldoutPercentageDistribution = QComboBox()
+        # self.comboBox_HoldoutPercentageDistribution.setMinimumWidth(200)
+        # self.comboBox_HoldoutPercentageDistribution.addItems(MLPF_PERCENTAGE_DISTRIBUTION_LIST)
+
+        # ------------------------------ #
+        # ----- Set Default Values ----- #
+        # ------------------------------ #
+        self._widthResolutionDefaultValue = MLF_DEFAULT_INPUT_LAYER_IMAGE_WIDTH_RESOLUTION
+        self._heightResolutionDefaultValue = MLF_DEFAULT_INPUT_LAYER_IMAGE_HEIGHT_RESOLUTION
+        # self._holdoutPercentageDefaultValue = MLF_DEFAULT_HOLDOUT_PERCENTAGE
+        # self._exportPathDefaultValue = MLF_DEFAULT_EXPORT_FOLDER_PATH
+        # self._mlMethodDefaultValue = MLF_DEFAULT_METHOD
+        # self._mlMethodIndexDefaultValue = MLF_DEFAULT_METHOD_INDEX
+        # self._mlMultifileTrainingProcessingDefaultValue = MLF_DEFAULT_MULTIFILE_TRAINING_PROCESSING
+        # self._testPercentageDistributionDefaultValue = MLF_DEFAULT_TEST_PERCENTAGE_DISTRIBUTION
+        # self._holdoutPercentageDistributionDefaultValue = MLF_DEFAULT_HOLDOUT_PERCENTAGE_DISTRIBUTION
+
+    # --------------------------- #
+    # ----- Reuse Functions ----- #
+    # --------------------------- #
+    def setWidget(self):
+        """
+            A function to create the widget components into the main QWidget
+            :return: Nothing
+        """
+        self.restoreDefaultValues()
+        self.setEvents_()
+
+        # Set Labels
+        label_WidthResolution = QLabel("Input Layer Image Width:")
+        label_HeightResolution = QLabel("Input Layer Image Height:")
+        # # label_TestPercentage.setMinimumWidth(100)
+        # label_TestPercentageDistribution = QLabel("Test Percentage Distribution:")
+        # # label_TestPercentageDistribution.setMinimumWidth(100)
+        # label_HoldOutPercentage = QLabel("Hold-Out Percentage (0.00-0.75):")
+        # # label_HoldOutPercentage.setMinimumWidth(100)
+        # label_HoldoutPercentageDistribution = QLabel("Hold-Out Percentage Distribution:")
+        # # label_HoldoutPercentageDistribution.setMinimumWidth(100)
+        # label_SetOutPath = QLabel("Export Folder:")
+        # # label_SetOutPath.setMinimumWidth(100)
+        # label_MachineLearningMethod = QLabel("Machine Learning Method:")
+        # # label_MachineLearningMethod.setMinimumWidth(100)
+        # label_MachineLearningMethodIndex = QLabel("Method Usage Index:")
+        # # label_MachineLearningMethodIndex.setMinimumWidth(100)
+        # label_MultifileTrainingProcessing = QLabel("Multifile Training Processing:")
+        # # label_MultifileTrainingProcessing.setMinimumWidth(100)
+        #
+        # Set SpinBoxes
+        hbox_WidthResolution = QHBoxLayout()
+        hbox_WidthResolution.addWidget(label_WidthResolution)
+        hbox_WidthResolution.addWidget(self.spinBox_WidthResolution)
+        hbox_WidthResolution.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        hbox_HeightResolution = QHBoxLayout()
+        hbox_HeightResolution.addWidget(label_HeightResolution)
+        hbox_HeightResolution.addWidget(self.spinBox_HeightResolution)
+        hbox_HeightResolution.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+
+        vbox_finalSpinBoxes = QVBoxLayout()
+        vbox_finalSpinBoxes.addLayout(hbox_WidthResolution)
+        vbox_finalSpinBoxes.addLayout(hbox_HeightResolution)
+
+        # # SetOutPath Layout
+        # hbox_SetOutPath = QHBoxLayout()
+        # hbox_SetOutPath.addWidget(label_SetOutPath)
+        # hbox_SetOutPath.addWidget(self.lineEdit_SetOutPath)
+        # hbox_SetOutPath.addWidget(self.buttonSetOutPath)
+        # # hbox_SetOutPath.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+        #
+        # Button Layout
+        hbox_buttons = QHBoxLayout()
+        hbox_buttons.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+        hbox_buttons.addWidget(self.buttonRestoreDefault)
+        #
+        # # MachineLearningMethods
+        # hbox_MachineLearningMethods = QHBoxLayout()
+        # hbox_MachineLearningMethods.addWidget(label_MachineLearningMethod)
+        # hbox_MachineLearningMethods.addWidget(self.comboBox_MachineLearningMethods)
+        # hbox_MachineLearningMethods.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+        #
+        # hbox_MachineLearningMethodsIndex = QHBoxLayout()
+        # hbox_MachineLearningMethodsIndex.addWidget(label_MachineLearningMethodIndex)
+        # hbox_MachineLearningMethodsIndex.addWidget(self.spinBox_MachineLearningMethodsIndex)
+        # hbox_MachineLearningMethodsIndex.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+        #
+        # vbox_finalMachineLearningMethods = QVBoxLayout()
+        # vbox_finalMachineLearningMethods.addLayout(hbox_MachineLearningMethods)
+        # vbox_finalMachineLearningMethods.addLayout(hbox_MachineLearningMethodsIndex)
+        #
+        # # MultifileTrainingProcessing
+        # hbox_MultifileTrainingProcessing = QHBoxLayout()
+        # hbox_MultifileTrainingProcessing.addWidget(label_MultifileTrainingProcessing)
+        # hbox_MultifileTrainingProcessing.addWidget(self.comboBox_MultifileTrainingProcessing)
+        # hbox_MultifileTrainingProcessing.addSpacerItem(QSpacerItem(INT_MAX_STRETCH, 0))
+        #
+        self.vbox_main_layout.addLayout(vbox_finalSpinBoxes)
+        # self.vbox_main_layout.addLayout(hbox_SetOutPath)
+        # self.vbox_main_layout.addLayout(vbox_finalMachineLearningMethods)
+        # self.vbox_main_layout.addLayout(hbox_MultifileTrainingProcessing)
+        self.vbox_main_layout.addSpacerItem(QSpacerItem(0, INT_MAX_STRETCH))
+        self.vbox_main_layout.addLayout(hbox_buttons)
+
+    def restoreDefaultValues(self):
+        # set default value
+        self.spinBox_WidthResolution.setValue(self._widthResolutionDefaultValue)
+        self.spinBox_HeightResolution.setValue(self._heightResolutionDefaultValue)
+
+    def setEvents_(self):
+        self.buttonRestoreDefault.clicked.connect(self.restoreDefaultValues)
+
+    # ------------------------------ #
+    # ----- GET DEFAULT VALUES ----- #
+    # ------------------------------ #
 
 
 # ******************************************************* #
