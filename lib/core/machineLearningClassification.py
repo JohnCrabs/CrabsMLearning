@@ -434,7 +434,7 @@ class MachineLearningImageClassification:
             else:
                 pass
 
-            if model is not None:
+            if model is not None:  # Needs to find a way to keep track the input size <=======
                 # if model is scikit learn model
                 if model not in _MLR_NO_TUNING_LIST:
                     predTrain = model.predict(inputData_TrainVal)  # make predictions (train)
