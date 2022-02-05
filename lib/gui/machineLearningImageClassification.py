@@ -30,7 +30,7 @@ from PySide2.QtWidgets import (
 )
 
 from PySide2.QtGui import (
-    QIcon,
+    # QIcon,
     QPixmap
 )
 
@@ -411,47 +411,54 @@ class WidgetMachineLearningImageClassification(QWidget):
             # 00 - Error Checking
             # 01 - Run The Main Routine
             XY_dict = {}
+            # for each folder in directory
             for _folderName_ in self.dict_tableDirsPaths.keys():
                 # Set a path for exporting the input-output data
-                currentFileName = os.path.splitext(_folderName_)[0]
+                currentFileName = os.path.splitext(_folderName_)[0]  # get Folder Name
                 currentDatetime = file_manip.getCurrentDatetimeForPath()  # Find Current Datetime
                 exportPrimaryDir = 'export_folder' + \
                                    '/' + currentFileName + '/' + currentDatetime
-                exportDataFolder = os.path.normpath(exportPrimaryDir + '/Data')
+                # exportDataFolder = os.path.normpath(exportPrimaryDir + '/Data')
 
-                XY_dict[_folderName_] = self.BE_Create_XY_dict(_folderName_)
-                fullSizeOfData = XY_dict[_folderName_]['x'].__len__()
+                XY_dict[_folderName_] = self.BE_Create_XY_dict(
+                    _folderName_)  # Find the classes in dir and set the dictionary (x,y)
+                fullSizeOfData = XY_dict[_folderName_]['x'].__len__()  # Get the size of the dataset
 
-                indexList = np.random.permutation(fullSizeOfData).tolist()
-                sliceIndex = fullSizeOfData - int(fullSizeOfData * 0.25)
-                trainIndexes = np.array(indexList[:sliceIndex])
-                testIndexes = np.array(indexList[sliceIndex:])
+                indexList = np.random.permutation(fullSizeOfData).tolist()  # Calculate a list of indexes (permutation)
+                sliceIndex = fullSizeOfData - int(fullSizeOfData * 0.25)  # Find the index for slicing
+                trainIndexes = np.array(indexList[:sliceIndex])  # Set train-validation indexes
+                testIndexes = np.array(indexList[sliceIndex:])  # Set test indexes
 
+                # Create the Train-Validation set
                 X_train_paths = np.array(XY_dict[_folderName_]['x'])[trainIndexes]
                 X_train_images = []
                 Y_train = np.array(XY_dict[_folderName_]['y'])[trainIndexes]
 
+                # Create the Test set
                 X_test_paths = np.array(XY_dict[_folderName_]['x'])[testIndexes]
                 X_test_images = []
                 Y_test = np.array(XY_dict[_folderName_]['y'])[testIndexes]
 
+                # Read images for train set
                 for _path_ in X_train_paths:
                     img = cv2.imread(_path_)
                     # print(img.shape)
                     X_train_images.append(img)
                 X_train_images = np.array(X_train_images)
 
+                # Read images for test set
                 for _path_ in X_test_paths:
                     img = cv2.imread(_path_)
                     # print(img.shape)
                     X_test_images.append(img)
                 X_test_images = np.array(X_test_images)
 
+                # Execute the Classification
                 self.mlc_Classification.fit(X_TrainVal=X_train_images,
-                                           y_TrainVal=Y_train,
-                                           X_Test=X_test_images,
-                                           y_Test=Y_test,
-                                           exportFolder=exportPrimaryDir)
+                                            y_TrainVal=Y_train,
+                                            X_Test=X_test_images,
+                                            y_Test=Y_test,
+                                            exportFolder=exportPrimaryDir)
 
 
 # *********************************** #
