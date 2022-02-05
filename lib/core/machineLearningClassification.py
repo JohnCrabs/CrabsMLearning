@@ -240,7 +240,10 @@ class MachineLearningImageClassification:
     def DeepLearning_RockPaperScissor_CNN(train_x: list, train_y: list, test_x: list, test_y: list,
                                           epochs: int, exportDirectory: str, activation_function_list: []):
 
-        size_wh = 300
+        # ============================================================================================================== #
+        # ============================================================================================================== #
+
+        size_wh = 150
 
         train_x = tf.image.resize(train_x, [size_wh, size_wh])
         test_x = tf.image.resize(test_x, [size_wh, size_wh])
@@ -287,6 +290,9 @@ class MachineLearningImageClassification:
         # plt.figure()
         #
         # plt.show()
+
+        # ============================================================================================================== #
+        # ============================================================================================================== #
 
         return model
 
