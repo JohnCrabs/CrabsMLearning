@@ -47,6 +47,8 @@ from sklearn.model_selection import (
 
 from statsmodels.tsa.arima.model import ARIMA
 
+from pmdarima import auto_arima
+
 import tensorflow.keras as keras
 import keras_tuner as kt
 
@@ -297,6 +299,7 @@ class MachineLearningRegression:
         self.restore_RandomForestRegressor_Default()
         self.restore_AdaBoostRegressor_Default()
         self.restore_GradientBoostingRegressor_Default()
+        self.restore_ARIMA_Default()
         self.restore_Covid_Convolutional_1D_LongShortTermMemoryRegressor_Default()
         self.restore_Covid_LongShortTermMemoryNetworkRegressor_Default()
         self.restore_Covid_GatedRecurrentUnitRegressor_Default()
@@ -400,7 +403,7 @@ class MachineLearningRegression:
                                                                   }
 
     def restore_ARIMA_Default(self):
-        self._MLR_dictMethods[MLR_REG_ARIMA] = {MLR_KEY_METHOD: ARIMA(),
+        self._MLR_dictMethods[MLR_REG_ARIMA] = {MLR_KEY_METHOD: None,
                                                 self._MLR_KEY_STATE: MLR_EXEC_STATE,
                                                 MLR_KEY_PARAM_GRID: {}
                                                 }
@@ -1065,6 +1068,13 @@ class MachineLearningRegression:
     def getGradientBoostingRegressor_state(self):
         return self._MLR_dictMethods[MLR_REG_GRADIENT_BOOSTING_REGRESSOR][self._MLR_KEY_STATE]
 
+    # ****** Arima ***** #
+    def setArima_state(self, state: bool):
+        self._MLR_dictMethods[MLR_REG_ARIMA][self._MLR_KEY_STATE] = state
+
+    def getArima_state(self):
+        return self._MLR_dictMethods[MLR_REG_ARIMA][self._MLR_KEY_STATE]
+
     # ****** Covid_Convolutional_1D_LongShortTermMemoryNeuralNetworkRegressor ***** #
     def setCovid_CNN1D_LSTM_reg_state(self, state: bool):
         self._MLR_dictMethods[MLR_REG_COVID_CONV1D_LSTM][self._MLR_KEY_STATE] = state
@@ -1204,7 +1214,10 @@ class MachineLearningRegression:
             elif _methodKey_ in _MLR_OTHER_METHODS:
                 print(
                     file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "..")  # console message
-                model = self._MLR_dictMethods[_methodKey_][MLR_KEY_METHOD](inputData_TrainVal)
+                if self._MLR_dictMethods[_methodKey_][MLR_KEY_METHOD] is None:
+                    if _methodKey_ == MLR_REG_ARIMA:
+                        model = auto_arima(inputData_TrainVal, trace=True, suppress_warnings=True)
+
                 model.fit()
                 print(file_manip.getCurrentDatetimeForConsole() + "::...COMPLETED!")
                 self._MLR_dictMethods[_methodKey_][MLR_KEY_TRAINED_MODEL] = model

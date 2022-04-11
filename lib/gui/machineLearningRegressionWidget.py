@@ -448,6 +448,9 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         # ChangeState -> GradientBoostingRegressor
         self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_GradientBoostingRegressor.stateChanged.connect(
             self.actionStateChangeGradientBoostingRegressor)
+        # ChangeState -> Arima
+        self.widgetTabMachineLearningSettings.tabRegressionMethods.checkbox_Arima.stateChanged.connect(
+            self.actionStateChangeArima)
 
         # ButtonClicked (Options) -> Ridge
         self.widgetTabMachineLearningSettings.tabRegressionMethods.button_Ridge.clicked.connect(
@@ -1981,6 +1984,11 @@ class WidgetMachineLearningRegressionWidget(QWidget):
         # print(state)
         self.mlr_Regression.setGradientBoostingRegressor_state(state)
 
+    def actionStateChangeArima(self):
+        state = self.widgetTabMachineLearningSettings.tabRegressionMethods.getCheckState_Arima()
+        # print(state)
+        self.mlr_Regression.setArima_state(state)
+
     # _____ BUTTON CLICKED EVENT _____ #
     def actionButtonClickedRidge(self):
         self.widgetOptions_Ridge.show()
@@ -3036,6 +3044,12 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
 
     def getCheckState_GradientBoostingRegressor(self):
         return self.checkbox_GradientBoostingRegressor.isChecked()
+
+    def setCheckState_Arima(self, state: bool):
+        self.checkbox_Arima.setCheckState(state)
+
+    def getCheckState_Arima(self):
+        return self.checkbox_Arima.isChecked()
 
 
 # *********** Machine Learning Settings --> Deep Regression Methods *********** #
