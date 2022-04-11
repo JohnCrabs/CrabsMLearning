@@ -16,7 +16,7 @@ from sklearn.linear_model import (
     Lasso,
     LassoLars,
     TweedieRegressor,
-    SGDRegressor
+    SGDRegressor,
 )
 
 from sklearn.svm import (
@@ -26,7 +26,7 @@ from sklearn.svm import (
 
 from sklearn.neighbors import (
     NearestNeighbors,
-    KNeighborsRegressor
+    KNeighborsRegressor,
 )
 
 from sklearn.tree import (
@@ -44,6 +44,8 @@ from sklearn.model_selection import (
     # RandomizedSearchCV,
     # cross_val_score
 )
+
+from statsmodels.tsa.arima.model import ARIMA
 
 import tensorflow.keras as keras
 import keras_tuner as kt
@@ -72,6 +74,8 @@ MLR_REG_K_NEIGHBORS_REGRESSOR = 'KNeighborsRegressor'
 
 MLR_REG_DECISION_TREE_REGRESSOR = 'DecisionTreeRegressor'
 
+MLR_REG_ARIMA = 'Arima'
+
 MLR_REG_RANDOM_FOREST_REGRESSOR = 'RandomForestRegressor'
 MLR_REG_ADA_BOOST_REGRESSOR = 'AdaBoostRegressor'
 MLR_REG_GRADIENT_BOOSTING_REGRESSOR = 'GradientBoostingRegressor'
@@ -98,6 +102,7 @@ MLR_REG_METHODS = [
     MLR_REG_NEAREST_NEIGHBORS,
     MLR_REG_K_NEIGHBORS_REGRESSOR,
     MLR_REG_DECISION_TREE_REGRESSOR,
+    MLR_REG_ARIMA,
     MLR_REG_RANDOM_FOREST_REGRESSOR,
     MLR_REG_ADA_BOOST_REGRESSOR,
     MLR_REG_GRADIENT_BOOSTING_REGRESSOR,
@@ -126,6 +131,10 @@ _MLR_TUNING_NON_DEEP_METHODS = [
     MLR_REG_RANDOM_FOREST_REGRESSOR,
     MLR_REG_ADA_BOOST_REGRESSOR,
     MLR_REG_GRADIENT_BOOSTING_REGRESSOR
+]
+
+_MLR_OTHER_METHODS = [
+    MLR_REG_ARIMA
 ]
 
 _MLR_TUNING_DEEP_METHODS = [
@@ -389,6 +398,12 @@ class MachineLearningRegression:
                                                                   self._MLR_KEY_STATE: MLR_EXEC_STATE,
                                                                   MLR_KEY_PARAM_GRID: {}
                                                                   }
+
+    def restore_ARIMA_Default(self):
+        self._MLR_dictMethods[MLR_REG_ARIMA] = {MLR_KEY_METHOD: ARIMA(),
+                                                self._MLR_KEY_STATE: MLR_EXEC_STATE,
+                                                MLR_KEY_PARAM_GRID: {}
+                                                }
 
     def restore_RandomForestRegressor_Default(self):
         self._MLR_dictMethods[MLR_REG_RANDOM_FOREST_REGRESSOR] = {MLR_KEY_METHOD: RandomForestRegressor(),
@@ -850,10 +865,10 @@ class MachineLearningRegression:
             self._MLR_dictMethods[_method_][MLR_KEY_3RD_DIM_SIZE] = dimSize
 
     # ****** LINEAR_REGRESSION ***** #
-    def setLinearRegression_sate(self, state: bool):
+    def setLinearRegression_state(self, state: bool):
         self._MLR_dictMethods[MLR_REG_LINEAR_REGRESSION][self._MLR_KEY_STATE] = state
 
-    def getLinearRegression_sate(self):
+    def getLinearRegression_state(self):
         return self._MLR_dictMethods[MLR_REG_LINEAR_REGRESSION][self._MLR_KEY_STATE]
 
     # ****** RIDGE ***** #
@@ -1185,6 +1200,14 @@ class MachineLearningRegression:
                     print(file_manip.getCurrentDatetimeForConsole() + "::Model exported at: ", modelExportPath)
                     print(file_manip.getCurrentDatetimeForConsole() + "::Best Estimator = ", model.best_estimator_)
                     print(file_manip.getCurrentDatetimeForConsole() + "::Best Score = ", model.best_score_)
+
+            elif _methodKey_ in _MLR_OTHER_METHODS:
+                print(
+                    file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "..")  # console message
+                model = self._MLR_dictMethods[_methodKey_][MLR_KEY_METHOD](inputData_TrainVal)
+                model.fit()
+                print(file_manip.getCurrentDatetimeForConsole() + "::...COMPLETED!")
+                self._MLR_dictMethods[_methodKey_][MLR_KEY_TRAINED_MODEL] = model
 
             elif _methodKey_ in _MLR_TUNING_DEEP_METHODS:  # elif method is keras
                 if self._MLR_dictMethods[_methodKey_][self._MLR_KEY_STATE]:
