@@ -2602,6 +2602,7 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.button_RandomForestRegressor = QPushButton()
         self.button_AdaBoostRegressor = QPushButton()
         self.button_GradientBoostingRegressor = QPushButton()
+        self.button_Arima = QPushButton()
 
         self.button_Ridge.setIcon(_icon)
         self.button_BayesianRidge.setIcon(_icon)
@@ -2617,6 +2618,7 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.button_RandomForestRegressor.setIcon(_icon)
         self.button_AdaBoostRegressor.setIcon(_icon)
         self.button_GradientBoostingRegressor.setIcon(_icon)
+        self.button_Arima.setIcon(_icon)
 
         self.button_BayesianRidge.setEnabled(False)
         self.button_Lasso.setEnabled(False)
@@ -2630,6 +2632,7 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.button_RandomForestRegressor.setEnabled(False)
         self.button_AdaBoostRegressor.setEnabled(False)
         self.button_GradientBoostingRegressor.setEnabled(False)
+        self.button_Arima.setEnabled(False)
 
         # ---------------------- #
         # ----- CheckBoxes ----- #
@@ -2649,6 +2652,7 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         self.checkbox_RandomForestRegressor = QCheckBox()
         self.checkbox_AdaBoostRegressor = QCheckBox()
         self.checkbox_GradientBoostingRegressor = QCheckBox()
+        self.checkbox_Arima = QCheckBox()
 
         self.checkbox_BayesianRidge.setEnabled(False)
         self.checkbox_Lasso.setEnabled(False)
@@ -2708,6 +2712,7 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         label_RandomForestRegressor = QLabel(mlr.MLR_REG_RANDOM_FOREST_REGRESSOR)
         label_AdaBoostRegressor = QLabel(mlr.MLR_REG_ADA_BOOST_REGRESSOR)
         label_GradientBoostingRegressor = QLabel(mlr.MLR_REG_GRADIENT_BOOSTING_REGRESSOR)
+        label_Arima = QLabel(mlr.MLR_REG_ARIMA)
 
         # Set layout
         scrollAreaWidget = QWidget()
@@ -2777,6 +2782,10 @@ class WidgetTabMachineLearningSettingsRegressionMethods(QWidget):
         gridBox_Methods.addWidget(label_GradientBoostingRegressor, 15, 0, alignment=Qt.AlignLeft)
         gridBox_Methods.addWidget(self.checkbox_GradientBoostingRegressor, 15, 1, alignment=Qt.AlignHCenter)
         gridBox_Methods.addWidget(self.button_GradientBoostingRegressor, 15, 2, alignment=Qt.AlignHCenter)
+
+        gridBox_Methods.addWidget(label_Arima, 16, 0, alignment=Qt.AlignLeft)
+        gridBox_Methods.addWidget(self.checkbox_Arima, 16, 1, alignment=Qt.AlignHCenter)
+        gridBox_Methods.addWidget(self.button_Arima, 16, 2, alignment=Qt.AlignHCenter)
 
         return scrollAreaWidget
 
