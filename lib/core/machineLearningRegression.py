@@ -5,6 +5,9 @@ import joblib
 import numpy as np
 import openpyxl as op
 
+import pandas as pd
+import matplotlib.pyplot as plt
+
 import lib.core.file_manipulation as file_manip
 
 from sklearn.metrics import mean_absolute_error, mean_squared_error, max_error
@@ -441,9 +444,9 @@ class MachineLearningRegression:
         self._MLR_dictMethods[MLR_REG_COVID_GRU] = {MLR_KEY_METHOD: self.DeepLearning_Covid_GRU,
                                                     self._MLR_KEY_STATE: MLR_EXEC_STATE,
                                                     MLR_KEY_PARAM_GRID: {
-                                                                MLR_KEY_ACTIVATION_FUNCTION: DMLR_ACTIVATION_FUNCTIONS,
-                                                                MLR_KEY_NUMBER_OF_EPOCHS: DMLR_EPOCHS
-                                                            },
+                                                        MLR_KEY_ACTIVATION_FUNCTION: DMLR_ACTIVATION_FUNCTIONS,
+                                                        MLR_KEY_NUMBER_OF_EPOCHS: DMLR_EPOCHS
+                                                    },
                                                     MLR_KEY_TRAINED_MODEL: None,
                                                     MLR_KEY_3RD_DIM_SIZE: 1
                                                     }
@@ -1216,9 +1219,13 @@ class MachineLearningRegression:
                     file_manip.getCurrentDatetimeForConsole() + "::Training " + _methodKey_ + "..")  # console message
                 if self._MLR_dictMethods[_methodKey_][MLR_KEY_METHOD] is None:
                     if _methodKey_ == MLR_REG_ARIMA:
-                        model = auto_arima(inputData_TrainVal, trace=True, suppress_warnings=True)
+                        for i in range(outputData_TrainVal.T.shape[0]):
+                            model = auto_arima(outputData_TrainVal.T[i], trace=True, suppress_warnings=True)
+                            model_fit = model.fit(outputData_TrainVal.T[i])
+                            residuals = pd.DataFrame(model_fit.resid())
+                            residuals.plot(title="Residuals")
+                            plt.savefig('fig.png')
 
-                model.fit()
                 print(file_manip.getCurrentDatetimeForConsole() + "::...COMPLETED!")
                 self._MLR_dictMethods[_methodKey_][MLR_KEY_TRAINED_MODEL] = model
 
