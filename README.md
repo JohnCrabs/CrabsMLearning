@@ -115,7 +115,9 @@ Finally, by pressing the Execute button the application perform the machine lear
 ![10_Execute.png](readme/machine_learning_regression/10_Execute.png)
 
 # Licence
-license lgpl-3.0
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[LICENCE](LICENSE)
+
 
 # Project State
 Alpha Version: Still Under Development. Feel free to mail me for ideas or work with me to set up the best interface for Statistical, Deep/Machine Learning and Big Data Analysis.
