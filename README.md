@@ -65,7 +65,7 @@ currently supports:
   an Input Array (X) and an Output Array (Y), for each category and calculate statistical information
   later for each event (e.g. the accuracy of the global model for each country).
 
-![05_CreateInputOutputFiles.png](readme/machine_learning_regression/05_CreateInputOutputFiles.png)
+![05_CreateInputOutputFiles.png](readme/machine_learning_regression/05_CreateInputOutputFIles.png)
 
 After selecting the columns for each list, the next step is to edit the Machine Learning Setting.
 
@@ -113,6 +113,9 @@ mean absolute error (MAE), root mean squared error (RMSE) and max error and expo
 Finally, by pressing the Execute button the application perform the machine learning process. 
 
 ![10_Execute.png](readme/machine_learning_regression/10_Execute.png)
+
+# Licence
+license lgpl-3.0
 
 # Project State
 Alpha Version: Still Under Development. Feel free to mail me for ideas or work with me to set up the best interface for Statistical, Deep/Machine Learning and Big Data Analysis.
