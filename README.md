@@ -65,7 +65,7 @@ currently supports:
   an Input Array (X) and an Output Array (Y), for each category and calculate statistical information
   later for each event (e.g. the accuracy of the global model for each country).
 
-![05_CreateInputOutputFiles.png](readme/machine_learning_regression/05_CreateInputOutputFiles.png)
+![05_CreateInputOutputFiles.png](readme/machine_learning_regression/05_CreateInputOutputFIles.png)
 
 After selecting the columns for each list, the next step is to edit the Machine Learning Setting.
 
