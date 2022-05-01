@@ -1,12 +1,10 @@
 pip install pyside2
 pip install PyQt5
 pip install QDarkStyle
-pip install shutil
 pip install pandas
 pip install matplotlib
 pip install sklearn
 pip install openpyxl
-pip install dulwich
 pip install tensorflow
 pip install seaborn
 pip install dtw-python
