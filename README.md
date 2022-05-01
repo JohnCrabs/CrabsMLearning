@@ -115,7 +115,7 @@ Finally, by pressing the Execute button the application perform the machine lear
 ![10_Execute.png](readme/machine_learning_regression/10_Execute.png)
 
 # Licence
-license lgpl-3.
+license lgpl-3.0
 
 # Project State
 Alpha Version: Still Under Development. Feel free to mail me for ideas or work with me to set up the best interface for Statistical, Deep/Machine Learning and Big Data Analysis.
