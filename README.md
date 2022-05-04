@@ -118,7 +118,10 @@ Finally, by pressing the Execute button the application perform the machine lear
 The application has been tested using a COVID-19 dataset downloaded from Our World in Data
 (https://github.com/owid/covid-19-data/tree/master/public/data) for the creation of four
 deep learning models: (a) Convolutional 1D - Long Short Term Memory; (b) Gated Recurrent Unit;
-(c) Long Short Term Memory; and (d) Simple Recurrent Neural Network.
+(c) Long Short Term Memory; and (d) Simple Recurrent Neural Network. The architecture is summarized
+bellow:
+
+![01_Architecture.jpg](readme/covid_case_study/01_Architecture.jpg)
 
 Two Global European Union models (case studies) created, using a time series dataset for the period of
 March 1st 2020 to September 15th 2021, for each deep learning method.
