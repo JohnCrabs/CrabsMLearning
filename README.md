@@ -124,7 +124,8 @@ bellow:
 ![01_Architecture.jpg](readme/covid_case_study/01_Architecture.jpg)
 
 Two Global European Union models (case studies) created, using a time series dataset for the period of
-March 1st 2020 to September 15th 2021, for each deep learning method.
+March 1st 2020 to September 15th 2021, for each deep learning method, for 12 European countries (Austria, Belgium, 
+Denmark, Estonia, Finland, France, Germany, Ireland, Italy, Netherlands, Portugal, and Romania).
 
 - Case Study 1: The model uses as input the mitigation measures (School Closures, Workplace Closures, Cancel Public Events, Restriction in Gatherings, 
 Close Public Transport, Stay Home Requirements, Public Information Campaigns, Restrictions Internal Movements, 
@@ -147,7 +148,7 @@ patients predictions.
 ![00_Results.png](readme/covid_case_study/00_Results.png)
 
 
-Austria Belgium Denmark Estonia Finland France Germany Ireland Italy Netherlands Portugal Romania
+
 
 # Licence
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
