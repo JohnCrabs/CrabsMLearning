@@ -147,9 +147,6 @@ patients predictions.
 
 ![00_Results.png](readme/covid_case_study/00_Results.png)
 
-
-
-
 # Licence
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [LICENCE](LICENSE)
