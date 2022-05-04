@@ -114,6 +114,38 @@ Finally, by pressing the Execute button the application perform the machine lear
 
 ![10_Execute.png](readme/machine_learning_regression/10_Execute.png)
 
+# Example Usage
+The application has been tested using a COVID-19 dataset downloaded from Our World in Data
+(https://github.com/owid/covid-19-data/tree/master/public/data) for the creation of four
+deep learning models: (a) Convolutional 1D - Long Short Term Memory; (b) Gated Recurrent Unit;
+(c) Long Short Term Memory; and (d) Simple Recurrent Neural Network.
+
+Two Global European Union models (case studies) created, using a time series dataset for the period of
+March 1st 2020 to September 15th 2021, for each deep learning method.
+
+- Case Study 1: The model uses as input the mitigation measures (School Closures, Workplace Closures, Cancel Public Events, Restriction in Gatherings, 
+Close Public Transport, Stay Home Requirements, Public Information Campaigns, Restrictions Internal Movements, 
+International Travel Controls, Facial Coverings) and the New Cases per Million and New Deaths per Million calculated from the
+dataset in a weekly period (method index = 7). The output was the New Cases per Million and New Deaths per Million for the next
+week.
+
+- Case Study 2: The model uses as input the mitigation measures (School Closures, Workplace Closures, Cancel Public Events, Restriction in Gatherings, 
+Close Public Transport, Stay Home Requirements, Public Information Campaigns, Restrictions Internal Movements, 
+International Travel Controls, Facial Coverings) and the ICU-Patients per Million and HOSP-Patients per Million calculated from the
+dataset in a weekly period (method index = 7). The output was the ICU-Patients per Million and HOSP-Patients per Million for the next
+week.
+
+The following figure summarized the results of this research. In the first case study, the results 
+showed, that all four methods can be used for the estimation of future cases and deaths, however 
+SimpleRNN resulted better than the other methods, for most of the countries. In the second case 
+study, LSTM is preferable, because it performed good in both ICU admissions and hospitalized 
+patients predictions. 
+
+![00_Results.png](readme/covid_case_study/00_Results.png)
+
+
+Austria Belgium Denmark Estonia Finland France Germany Ireland Italy Netherlands Portugal Romania
+
 # Licence
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [LICENCE](LICENSE)
